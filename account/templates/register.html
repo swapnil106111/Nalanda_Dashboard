@@ -1,0 +1,166 @@
+<html>
+
+<head>
+    <!--<link rel="stylesheet" href="../static/css/main.css" media="all">-->
+    <link rel="stylesheet" href="/static/node_modules/bootstrap/dist/css/bootstrap.min.css" media="all">
+    <!--<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>-->
+    <!--<script type="text/javascript" src="http://yourjavascript.com/7174319415/script.js"></script>-->
+    <link rel="stylesheet" href="/static/css/main.css" media="all">
+    <!-- jquery -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=EDGE">
+    <!-- jquery -->
+    <script type="text/javascript" src="/static/node_modules/jquery/dist/jquery.min.js"></script>
+    <!-- bootstrap -->
+
+    <script type="text/javascript">
+
+        // initialize data from the template
+        institutedata = {{data|safe}};
+        
+        $(document).ready(function () {
+
+            // on page load follloiwng actions should be taken
+            // 1. hide institutes drop down and classes drop donw
+            $("#InstitutesSelecDiv").hide();
+            $("#ClassesSelectDiv").hide();
+            
+            // 2. initialize classes drop down with respect to first value of school
+            // for (j = 0; j < institutedata[0]['classes'].length; j++) {
+            //     $('#checkBoxesInnerdiv').append('<input type="checkbox" name="checks[]"  value="' + institutedata[0]['classes'][j]['id'] + '"/> ' + institutedata[0]['classes'][j]['name'] + '<br />');
+            // }
+
+            // This function is performed when role is changed
+            // It shows institutes or classes based on role sleected
+            $("#id_role").change(function () {
+                // alert("Inside")
+                var e = document.getElementById("id_role");
+                var strUserRole = e.options[e.selectedIndex].value;
+                $("#InstitutesSelecDiv").hide();
+                $("#ClassesSelectDiv").hide();
+                if (strUserRole!= "" && strUserRole != 1) {
+                    $("#InstitutesSelecDiv").show();
+                    $("#id_institutes").val("");
+                }
+            }).change();
+
+            // This function is performed when institute is changed or selected
+            // It shows classes based on role selected
+            $('#id_institutes').change(function () {
+                $("#ClassesSelectDiv").hide();
+                // alert("inside")
+                var valueSelected = $(this).val();
+                // alert(valueSelected)
+                idselected = $('#id_role').val();
+                // alert(idselected)
+                var classes = "";        
+                if (idselected == 3 && valueSelected !='') {
+                    var option = "<option value>---------</option>";
+                    $.each(institutedata[valueSelected], function(k,v){
+                        option += "<option value="+v.class_id+">"+v.class_name+"</option>";
+                    });
+                    classes = "<select id='id_classes' name = 'classes' >"+option+"</select>";
+                }
+                
+                $("#checkBoxesOuterdiv div").html(classes);
+                if (classes!="")
+                    $("#ClassesSelectDiv").show();
+            }).change();
+        });
+
+    </script>
+
+</head>
+<body class="login">
+<h1 class="site-title">Kolibri Visualizer</h1>
+<div class="content">
+    <h2>Register a new account</h2>
+    <!--<div><label id="Message" class="label label-info"></label></div>-->
+    <div  id="Message"></div>
+    {% if code != 0 or info.message %}
+        <div class="error">{{ info.message }}</div>
+        {% endif %}
+    {% block content %}
+    <form id="register" method="POST">
+        <div class ="row">
+            <div class="col-sm-6">
+                {{ form.first_name.label_tag }}
+                <div class ="input">
+                    {{ form.first_name }}
+                </div>
+            </div>   
+            <div class="col-sm-6">
+                {{ form.last_name.label_tag }}
+                <div class ="input">
+                    {{ form.last_name }}
+                </div>
+            </div>
+        </div>
+        <div class ="row">
+            <div class="col-sm-6">
+                {{ form.username.label_tag }}
+                <div class ="input">
+                    {{ form.username }}
+                </div>
+            </div>   
+            <div class="col-sm-6">
+                {{ form.password1.label_tag }}
+                <div class ="input">
+                    {{ form.password1 }}
+                </div>
+            </div>
+        </div>
+        <div class ="row">
+            <div class="col-sm-6">
+                {{ form.password2.label_tag }}
+                <div class ="input">
+                    {{ form.password2 }}
+                </div>
+            </div>
+            <div class="col-sm-6">
+                {{ form.email.label_tag }}
+                <div class ="input">
+                    {{ form.email }}
+                </div>
+            </div>
+        </div>
+        <div class ="row">
+            <div class="col-sm-6">
+                {{ form.role.label_tag }}
+                <div class ="input">
+                    {{ form.role }}
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div id="InstitutesSelecDiv">
+                    {{ form.institutes.label_tag }}
+                    <div class="input">
+                       {{ form.institutes }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class ="row">
+            <div class="col-sm-6">
+                <div id = "ClassesSelectDiv">
+                    <div id="checkBoxesOuterdiv">
+                        {{ form.classes.label_tag }}
+                        <div class="input">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </br>
+        <div>
+           <button name="submit" type="submit" class="btn btn-success submit-button">Register </button>
+        </div>
+    </form>
+    {% endblock %}
+    <div class="alternate-option">
+        Already has an account? <a href="./login">Click to login</a>
+    </div>
+</div>
+</body>
+</html>

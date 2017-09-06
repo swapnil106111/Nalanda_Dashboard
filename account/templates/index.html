@@ -1,0 +1,84 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=EDGE">
+
+    <!-- jquery -->
+    <script type="text/javascript" src="../static/node_modules/jquery/dist/jquery.min.js"></script>
+    <!-- bootstrap -->
+    <script type="text/javascript" src="../static/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="../static/node_modules/bootstrap/dist/css/bootstrap.min.css" media="all">
+    <!-- jquery fancytree -->
+    <script type="text/javascript" src="../static/node_modules/jquery.fancytree/dist/jquery.fancytree-all-deps.min.js"></script>
+    <link rel="stylesheet" href="../static/node_modules/jquery.fancytree/dist/skin-lion/ui.fancytree.min.css" media="all">
+	<!-- datatables -->
+	<link rel="stylesheet" type="text/css" href="../static/css/datatables.min.css"/>
+	<script type="text/javascript" src="../static/js/datatables.min.js"></script>
+    <!-- bootstrap daterangepicker -->
+    <script type="text/javascript" src="../static/node_modules/moment/min/moment.min.js"></script>
+    <script type="text/javascript" src="../static/node_modules/bootstrap-daterangepicker/daterangepicker.js"></script>
+    <link rel="stylesheet" type="text/css" href="../static/node_modules/bootstrap-daterangepicker/daterangepicker.css">
+    <!-- font awesome -->
+    <link rel="stylesheet" href="../static/node_modules/font-awesome/css/font-awesome.min.css">
+    <!-- google charts -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <!-- toastr -->
+    <script type="text/javascript" src="../static/node_modules/toastr/build/toastr.min.js"></script>
+    <link rel="stylesheet" href="../static/node_modules/toastr/build/toastr.min.css" media="all">
+    <!-- google fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet">
+    
+    <!-- PAGE SPECIFICS -->
+    <script type="text/javascript" src="../static/js/common.js"></script>
+    <link rel="stylesheet" href="../static/css/main.css" media="all">
+
+    <title>Kolibri Visualizer</title>
+
+    {% if code != 0 %}
+    <script>
+	    $(document).ready(function() {
+			{% if info.title %}
+			toastr.error('{{ info.message }}', '{{ info.title }}');
+			{% endif %}
+			{% if not info.title %}
+			toastr.error('{{ info.message }}');
+			{% endif %}
+    	});
+    </script>
+    {% endif %}
+
+</head>
+
+<body class="report mastery">
+    <header id="masthead" class="site-header">
+        <div class="inner">
+            <h1 class="site-title"><a class="site-title-link" href="./">Kolibri Visualizer</a></h1>
+            <!--<span style="color:#ffffff">Current User: {{ "current_user" }}</span>-->
+            <a href="./logout" class="log-out" title="Log Out"><i class="glyphicon glyphicon-log-out"></i> Log Out</a>
+        </div>
+    </header>
+    <div id="main" class="site-main">
+        <div class="content-area">
+            <div id="primary" class="site-content">
+	            <h3>Welcome !!1!</h3>
+	            <br>
+	            <p>Please choose an item from the left sidebar to proceed.</p>
+	            <br>
+	            <p class="status-update">Data Last Updated: {{ data.dateUpdated }}</p>
+            </div>
+        </div>
+        <div id="secondary" class="site-sidebar">
+            <ul class="site-navigation">
+                <li class="heading">Admin</li>
+                <li class="navigation-item"><a href="./admin-users"><i class="glyphicon glyphicon-user"></i>&nbsp; Users</a></li>
+                <li class="heading">Reports</li>
+                <li class="navigation-item"><a href="./report-mastery">Mastery</a></li>
+            </ul>
+        </div>
+    </div>
+    <!--
+	{{ data }}    
+	-->
+</body>
+</html>

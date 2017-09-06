@@ -1,0 +1,235 @@
+<html>
+<head>
+    <script type="text/javascript" src="/static/node_modules/jquery/dist/jquery.min.js"></script>
+    <link rel="stylesheet" href="/static/node_modules/bootstrap/dist/css/bootstrap.min.css" media="all">
+    <script type="text/javascript" src="../static/js/common.js"></script>
+    <!-- toastr -->
+    <script type="text/javascript" src="/static/node_modules/toastr/build/toastr.min.js"></script>
+    <link rel="stylesheet" href="/static/node_modules/toastr/build/toastr.min.css" media="all">
+    <link rel="stylesheet" href="/static/css/main.css" media="all">
+
+    {% if code != 2031 %}
+    {% csrf_token %}
+    <script>
+        $(document).ready(function () {
+
+            $("#approvebutton").click(function () {
+
+                var approveresult={};
+                var disapproveresult={};
+
+                $('#approvetable').find('tr').each(function () {
+                    var row = $(this);
+                    approveresult = parseTable(row, 'appchk',approveresult);
+                    disapproveresult = parseTable(row, 'disappchk',disapproveresult);
+                });
+
+                var approveresultobj = createRequestObject(approveresult);
+                var disapproveresultobj = createRequestObject(disapproveresult);
+
+                ajaxrequest('./api/user/approve', approveresultobj, removeallrows('appchk'));
+                ajaxrequest('./api/user/disapprove', disapproveresultobj, removeallrows('disappchk'));
+
+            });
+
+            $('#unblock').click(function () {
+
+                var unblockresult={};
+                $('#unblocktable').find('tr').each(function () {
+                    var row = $(this);
+                    unblockresult = parseTable(row, 'unblockchk',unblockresult);
+                });
+
+                var unblockresultobj = createRequestObjectBlockedUsers(unblockresult);
+                ajaxrequest('./api/user/unblock', unblockresultobj, removeallrowsUnBlock('unblockchk'));
+            });
+
+            function parseTable(row, text,approveresult) {
+
+                if (row.find('input[name="' + text + '"]').is(':checked')) {
+                    var rowapprove = {};
+
+                    if (approveresult[row[0].children[0].innerHTML] != null) {
+                        if (row[0].children[4].id && row[0].children[4].id>0) {
+                            approveresult[row[0].children[0].innerHTML].push(row[0].children[4].id);
+                        }
+                    }
+                    else {
+                        approveresult[row[0].children[0].innerHTML] = [];
+                        if (row[0].children[4].id && row[0].children[4].id>0) {
+                            approveresult[row[0].children[0].innerHTML].push(row[0].children[4].id);
+                        }
+                    }
+                }
+                return approveresult;
+            }
+
+            function createRequestObject(approveresult) {
+                var finalresult = [];
+                for (obj in approveresult) {
+                    var result = {};
+                    result.username = obj;
+                    result.classes = approveresult[obj];
+                    finalresult.push(result);
+                }
+                var approveresultobj = {};
+                approveresultobj.users = finalresult;
+                return approveresultobj;
+            }
+
+            function createRequestObjectBlockedUsers(approveresult) {
+                var finalresult = {};
+                finalresult.usernames=[];
+                for (obj in approveresult) {
+                    finalresult.usernames.push(obj);
+                }
+                return finalresult;
+            }
+
+            function removeallrows(text) {
+                $('#approvetable').find('tr').each(function () {
+                    $('#approvetable').find('tr').each(function () {
+                        var row = $(this);
+
+                        if (row.find('input[name=' + text + ']').is(':checked')) {
+                            row.remove();
+                        }
+                    });
+
+                });
+            }
+
+            function removeallrowsUnBlock(text) {
+                $('#unblocktable').find('tr').each(function () {
+                    $('#unblocktable').find('tr').each(function () {
+                        var row = $(this);
+
+                        if (row.find('input[name=' + text + ']').is(':checked')) {
+                            row.remove();
+                        }
+                    });
+
+                });
+            }
+
+            function ajaxrequest(url, dataObject, successcallback) {
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    data: JSON.stringify(dataObject),
+                    headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                    success: successcallback,
+                    error: function (jqXHR, textStatus, errorThrown) {
+                    },
+                    dataType: 'json'
+                });
+            };
+
+            $(':checkbox').click(function () {
+                var currentRow = this.parentNode.parentNode;
+
+                if($(this).attr('name')=="appchk" && $(this).is(':checked'))
+                {
+                    $(currentRow).find('input[name=disappchk]').prop('checked', false);
+                }
+                else if($(this).attr('name')=="disappchk" && $(this).is(':checked'))
+                {
+                    $(currentRow).find('input[name=appchk]').prop('checked', false);
+                }
+            });
+
+            {% if code != 0 %}
+            {% if info.title %}
+            toastr.error('{{ info.message }}', '{{ info.title }}');
+            {% endif %}
+            {% if not info.title %}
+            toastr.error('{{ info.message }}');
+            {% endif %}
+            {% endif %}
+
+        });
+    </script>
+
+    {% endif %}
+</head>
+<body class="report mastery">
+<header id="masthead" class="site-header">
+    <div class="inner">
+        <h1 class="site-title"><a class="site-title-link" href="./">Kolibri Visualizer</a></h1>
+        <!--<span style="color:#ffffff">Current User: {{ "current_user" }}</span>-->
+        <a href="./logout" class="log-out" title="Log Out"><i class="glyphicon glyphicon-log-out"></i> Log Out</a>
+    </div>
+</header>
+<div id="main" class="site-main">
+    <div class="content-area">
+        <div class="site-content">
+            {% if code != 2031 %}
+            <h1 class="section-title"> User registration approval </h1>
+            <table id="approvetable" class="table table-hover table-bordered">
+                <thead class="thead-default">
+                <td>Username</td>
+                <td>Email</td>
+                <td>Role</td>
+                <td>Institute Name</td>
+                <td>Class name</td>
+                <td>Approve</td>
+                <td>Disapprove</td>
+                </thead>
+                {% for r in data.pendingUsers%}
+                <tr>
+                    <td>{{r.username}}</td>
+                    <td>{{r.email}}</td>
+                    <td>{{r.role}}</td>
+                    <td>{{r.instituteName}}</td>
+                    <td id={{r.classId}}>{{r.className}}</td>
+                    <td><input class="checkbox checkbox-success" name="appchk" id={{r.classId}} type="checkbox"/></td>
+                    <td><input name="disappchk" id={{r.classId}} type="checkbox"/></td>
+                </tr>
+                {% endfor %}
+            </table>
+            <div style="text-align: center">
+                <input type="submit" class="btn btn-success" id="approvebutton" value="Submit">
+            </div>
+
+            <hr/>
+            <h1 class="section-title"> User unblock </h1>
+            <table id="unblocktable" class="table  table-hover table-bordered">
+                <thead class="thead-default">
+                <td>Username</td>
+                <td>Email</td>
+                <td>Role</td>
+                <td>Institute Name</td>
+                <td>Class name</td>
+                <td>Unblock</td>
+                </thead>
+                {% for r in data.blockedUsers%}
+                <tr>
+                    <td>{{r.username}}</td>
+                    <td>{{r.email}}</td>
+                    <td>{{r.role}}</td>
+                    <td>{{r.instituteName}}</td>
+                    <td id={{r.classId}}>{{r.className}}</td>
+                    <td><input name="unblockchk" type="checkbox"/></td>
+                </tr>
+                {% endfor %}
+            </table>
+            <div style="text-align: center">
+                <input id="unblock" type="submit" class="btn btn-success" value="Submit">
+            </div>
+            {% endif %}
+            {% if code == 2031 %}
+            <div class="alert alert-danger">{{ info.message }}</div>
+            {% endif %}
+        </div>
+    </div>
+    <div id="secondary" class="site-sidebar">
+        <ul class="site-navigation">
+            <li class="heading">Admin</li>
+            <li class="navigation-item current"><a href="./admin-users"><i class="glyphicon glyphicon-user"></i>&nbsp; Users</a></li>
+            <li class="heading">Reports</li>
+            <li class="navigation-item"><a href="./report-mastery">Mastery</a></li>
+        </ul>
+    </div>
+</div>
+</body>
+</html>
