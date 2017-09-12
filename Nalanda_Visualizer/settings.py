@@ -77,8 +77,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Nalanda_Visualizer.wsgi.application'
 
-
-from local_settings import *
+from .local_settings import *
 
 AUTHENTICATION_BACKENDS = (
         'django.contrib.auth.backends.ModelBackend',
