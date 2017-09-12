@@ -38,8 +38,13 @@
                 var strUserRole = e.options[e.selectedIndex].value;
                 $("#InstitutesSelecDiv").hide();
                 $("#ClassesSelectDiv").hide();
-                if (strUserRole!= "" && strUserRole != 1) {
+                if (strUserRole != "" && strUserRole != 1) {
                     $("#InstitutesSelecDiv").show();
+                    $("#id_institutes").val("");
+                }
+                else
+                {
+                    $("#InstitutesSelecDiv").hide();
                     $("#id_institutes").val("");
                 }
             }).change();

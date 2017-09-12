@@ -17,6 +17,8 @@ class UserInfoClass(models.Model):
     class_name = models.CharField(max_length=60)
     parent = models.BigIntegerField()
     total_students = models.IntegerField()
+    def __str__(self):
+        return self.class_name
 
 class UserInfoStudent(models.Model):
     student_id = models.BigIntegerField(primary_key=True)

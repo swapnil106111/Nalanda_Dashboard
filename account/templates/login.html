@@ -1,15 +1,14 @@
-<html>
-<head>
-    <!-- jquery -->
-    <script type="text/javascript" src="/static/node_modules/jquery/dist/jquery.min.js"></script>
-    <!-- bootstrap -->
-    <script type="text/javascript" src="/static/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="/static/node_modules/bootstrap/dist/css/bootstrap.min.css" media="all">
-    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/main.css" media="all">
-</head>
-<body class="login">
-    <h1 class="site-title">Kolibri Visualizer</h1>
+
+{% extends "account_base.html" %}
+
+<link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet">
+
+
+{% block content %}
+<body class ="login">
+    {% block title %}
+        <h1 class="site-title">Kolibri Visualizer</h1>
+    {% endblock %}
     <div class="content">
         <h2>Login to your account</h2>
         {% if code != 0 and info.message %}
@@ -31,4 +30,5 @@
         </div>
     </div>
 </body>
-</html>
+{% endblock %}
+  
