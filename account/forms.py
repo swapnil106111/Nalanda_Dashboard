@@ -8,7 +8,7 @@ class UserProfileForm(forms.ModelForm):
     role = forms.ModelChoiceField(queryset=Group.objects.all(),
                                    required=True)
     institutes = forms.ModelChoiceField(queryset=UserInfoSchool.objects.all(),
-    	                           required=True, label = 'Institutes')
+    	                           required=False, label = 'Institutes')
     classes = forms.CharField(label='Classes', required = False)
     password1 = forms.CharField(label='Password',
                           widget=forms.PasswordInput())
