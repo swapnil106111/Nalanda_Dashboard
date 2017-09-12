@@ -24,6 +24,8 @@ from django.views.generic import UpdateView
 from .forms import UserProfileForm
 from axes.models import AccessAttempt
 
+from .usermastery import UserMasteryMeta
+
 # This function contructs the dict for every response
 # code = 0 represents that the processing is sucessful
 def construct_response(code, title, message, data):
@@ -177,7 +179,7 @@ def admin_get_post():
         blocked_users = []
         # Get users that has not been approved
         pendings = User.objects.filter(is_active = False)
-        # print ("Pendings user:", pendings.values())
+        print ("Pendings user:", pendings.values())
         if pendings:
             for pending in pendings:
                 # Find the user according to user_id
@@ -209,7 +211,7 @@ def admin_get_post():
                 pending_users.append(pending_user)
         # Get users that has not been blocked
         blockeds = AccessAttempt.objects.filter(failures_since_start__gte=3)
-        # print ("blockeds:", blockeds)
+        print ("blockeds:", blockeds)
         # blockeds = AccessAttempt.objects.filter(is_active = False)
         if blockeds:
             for blocked in blockeds:
@@ -254,27 +256,29 @@ def admin_get_post():
         response_object = construct_response(code, title, message, data)
         return response_object
     # If exception occurred, construct corresponding error info to the user
-    except DatabaseError:
-        code = 2001
-        title = 'Sorry, error occurred in database operations'
-        message = 'Sorry, error occurred in database operations'
-        data = {}
-        response_object = construct_response(code, title, message, data)
-        return response_object
-    except OperationalError:
-        code = 2011
-        title = 'Sorry, operational error occurred'
-        message = 'Sorry, operational error occurred'
-        data = {}
-        response_object = construct_response(code, title, message, data)
-        return response_object
-    except:
-        code = 2021
-        title = 'Sorry, error occurred at the server'
-        message = 'Sorry, error occurred at the server'
-        data = {}
-        response_object = construct_response(code, title, message, data)
-        return response_object
+    except Exception as e:
+        print (e)
+    # except DatabaseError:
+    #     code = 2001
+    #     title = 'Sorry, error occurred in database operations'
+    #     message = 'Sorry, error occurred in database operations'
+    #     data = {}
+    #     response_object = construct_response(code, title, message, data)
+    #     return response_object
+    # except OperationalError:
+    #     code = 2011
+    #     title = 'Sorry, operational error occurred'
+    #     message = 'Sorry, operational error occurred'
+    #     data = {}
+    #     response_object = construct_response(code, title, message, data)
+    #     return response_object
+    # except:
+    #     code = 2021
+    #     title = 'Sorry, error occurred at the server'
+    #     message = 'Sorry, error occurred at the server'
+    #     data = {}
+    #     response_object = construct_response(code, title, message, data)
+    #     return response_object
 
 # This function implements the request receiving and response sending for logout
 @csrf_exempt
@@ -531,25 +535,6 @@ def admin_unblock_users_view(request):
     else:
         return HttpResponse()
 
-# Construct the breadcrumb format
-def construct_breadcrumb(parentName, parentLevel, parentId):
-    res = {
-        "parentName": parentName,
-        "parentLevel": parentLevel,
-        "parentId": parentId
-        }
-
-    return res
-# Construct the metrics format
-def construct_metrics():
-    metrics = [
-        {'displayName': '% exercise completed', 'toolTip': ''},
-        {'displayName': '% exercise correct', 'toolTip': ''},
-        {'displayName': '# attempts completed', 'toolTip': ''},
-        {'displayName': '% students completed the topic', 'toolTip': ''},
-    ]
-    return metrics
-
 # This function implements the logic for get page meta
 def get_page_meta(parent_id, parent_level, user_id, role):
     try:
@@ -664,37 +649,16 @@ def get_page_meta(parent_id, parent_level, user_id, role):
 
 # This function implements the request receiving and response sending for get page meta
 @csrf_exempt
-def get_page_meta_view(request):
-    if request.method == 'POST':
-        role = request.user.is_superuser
-        if not role:
-            user_role = User.objects.get(id = request.user.id)
-            user_group = Group.objects.get(user = user_role)
-            role_id = user_group.id
-        else:
-            role_id = 0
-        # If the user has not logged in
-        if not role and not role_id:
-            code = 2031
-            title = 'Sorry, you have to login to perform this action'
-            message = 'Sorry, you have to login to perform this action'
-            data = {}
-            response_object = construct_response(code, title, message, data)
-            response_text = json.dumps(response_object,ensure_ascii=False)
-            return HttpResponse(response_text,content_type='application/json')
-         # If the user has logged in, response in JSON format
-        else:
-            body_unicode = request.body.decode('utf-8')
-            data = json.loads(body_unicode)
-            parent_level = data.get('parentLevel', -2)
-            parent_id = int(data.get('parentId', '').strip())
-            response_object= get_page_meta(parent_id, parent_level, request.user.id, role_id)
-            response_text = json.dumps(response_object,ensure_ascii=False)
-            return HttpResponse(response_text,content_type='application/json')
-
-
-    else:
-        return HttpResponse()
+def get_page_meta_view(request):   
+    user = request.user
+    body_unicode = request.body.decode('utf-8')
+    data = json.loads(body_unicode)
+    parent_level = data.get('parentLevel', -2)
+    parent_id = int(data.get('parentId', '').strip())
+    objUserMastery = UserMasteryMeta(user, parent_id, parent_level)
+    objUserData = objUserMastery.getPageMeta()
+    response_text = json.dumps(objUserData,ensure_ascii=False)
+    return HttpResponse(response_text,content_type='application/json')
 
 # This function implements the logic for get page data
 def get_page_data(parent_id, parent_level, topic_id, end_timestamp, start_timestamp, channel_id, user, role):
@@ -1046,10 +1010,12 @@ def get_page_data_view(request):
             parent_level = data.get('parentLevel', -1)
             parent_id = int(data.get('parentId', '').strip())
             channel_id = data.get('channelId', '').strip()
-            response_object= get_page_data(parent_id, parent_level, topic_id, end_timestamp, start_timestamp, channel_id, request.user.id, role_id)
-            response_text = json.dumps(response_object,ensure_ascii=False)
+            # response_object= get_page_data(parent_id, parent_level, topic_id, end_timestamp, start_timestamp, channel_id, request.user.id, role_id)
+            # 
             # print(response_text)
-            return HttpResponse(response_text,content_type='application/json')
+            response_object = construct_response(0, "", "", {})
+            response_text = json.dumps(response_object,ensure_ascii=False)
+            return HttpResponse(response_text, content_type='application/json')
 
     else:
         return HttpResponse()
@@ -1176,23 +1142,23 @@ def get_trend(request):
 def get_report_mastery(request):
     userinfo = {}
     if request.method == 'GET': 
-        role = request.user.is_superuser
-        if not role:
-            user_role = User.objects.get(id= request.user.id)
-            user_group = Group.objects.get(user=user_role)
-            role_id = user_group.id
-        else:
-            role_id = 0
-        if role_id == 3:
-            user_class_institute = UserRoleCollectionMapping.objects.get(user_id_id = request.user.id)
-            parent_id = user_class_institute.institute_id_id
-            userinfo['parent_id'] = str(parent_id)
-            userinfo['parent_level'] = "1"
-        else:
-            userinfo['parent_id'] = "-1"
-            userinfo['parent_level'] = "0"
-        data = json.dumps(userinfo)
-        return render(request,'report-mastery.html', {'user_detail':data})
+        # role = request.user.is_superuser
+        # if not role:
+        #     user_role = User.objects.get(id= request.user.id)
+        #     user_group = Group.objects.get(user=user_role)
+        #     role_id = user_group.id
+        # else:
+        #     role_id = 0
+        # if role_id == 3:
+        #     user_class_institute = UserRoleCollectionMapping.objects.get(user_id_id = request.user.id)
+        #     parent_id = user_class_institute.institute_id_id
+        #     userinfo['parent_id'] = str(parent_id)
+        #     userinfo['parent_level'] = "1"
+        # else:
+        #     userinfo['parent_id'] = "-1"
+        #     userinfo['parent_level'] = "0"
+        # data = json.dumps(userinfo)
+        return render(request,'report-mastery.html')
     else:
         return HttpResponse()
 
