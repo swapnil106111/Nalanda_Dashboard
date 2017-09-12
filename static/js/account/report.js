@@ -23,6 +23,7 @@ var maxItemLevel = 3; // students (read-only)
 var debug = true; // whether to print debug outputs to console
 var selfServe = false;
 var count = 0;
+var setParenrtLevel = false
 
 /** Pragma Mark - Starting Points **/
 
@@ -55,9 +56,9 @@ var updatePageContent = function() {
 	        parentLevel: parentLevel,
 	        parentId: parentId
 	    }, function(response) {
-		    data2 = response.data;
-		    checkTableDataConsistancy(data1, data2);
-            setTableData(response.data);
+		    // data2 = response.data;
+		    // checkTableDataConsistancy(data1, data2);
+      //       setTableData(response.data);
 	    });
     });
     
@@ -213,6 +214,11 @@ var setLoadingInfo = function(message) {
 var setBreadcrumb = function(data) {
     $('.report-breadcrumb').html('');
     var len = data.breadcrumb.length;
+    if (len == 1){
+        parentLevel = data.breadcrumb[0].parentLevel 
+    }
+    
+    // alert(parentLevel)
     var idx;
     for (idx in data.breadcrumb) {
         var o = data.breadcrumb[idx];
@@ -1190,18 +1196,17 @@ var sendPOSTRequest_test = function(url, dataObject, callback) {
     }, getRandomInt(100, 2000));
 };
 
-var set_user = function(){
-    // var user=unescape('src').split("user=")[1].split("&")[0];
-    // alert(user);
-    parentLevel = jsonObject.parent_level.toString();
-    parentId = jsonObject.parent_id.toString();
-    // alert(jsonObject.parent_id);
-    // alert(parentId);
+// var set_user = function(){
+//     // var user=unescape('src').split("user=")[1].split("&")[0];
+//     // alert(user);
+//     parentLevel = jsonObject.parent_level.toString();
+//     parentId = jsonObject.parent_id.toString();
+//     // alert(jsonObject.parent_id);
+//     // alert(parentId);
 
-};
+// };
 
 $(function() {
-    set_user();
     google.charts.load('current', {'packages':['line', 'corechart']});
     updateLoadingInfo();
     setupDateRangePicker();
