@@ -38,6 +38,8 @@ class UserProfileForm(forms.ModelForm):
         raise forms.ValidationError('Username is already taken.')
 
     def save(self, commit=True):
+        print ("Data:", self.cleaned_data)
+        # instance = super(SelectCourseYear, self).save(commit=False)
         user = User.objects.create_user(self.cleaned_data['username'])
         user.email = self.cleaned_data['email']
         user.first_name = self.cleaned_data['first_name']
@@ -48,16 +50,6 @@ class UserProfileForm(forms.ModelForm):
             user.save() 
             user.groups.clear()
             user.groups.add(self.cleaned_data['role'])
-            if self.cleaned_data['classes']:
-                c_id = self.cleaned_data['classes']
-                try:
-                    userInfoClass = UserInfoClass.objects.get(pk = c_id)
-                except UserInfoClass.DoesNotExist:
-                    userInfoClass = None
-            else:
-                userInfoClass = None
-            up = UserRoleCollectionMapping.objects.create(class_id=userInfoClass, institute_id=self.cleaned_data['institutes'], user_id=user)
-            up.save()
         return user
 
 
