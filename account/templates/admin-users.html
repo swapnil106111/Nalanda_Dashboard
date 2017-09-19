@@ -138,15 +138,19 @@
                 }
             });
 
-            {% if code != 0 %}
-            {% if info.title %}
-            toastr.error('{{ info.message }}', '{{ info.title }}');
+            // {% if code != 0 %}
+            // {% if info.title %}
+            // toastr.error('{{ info.message }}', '{{ info.title }}');
+            // {% endif %}
+            // {% if not info.title %}
+            // toastr.error('{{ info.message }}');
+            // {% endif %}
+            // {% endif %}
+            
+            {% if code == 2001 %}
+                toastr.info('{{ info.message }}');
+                return;
             {% endif %}
-            {% if not info.title %}
-            toastr.error('{{ info.message }}');
-            {% endif %}
-            {% endif %}
-
         });
     </script>
 
