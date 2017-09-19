@@ -56,9 +56,9 @@ var updatePageContent = function() {
 	        parentLevel: parentLevel,
 	        parentId: parentId
 	    }, function(response) {
-		    // data2 = response.data;
-		    // checkTableDataConsistancy(data1, data2);
-      //       setTableData(response.data);
+		    data2 = response.data;
+		    checkTableDataConsistancy(data1, data2);
+            setTableData(response.data);
 	    });
     });
     
@@ -217,7 +217,7 @@ var setBreadcrumb = function(data) {
     if (len == 1){
         parentLevel = data.breadcrumb[0].parentLevel 
     }
-    
+
     // alert(parentLevel)
     var idx;
     for (idx in data.breadcrumb) {
