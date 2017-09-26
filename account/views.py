@@ -22,7 +22,7 @@ from django.views.generic import UpdateView
 from .forms import UserProfileForm
 from axes.models import AccessAttempt
 
-from .usermastery import UserMasteryMeta, UserMateryData
+from .usermastery import UserMasteryMeta, UserMasteryData
 
 # This function contructs the dict for every response
 # code = 0 represents that the processing is sucessful
@@ -43,7 +43,7 @@ def login_view(request):
     if request.method == 'POST':
     	if form.is_valid():
             login(request, form.get_user())
-            response = redirect(reverse('report'))
+            response = redirect(reverse('get_report_mastery'))
             return response
     	else:
             data = form.errors.as_json()
@@ -97,12 +97,11 @@ def report_homepage_view(request):
 # This function implements the request receiving and response sending for register
 @csrf_exempt
 def register_view(request):
+    data = get_school_and_classes()
     # If GET request is received, render the register page, return the school and class info
     if request.method == 'GET':
     	response_str = {}
     	form = UserProfileForm(None, request.POST)
-    	institutes = get_school_and_classes()
-    	data = institutes
     	code = 0
     	title = ''
     	message = ''
@@ -120,6 +119,11 @@ def register_view(request):
             institutes =  form.cleaned_data['institutes']
             if not institutes:
                 institutes = None
+            if form.cleaned_data['role'].id == 3 and len(classes) == 0:
+                response = construct_response(1002,"","User need to select atleast one class",data)
+                form = UserProfileForm()
+                response['form'] = form
+                return render(request,'register.html', response)
             user = form.save()
             if classes:
                 for curClass in classes:
@@ -130,8 +134,6 @@ def register_view(request):
                     up = UserRoleCollectionMapping.objects.create(class_id=userInfoClass, institute_id=form.cleaned_data['institutes'], user_id=user)
                     up.save()
             else:
-                if form.cleaned_data['role'].id == 3:
-                    raise Exception("User need to select the classes")
                 userInfoClass = None
                 up = UserRoleCollectionMapping.objects.create(class_id=userInfoClass, institute_id=institutes, user_id=user)
                 up.save()
@@ -422,17 +424,6 @@ def admin_unblock_users_post(usernames):
 @user_passes_test(lambda u: u.is_superuser)
 def admin_unblock_users_view(request):
     if request.method == 'POST':
-        # role = request.user.is_superuser
-        # # If the user is not an admin
-        # if not role:
-        #     code = 2031
-        #     title = 'Sorry, you have to be admin to perform this action'
-        #     message = 'Sorry, you have to be admin to perform this action'
-        #     data = {}
-        #     response_object = construct_response(code, title, message, data)
-
-        # # If the user is an admin, process the request
-        # else:
         body_unicode = request.body.decode('utf-8')
         data = json.loads(body_unicode)
         usernames = data.get('usernames',[])
@@ -468,7 +459,7 @@ def get_page_data_view(request):
     parentLevel = data.get('parentLevel', -1)
     parentID = int(data.get('parentId', '').strip())
     channelID = data.get('channelId', '').strip()
-    objUserMastery = UserMateryData(user, parentID, parentLevel, topicID, channelID, startTimestamp, endTimestamp)
+    objUserMastery = UserMasteryData(user, parentID, parentLevel, topicID, channelID, startTimestamp, endTimestamp)
     objUserMasteryData = objUserMastery.getPageData()
     response_object = construct_response(0, "", "", objUserMasteryData)
     response_text = json.dumps(response_object,ensure_ascii=False)
