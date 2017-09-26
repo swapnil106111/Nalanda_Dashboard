@@ -1,0 +1,31 @@
+
+{% extends "account_base.html" %}
+
+<link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet">
+
+
+{% block content %}
+<body class ="login">
+    {% block title %}
+        <h1 class="site-title">Kolibri Visualizer</h1>
+    {% endblock %}
+    <div class="content">
+        <h2>Login to your account</h2>
+        <div class="error"><h5>Your account is blocked. Plese contact your admin</h5></div>
+        <form class="login-form" method="POST" action="./login" >{% csrf_token %}
+            <div class="input">
+                <i class="glyphicon glyphicon-user"></i>
+                <input name="username" type="text" class="form-control" placeholder="Username">
+            </div>
+            <div class="input">
+                <i class="glyphicon glyphicon-lock"></i>
+                <input name="password" type="password" class="form-control" placeholder="Password">
+            </div>
+            <button name="submit" type="submit" class="btn btn-success submit-button">Login <i class="glyphicon glyphicon-log-in"></i></button>
+        </form>
+        <div class="alternate-option">
+            Doesn’t have an account? <a href="/account/register">Click to register</a>
+        </div>
+    </div>
+</body>
+{% endblock %}
