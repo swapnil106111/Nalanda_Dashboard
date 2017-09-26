@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 
 AXES_LOGIN_FAILURE_LIMIT = 3
 AXES_ONLY_USER_FAILURES = True
+AXES_LOCKOUT_TEMPLATE = "403.html"
 
 MIDDLEWARE = [
     # 'BruteBuster.middleware.RequestMiddleware',
