@@ -219,7 +219,7 @@ class UserMasteryMeta(BaseRoleAccess):
 		response_object = self.construct_response(code, title, message, data)
 		return response_object 
 
-class UserMateryData(BaseRoleAccess):
+class UserMasteryData(BaseRoleAccess):
 	def __init__(self, user, parentID, parentLevel, topicID, channelID, startTimestamp, endTimestamp):
 		super(self.__class__, self).__init__(user, parentID, parentLevel)
 		self.topicID = topicID if topicID != '-1' else ''
