@@ -205,9 +205,12 @@
                 {% if user.is_superuser %}
                     <li class="heading">Admin</li>
                     <li class="navigation-item"><a href="./admin-users"><i class="glyphicon glyphicon-user"></i>&nbsp; Users</a></li>
+                {% else %}
+
+                <li class="heading">Welcome: {{ user.username }}</li>
+                <li class="heading">Role: {{ user.groups.values.0.name }}</li>
                 {% endif %}
-                <li class="heading">Reports</li>
-                <li class="navigation-item current"><a href="./report-mastery">Mastery</a></li>
+                
             </ul>
         </div>
     </div>
