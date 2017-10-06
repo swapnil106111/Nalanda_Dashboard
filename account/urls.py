@@ -6,6 +6,7 @@ urlpatterns = [
 	url(r'^logout', views.logout_view, name='logout'),
 	url(r'^register', views.register_view, name='register'),
 	url(r'^api/user/approve', views.admin_approve_pending_users_view, name='admin_approve_pending_users'),
+	url(r'^api/user/delete', views.deleteUser, name ='deleteUser'),
 	url(r'^api/user/disapprove', views.admin_disapprove_pending_users_view, name='admin_disapprove_pending_users'),
 	url(r'^api/user/unblock', views.admin_unblock_users_view, name='admin_unblock_users'),
 	url(r'^api/mastery/get-page-meta', views.get_page_meta_view, name='get_page_meta'),
