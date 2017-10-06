@@ -609,6 +609,23 @@ th.name-column {
     display: none;
 }
 
+input[type='radio'], label{   
+    vertical-align: baseline;
+    padding: 5px;
+    margin: 5px;
+ }
+
+#section-radio {
+    position: absolute;
+    width: 400px;
+    /*height: 200px;*/
+    z-index: 15;
+    /*top: 50%;*/
+    left: 37%;
+    /*margin: -100px 0 0 -150px;*/
+    /*background: red;*/
+}
+
 @media (max-width: 1000px) {
     .page-title {
         font-size: 23px;
