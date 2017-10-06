@@ -12,6 +12,9 @@ from django.db.utils import DatabaseError, Error, OperationalError
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
+from itertools import groupby
+from operator import itemgetter
+import collections
 
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login
@@ -145,9 +148,9 @@ def register_view(request):
         else:
             data = form.errors.as_json()
             error_data = json.loads(data)
-            for msg in error_data:
-                message = error_data[msg][0]['message']
-                message= str(msg)+" "+ message[4:] 
+            for k,v in error_data.items():
+                message = error_data[k][0]['message']
+                # message= str(msg)+" "+ message[4:] 
                 response_text ={}
                 response_text = construct_response(1007,"",message,{})
                 form = UserProfileForm()
@@ -173,56 +176,85 @@ def get_school_and_classes():
 # This function implements the request receiving and response sending for admin get pending and blocked users
 def admin_get_view(request):
     if request.method == 'GET':
-        pendingUser = True
+        # pendingUser = True
         blockedUsers = {}
-        pendings = User.objects.filter(is_active = False)
-        blocked =  AccessAttempt.objects.filter(failures_since_start__gte=3)
-        pendingUsers = list(map(lambda p: getPendingUserDetails(p, pendingUser), pendings))
+        pendings = User.objects.filter(is_superuser = False)
+        # blocked =  AccessAttempt.objects.filter(failures_since_start__gte=3)
+        pendingUsers = list(map(lambda p: getPendingUserDetails(p), pendings))
+        # print ("Users:", pendingUsers)
         pendingUsers = sum(pendingUsers, [])
-        blockedUsers = list(map(lambda p: getPendingUserDetails(p, False), blocked))
-        blockedUsers = sum(blockedUsers, [])
-        data = {'pendingUsers': pendingUsers, 'blockedUsers': blockedUsers}
+        # print ("Users:", pendingUsers)
+
+        for user in pendingUsers:
+            if user['isActive']:
+                user['isActive'] = 1
+            else:
+                user['isActive'] = 0
+        # blockedUsers = list(map(lambda p: getPendingUserDetails(p, False), blocked))
+        # blockedUsers = sum(blockedUsers, [])
+        objPendingUsers = getMultipleClassCombine(pendingUsers)
+        # print ("Users:", objPendingUsers)
+        data = {'pendingUsers': objPendingUsers }
         response_object = construct_response(0, "", "", data)
-        if not pendingUsers and not blockedUsers:
+        if not objPendingUsers and not blockedUsers:
             response_object = construct_response(2001, "user list empty", "All users are approved by admin and doesn't have ublocked users", {})
         return render(request, 'admin-users.html', response_object)
     else:
         return HttpResponse()
 
-def getPendingUserDetails(user, pendingUser):
+def getMultipleClassCombine(userList):
+    result = []
+    key_data=itemgetter('userid')
+    sorted_data=sorted(userList, key= key_data)
+
+    for key, grp in groupby(sorted_data , key_data):
+        temp_dict={}
+        cl_st=""
+        for data in grp:
+            for k,v in data.items():
+                if str(k)=='className':
+                    cl_st += ', ' + v
+                else:
+                    temp_dict[k]=v
+            temp_dict['className']=cl_st[1:]
+        result.append(temp_dict)
+    return result
+
+def getPendingUserDetails(user):
     instituteName = ''
     instituteID = -1
     classID = -1
     className = ''
     pending_users = []
 
-    if pendingUser:
-        role = user.groups.values()[0]['name']
-        roleID = user.groups.values()[0]['id']
-    else:
-        user =  User.objects.get(username = user.username)
-        role = user.groups.values()[0]['name']
-        roleID = user.groups.values()[0]['id']
+    role = user.groups.values()[0]['name']
+    roleID = user.groups.values()[0]['id']
+    # else:
+    #     user =  User.objects.get(username = user.username)
+    #     role = user.groups.values()[0]['name']
+    #     roleID = user.groups.values()[0]['id']
 
     if roleID != 1:
         objUserMapping = UserRoleCollectionMapping.objects.filter(user_id = user)
-        print ("")
+
         if objUserMapping:
             for usermapped in objUserMapping:
-                print ("usermapped:", type(usermapped))
+                # print ("usermapped:", type(usermapped))
                 instituteName = usermapped.institute_id.school_name
                 instituteID = usermapped.institute_id.school_id
                 if roleID == 3:
                     classID = usermapped.class_id.class_id
                     className = usermapped.class_id.class_name
-                pending_user = {'username': user.username, 'email': user.email, 'role': role, 'instituteId': instituteID, 'instituteName': instituteName, 'classId': classID, 'className': className}
+                pending_user = collections.OrderedDict()
+                pending_user = {'userid':user.id, 'username': user.username, 'email': user.email, 'role': role, 'instituteName': instituteName, 'className': className, 'isActive':user.is_active}
                 pending_users.append(pending_user)
         else:
             raise Exception("User is not belongs to any class")
     else:
-        pending_user = {'username': user.username, 'email': user.email, 'role': role, 'instituteId': instituteID, 'instituteName': instituteName, 'classId': classID, 'className': className}
+        pending_user = collections.OrderedDict()
+        pending_user = {'userid':user.id, 'username': user.username, 'email': user.email, 'role': role, 'instituteName': instituteName, 'className': className, 'isActive':user.is_active}
         pending_users.append(pending_user)
-    print ("Users:", pending_users)
+    # print ("Users:", pending_users)
     return pending_users
 
 # This function implements the request receiving and response sending for logout
@@ -308,6 +340,7 @@ def admin_approve_pending_users_post(users):
 
 # This function implements the logic for admin disapprove users
 def admin_disapprove_pending_users_post(users):
+    # print ("Inside the disapprove:", users)
     code = 0
     title = ''
     message = ''
@@ -317,9 +350,10 @@ def admin_disapprove_pending_users_post(users):
             # If the users to be disapproved is not empty
             for i in range(len(users)):
                 username = users[i]['username']
-                result = User.objects.filter(username=username)
+                result = User.objects.get(username=username)
                 if result:
-                    result[0].delete()
+                    result.is_active = False
+                    result.save()
         response_object = construct_response(code, title, message, data)
         return response_object
     # except Exception as e:
@@ -358,20 +392,42 @@ def admin_disapprove_pending_users_view(request):
             message = 'Sorry, you have to be admin to perform this action'
             data = {}
             response_object = construct_response(code, title, message, data)
-            print(response_object)
+            # print(response_object)
         # If the user is an admin, process the request
         else:
             body_unicode = request.body.decode('utf-8')
             data = json.loads(body_unicode)
             users = data.get('users',[])
-            print("users = ", users)
+            # print("users = ", users)
             response_object = admin_disapprove_pending_users_post(users)
-            print(response_object)
+            # print(response_object)
         response_text = json.dumps(response_object,ensure_ascii=False)
 
         return HttpResponse(response_text)
     else:
         return HttpResponse()
+
+@csrf_exempt
+def deleteUser(request):
+    if request.method == 'POST':
+        body_unicode = request.body.decode('utf-8')
+        data = json.loads(body_unicode)
+        users = data.get('users',[])
+        deleteSuccess = True
+        try:
+            if users:
+                for i in range(len(users)):
+                    username = users[i]['username']
+                    result = User.objects.get(username=username)
+                    if result:
+                        result.delete()
+
+            response_object = construct_response("3001", "User Delete", "User Deleted successfully", {deleteSuccess})
+            response_text = json.dumps(response_object, ensure_ascii=False)
+            return HttpResponse(response_text)
+        except Exception as e:
+            print (e)
+   
 
 # This function implements the logic for admin unblock users
 def admin_unblock_users_post(usernames):
@@ -467,7 +523,7 @@ def get_page_data_view(request):
 
 @csrf_exempt
 def get_topics(request):
-    # print(str(request.get_full_path()))
+    # print("Inside topics")
     if request.method == 'POST':
         topics = Content.objects.filter(topic_id='').first()
         obj = json.loads(topics.sub_topics)
@@ -481,7 +537,7 @@ def get_topics(request):
 
 @csrf_exempt
 def get_trend(request):
-    print ("Method:", request.method)
+    # print ("Method:", request.method)
     if request.method == 'POST':
         body_unicode = request.body.decode('utf-8')
         params = json.loads(body_unicode)
@@ -493,12 +549,7 @@ def get_trend(request):
         channel_id = params.get('channelId')
         level =params.get('level')
         item_id = params.get('itemId')
-        print ("start_timestamp:", start)
-        print ("end_timestamp:", end)
-        print ("topicID:", topic_id)
-        print ("channelId:", channel_id)
-        print ("level:", level)
-        print ("item_id", item_id)
+        
         data = None
         content = None
         if topic_id == "-1":
