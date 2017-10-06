@@ -308,6 +308,7 @@ class UserMasteryData(BaseRoleAccess):
 		# Removed unwanted data of aggregation
 		for row in masteryData:
 			row.pop('aggregation', None)
+	
 		aggregation = self.getAggrigation(percent_complete_array, percent_correct_array, percent_student_completed_array, number_of_attempts_array)
 		data['rows'] = masteryData
 		data['aggregation'] = aggregation
@@ -481,7 +482,6 @@ class UserMasteryData(BaseRoleAccess):
 		         avg_percent_student_completed /= length
 		         avg_percent_student_completed = "{0:.2%}".format(avg_percent_student_completed)
 		    values = ["{0:.2%}".format(avg_percent_complete), "{0:.2%}".format(avg_percent_correct), str(int(avg_number_of_attempts)), avg_percent_student_completed]
-		    # print ("values:", values)
 		    average = {'name': 'Average', 'values': values}
 		    aggregation.append(average)
 		return aggregation
