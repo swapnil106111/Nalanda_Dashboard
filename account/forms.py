@@ -14,6 +14,7 @@ class UserProfileForm(forms.ModelForm):
                           widget=forms.PasswordInput())
     password2 = forms.CharField(label='Confirm Password',
                         widget=forms.PasswordInput())
+    email = forms.CharField(max_length=75, required=True)
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'username', 'email', 'password1','password2','role', 'institutes', 'classes']
