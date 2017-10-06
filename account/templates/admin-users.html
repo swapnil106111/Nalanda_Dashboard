@@ -1,52 +1,73 @@
 <html>
 <head>
-    <script type="text/javascript" src="/static/node_modules/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="/static/node_modules/jquery/dist/jquery.js"></script>
+    <script type="text/javascript" src="/static/node_modules/datatables/media/js/jquery.dataTables.js"></script>
     <link rel="stylesheet" href="/static/node_modules/bootstrap/dist/css/bootstrap.min.css" media="all">
     <script type="text/javascript" src="/static/js/account/common.js"></script>
+    <!--<script type="text/javascript" src="/static/js/datatables.min.js"></script>-->
+    
+   
     <!-- toastr -->
     <script type="text/javascript" src="/static/node_modules/toastr/build/toastr.min.js"></script>
     <link rel="stylesheet" href="/static/node_modules/toastr/build/toastr.min.css" media="all">
     <link rel="stylesheet" href="/static/css/main.css" media="all">
-
+    <link rel="stylesheet" href="/static/css/datatables.min.css" media="all">
+    
     {% if code != 2031 %}
     {% csrf_token %}
     <script>
         $(document).ready(function () {
+            // var userData = {{ data.pendingUsers|safe }}
 
-            $("#approvebutton").click(function () {
-
-                var approveresult={};
-                var disapproveresult={};
-
-                $('#approvetable').find('tr').each(function () {
-                    var row = $(this);
-                    approveresult = parseTable(row, 'appchk',approveresult);
-                    disapproveresult = parseTable(row, 'disappchk',disapproveresult);
-                });
-
-                var approveresultobj = createRequestObject(approveresult);
-                var disapproveresultobj = createRequestObject(disapproveresult);
-
-                ajaxrequest('./api/user/approve', approveresultobj, removeallrows('appchk'));
-                ajaxrequest('./api/user/disapprove', disapproveresultobj, removeallrows('disappchk'));
-
+            otable = $('#usertable').DataTable({
+                data : {{ data.pendingUsers|safe }},
+                columns:[
+                    // {"data": "userid"},
+                    {"title": "UserName","data": "username"},
+                    {"title": "Email","data": "email"},
+                    {"title": "Role","data": "role"},
+                    {"title": "Institute Name","data": "instituteName"},
+                    {"title": "Class Name","data": "className"},
+                    {
+                        "title": "SearchUSer",
+                        "visible": false,
+                        "searchable":true,
+                        "render": function(data, type,full, meta){
+                            if (full.isActive){
+                                return '#'
+                            }
+                            else{
+                                return '$'
+                            }
+                        }
+                    },
+                    {
+                        "title": "Active/Inactive",
+                        "data" : "isActive",
+                        'className': 'dt-body-center',
+                        'searchable' : true,
+                        "render": function (data, type, full, meta){
+                            if (full.isActive){
+                                return '<input type="checkbox" name="id[]" checked = "checked"value="' + $('<div/>').text(data).html() + '">';
+                            }
+                            else{
+                                return '<input type="checkbox" name="id[]" value="' + $('<div/>').text(data).html() + '">';
+                            }
+                        }
+                    },
+                    {
+                        "title":"Action",
+                        'className': 'dt-body-center',
+                         "render": function (data, type, full, meta){
+                            return '<a class="remove-row" href="javascript: void(0)"><i class="glyphicon glyphicon-trash"></i></a>';
+                         }
+                    },
+                ],
             });
-
-            $('#unblock').click(function () {
-
-                var unblockresult={};
-                $('#unblocktable').find('tr').each(function () {
-                    var row = $(this);
-                    unblockresult = parseTable(row, 'unblockchk',unblockresult);
-                });
-
-                var unblockresultobj = createRequestObjectBlockedUsers(unblockresult);
-                ajaxrequest('./api/user/unblock', unblockresultobj, removeallrowsUnBlock('unblockchk'));
-            });
-
+            
             function parseTable(row, text,approveresult) {
 
-                if (row.find('input[name="' + text + '"]').is(':checked')) {
+                if (row.find('input[name="' + text + '"]').is(':checked') || row.find('input[name="' + text + '"]').not(':checked')) {
                     var rowapprove = {};
 
                     if (approveresult[row[0].children[0].innerHTML] != null) {
@@ -86,31 +107,6 @@
                 return finalresult;
             }
 
-            function removeallrows(text) {
-                $('#approvetable').find('tr').each(function () {
-                    $('#approvetable').find('tr').each(function () {
-                        var row = $(this);
-
-                        if (row.find('input[name=' + text + ']').is(':checked')) {
-                            row.remove();
-                        }
-                    });
-
-                });
-            }
-
-            function removeallrowsUnBlock(text) {
-                $('#unblocktable').find('tr').each(function () {
-                    $('#unblocktable').find('tr').each(function () {
-                        var row = $(this);
-
-                        if (row.find('input[name=' + text + ']').is(':checked')) {
-                            row.remove();
-                        }
-                    });
-
-                });
-            }
 
             function ajaxrequest(url, dataObject, successcallback) {
                 $.ajax({
@@ -138,15 +134,60 @@
                 }
             });
 
-            // {% if code != 0 %}
-            // {% if info.title %}
-            // toastr.error('{{ info.message }}', '{{ info.title }}');
-            // {% endif %}
-            // {% if not info.title %}
-            // toastr.error('{{ info.message }}');
-            // {% endif %}
-            // {% endif %}
-            
+            $("input:checkbox").on("click", function(){
+                approveresult = {}
+                disapproveresult = {}
+                if ($(this).is(":checked")){
+                    WRN_PROFILE_DELETE = "Are you sure you want to Active this selected user?"; 
+                    var check = confirm(WRN_PROFILE_DELETE);
+                    if(check == true){ 
+                        var row = $(this).closest('tr')
+                        approveresult = parseTable(row, 'appchk', approveresult);
+                        var approveresultobj = createRequestObject(approveresult);
+                        ajaxrequest('./api/user/approve', approveresultobj);
+                    }
+
+                }
+                else
+                {
+                    WRN_PROFILE_DELETE = "Are you sure you want to InActive this selected user?"; 
+                    // alert ("Are you sure to InActive the ")
+                    var check = confirm(WRN_PROFILE_DELETE);  
+                    if(check == true){
+                        var row = $(this).closest('tr')
+                        disapproveresult = parseTable(row, 'appchk', disapproveresult);
+                        var disapproveresultobj = createRequestObject(disapproveresult);
+                        ajaxrequest('./api/user/disapprove', disapproveresultobj);    
+                    } 
+                }
+                location.reload();
+            });
+
+            $(".remove-row").on('click', function() {
+                deleteuserresult = {};
+                WRN_PROFILE_DELETE = "Are you sure you want to delete this row?";  
+                var check = confirm(WRN_PROFILE_DELETE);  
+                if(check == true){
+                    var row = $(this).closest('tr')
+                    deleteuserresult = parseTable(row, 'appchk', deleteuserresult);
+                    var deleteuserobj = createRequestObject(deleteuserresult);
+                    ajaxrequest('./api/user/delete', deleteuserobj);
+                   }
+                   location.reload();
+                });
+
+            $("#radActive").change(function(){
+                otable.column(5).search("#").draw()
+            });
+    
+            $("#radInActive").change(function(){
+                otable.column(5).search("$").draw()
+            });
+
+            $("#radAll").change(function(){
+                otable.column(5).search("").draw()
+            });
+
             {% if code == 2001 %}
                 toastr.info('{{ info.message }}');
                 return;
@@ -165,37 +206,54 @@
     </div>
 </header>
 <div id="main" class="site-main">
-    <div class="content-area">
+    <div class="content-area"> 
         <div class="site-content">
+            <h1 class="section-title"> User registration approval </h1><br>
+            <div id="section-radio">
+                <input type="radio" name="Active_user" value="Active" id = "radAll">
+                <label for="Active_user">All</label>
+                <input type="radio" name="Active_user" value="Active" id = "radActive">
+                <label for="Active_user">Active</label>
+                <input type="radio" name="Active_user" value="Inactive" id = "radInActive">
+                <label for="InActive_user">Inactive</label> 
+            </div>
+
             {% if code != 2031 %}
-            <h1 class="section-title"> User registration approval </h1>
-            <table id="approvetable" class="table table-hover table-bordered">
-                <thead class="thead-default">
+            <table id="usertable" class="display" cellspacing="0" width="100%">
+            <!-- <table id="approvetable" class="table table-hover table-bordered"> -->
+                <!-- <thead>
                 <td>Username</td>
                 <td>Email</td>
                 <td>Role</td>
                 <td>Institute Name</td>
                 <td>Class name</td>
-                <td>Approve</td>
-                <td>Disapprove</td>
-                </thead>
-                {% for r in data.pendingUsers%}
+                <td>Active/Inactive</td>
+                < <td>Action</td>
+                <<td>Disapprove</td> 
+                </thead> -->
+                <!-- {% for r in data.pendingUsers%}
                 <tr>
-                    <td>{{r.username}}</td>
+                    <td id = {{r.id}}>{{r.username}}</td>
                     <td>{{r.email}}</td>
                     <td>{{r.role}}</td>
                     <td>{{r.instituteName}}</td>
                     <td id={{r.classId}}>{{r.className}}</td>
-                    <td><input class="checkbox checkbox-success" name="appchk" id={{r.classId}} type="checkbox"/></td>
-                    <td><input name="disappchk" id={{r.classId}} type="checkbox"/></td>
+                    {% if r.isActive %}
+                        <td><input class="checkbox checkbox-success" style="margin-left:30px;"name="appchk" id={{r.classId}} type="checkbox" checked="checked" /></td>
+                    {% else %}
+                        <td><input class="checkbox checkbox-success" style="margin-left:30px;"name="appchk" id ="showCheckoutHistory" type="checkbox"/></td>
+                    {% endif %}
+                    <td>
+                        <a class="remove-row" href="javascript: void(0)"><i class="glyphicon glyphicon-trash"></i></a>
+                    </td>
                 </tr>
-                {% endfor %}
+                {% endfor %} -->
             </table>
-            <div style="text-align: center">
+           <!--  <div style="text-align: center">
                 <input type="submit" class="btn btn-success" id="approvebutton" value="Submit">
-            </div>
+            </div> -->
 
-            <hr/>
+            <!-- <hr/>
             <h1 class="section-title"> User unblock </h1>
             <table id="unblocktable" class="table  table-hover table-bordered">
                 <thead class="thead-default">
@@ -216,10 +274,10 @@
                     <td><input name="unblockchk" type="checkbox"/></td>
                 </tr>
                 {% endfor %}
-            </table>
-            <div style="text-align: center">
+            </table> -->
+            <!-- <div style="text-align: center">
                 <input id="unblock" type="submit" class="btn btn-success" value="Submit">
-            </div>
+            </div> -->
             {% endif %}
             {% if code == 2031 %}
             <div class="alert alert-danger">{{ info.message }}</div>
