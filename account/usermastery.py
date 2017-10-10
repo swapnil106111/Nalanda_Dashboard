@@ -53,12 +53,18 @@ class BaseRoleAccess(object):
 
 
 	def teacher(self):
+		"""
+		This function is used to fetch the mapping of classes and schools based on the user role 
+		"""
 		userMapping = UserRoleCollectionMapping.objects.filter(user_id = self.user)
 		schools = list(userMapping.values_list('institute_id_id', flat = True))
 		classes = list(userMapping.values_list('class_id_id', flat = True))
 		return schools, classes
 
 	def schoolLeader(self):
+		"""
+		This function is used to fetch the mapping of classes and schools based on the user role 
+		"""
 		userMapping = UserRoleCollectionMapping.objects.filter(user_id= self.user)
 		schools = list(userMapping.values_list('institute_id_id', flat=True))
 		# print ("schools:", schools)
@@ -82,6 +88,10 @@ class BaseRoleAccess(object):
 	# 		classes = None
 
 class UserMasteryMeta(BaseRoleAccess):
+	"""
+	This is used to retrive the user meta information based on the role.
+
+	"""
 
 	def __init__(self, user,parentID, parentLevel):
 		super(self.__class__, self).__init__(user, parentID, parentLevel)
@@ -220,6 +230,9 @@ class UserMasteryMeta(BaseRoleAccess):
 		return response_object 
 
 class UserMasteryData(BaseRoleAccess):
+	"""
+	This function is used to fetch the mastery data of the user
+	"""
 	def __init__(self, user, parentID, parentLevel, topicID, channelID, startTimestamp, endTimestamp):
 		super(self.__class__, self).__init__(user, parentID, parentLevel)
 		self.topicID = topicID if topicID != '-1' else ''
