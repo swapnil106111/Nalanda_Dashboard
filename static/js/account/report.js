@@ -65,6 +65,7 @@ var updatePageContent = function() {
     dismissTrendChart();
 };
 
+// Used to check the consisatncy of masterymeta and masterydata result
 var checkTableDataConsistancy = function(data1, data2) {
 	if (!debug) {
 		return;
@@ -868,6 +869,21 @@ var sendPOSTRequest = function(url, dataObject, callback) {
     }
 };
 
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+    }
 // Sends a POST request. Both request and return data are JSON object (non-stringified!!1!)
 // `callback` called when a response is received, with the actual response as the parameter.
 var sendPOSTRequest_real = function(url, dataObject, callback) {
@@ -878,10 +894,12 @@ var sendPOSTRequest_real = function(url, dataObject, callback) {
         console.log('POST request sent to: ' + JSON.stringify(url) + '. POST data: ' + JSON.stringify(dataObject));
     }
     
+    var csrftoken = getCookie('csrftoken'); 
     $.ajax({
         type: 'POST',
         url: url,
         data: JSON.stringify(dataObject),
+        headers: {'X-CSRFToken': csrftoken },
         dataType: 'json',
         success: function(response, textStatus, jqXHR) {
             if (debug) {
@@ -1195,16 +1213,6 @@ var sendPOSTRequest_test = function(url, dataObject, callback) {
         updateLoadingInfo();
     }, getRandomInt(100, 2000));
 };
-
-// var set_user = function(){
-//     // var user=unescape('src').split("user=")[1].split("&")[0];
-//     // alert(user);
-//     parentLevel = jsonObject.parent_level.toString();
-//     parentId = jsonObject.parent_id.toString();
-//     // alert(jsonObject.parent_id);
-//     // alert(parentId);
-
-// };
 
 $(function() {
     google.charts.load('current', {'packages':['line', 'corechart']});
