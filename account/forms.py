@@ -39,7 +39,6 @@ class UserProfileForm(forms.ModelForm):
         raise forms.ValidationError('Username is already taken.')
 
     def save(self, commit=True):
-        print ("Data:", self.cleaned_data)
         # instance = super(SelectCourseYear, self).save(commit=False)
         user = User.objects.create_user(self.cleaned_data['username'])
         user.email = self.cleaned_data['email']
