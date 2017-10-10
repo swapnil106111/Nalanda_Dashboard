@@ -193,10 +193,10 @@ def admin_get_view(request):
         # blockedUsers = list(map(lambda p: getPendingUserDetails(p, False), blocked))
         # blockedUsers = sum(blockedUsers, [])
         objPendingUsers = getMultipleClassCombine(pendingUsers)
-        # print ("Users:", objPendingUsers)
+       
         data = {'pendingUsers': objPendingUsers }
         response_object = construct_response(0, "", "", data)
-        if not objPendingUsers and not blockedUsers:
+        if len(objPendingUsers) == 0:
             response_object = construct_response(2001, "user list empty", "All users are approved by admin and doesn't have ublocked users", {})
         return render(request, 'admin-users.html', response_object)
     else:
@@ -229,11 +229,7 @@ def getPendingUserDetails(user):
 
     role = user.groups.values()[0]['name']
     roleID = user.groups.values()[0]['id']
-    # else:
-    #     user =  User.objects.get(username = user.username)
-    #     role = user.groups.values()[0]['name']
-    #     roleID = user.groups.values()[0]['id']
-
+    
     if roleID != 1:
         objUserMapping = UserRoleCollectionMapping.objects.filter(user_id = user)
 
@@ -254,7 +250,6 @@ def getPendingUserDetails(user):
         pending_user = collections.OrderedDict()
         pending_user = {'userid':user.id, 'username': user.username, 'email': user.email, 'role': role, 'instituteName': instituteName, 'className': className, 'isActive':user.is_active}
         pending_users.append(pending_user)
-    # print ("Users:", pending_users)
     return pending_users
 
 # This function implements the request receiving and response sending for logout
