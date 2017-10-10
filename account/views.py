@@ -24,7 +24,6 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.views.generic import UpdateView
 from .forms import UserProfileForm
 from axes.models import AccessAttempt
-
 from .usermastery import UserMasteryMeta, UserMasteryData
 
 # This function contructs the dict for every response
@@ -36,13 +35,14 @@ def construct_response(code, title, message, data):
     response_object["data"] = data
     return response_object
 
-# This function implements the request receiving and response sending for login
-# @csrf_exempt
 @watch_login
 def login_view(request):
-    # If GET request is received, render the login page
+    """ 
+    This function implements the request receiving and response sending for login
+    """
     response_object ={}
     form = AuthenticationForm(None, request.POST)
+    #If POST request is received, render the mastery page
     if request.method == 'POST':
     	if form.is_valid():
             login(request, form.get_user())
@@ -54,52 +54,14 @@ def login_view(request):
             for msg in error_data:
                 message = error_data[msg][0]['message']
                 response_object = construct_response(1001, "",message, {})
+    #If GET request is received, render the login page
     response_object['form']=form
     return render(request, 'login.html', response_object)
 
-# This function implements the request receiving and response sending for rending report homepage
-@csrf_exempt
-def report_homepage_view(request):
-    if request.method == 'GET':
-        code = 0
-        title = ''
-        message = ''
-        try:
-            latest_date = LatestFetchDate.objects.filter()
-            if latest_date:
-                data = {'dateUpdated': latest_date[0].latest_date}
-            else:
-                data = {}
-            response_object = construct_response(code, title, message, data)
-            return render(request, 'index.html', response_object)
-        # If exception occurred, construct corresponding error info to the user
-        except DatabaseError:
-            code = 2001
-            title = 'Sorry, error occurred in database operations'
-            message = 'Sorry, error occurred in database operations'
-            data = {}
-            response_object = construct_response(code, title, message, data)
-            return render(request, 'index.html', response_object)
-        except OperationalError:
-            code = 2011
-            title = 'Sorry, operational error occurred'
-            message = 'Sorry, operational error occurred'
-            data = {}
-            response_object = construct_response(code, title, message, data)
-            return render(request, 'index.html', response_object)
-        except:
-            code = 2021
-            title = 'Sorry, error occurred at the server'
-            message = 'Sorry, error occurred at the server'
-            data = {}
-            response_object = construct_response(code, title, message, data)
-            return render(request, 'index.html', response_object)
-    else:
-        return HttpResponse()
-
-# This function implements the request receiving and response sending for register
-@csrf_exempt
 def register_view(request):
+    """
+        This function implements the request receiving and response sending for register  
+    """
     data = get_school_and_classes()
     # If GET request is received, render the register page, return the school and class info
     if request.method == 'GET':
@@ -113,6 +75,7 @@ def register_view(request):
     	response_str = json.loads(response_text)
     	response_str['form'] = form
     	return render(request, 'register.html', response_str)
+
     # If POST request is received, process the request and return JSON object
     elif request.method == 'POST':
         classes = request.POST.getlist('classes')
@@ -141,10 +104,11 @@ def register_view(request):
                 up = UserRoleCollectionMapping.objects.create(class_id=userInfoClass, institute_id=institutes, user_id=user)
                 up.save()
 
-            response = construct_response(1006,"","User Registered successfully! Wait for admin approve the request ",{})
+            response = construct_response(1006,"User Save","User Registered successfully! Wait for admin approve the request ",{})
             form = UserProfileForm()
             response['form'] = form
             return render(request,'register.html', response)
+        #If POST request is receieved and get an any error. Erroer will display on the registration page
         else:
             data = form.errors.as_json()
             error_data = json.loads(data)
@@ -157,9 +121,14 @@ def register_view(request):
                 response_text['form'] = form
                 return render(request, 'register.html', response_text)
 
-# This function gets all schools and classes in the database
 def get_school_and_classes():
-    
+    """
+        This function gets all schools and classes in the database
+    Args:
+        None
+    Returns:
+        school_info(dict) = It contains schoolinfo and it's associated classes information
+    """
     school_info = {}
     school_id = ''
     school_name = ''
@@ -167,14 +136,20 @@ def get_school_and_classes():
     def convert_to_string(data):
             data['class_id'] = str(data['class_id'])
             return data
+
     # Get all the schools, if schools exist
     for school in schools:
         classes_in_school = list(UserInfoClass.objects.filter(parent=school.school_id).values('class_id','class_name'))   
         school_info[str(school.school_id)] = list(map(convert_to_string, classes_in_school))
     return school_info
 
-# This function implements the request receiving and response sending for admin get pending and blocked users
+@login_required(login_url='/account/login/')
+@user_passes_test(lambda u: u.is_superuser)
 def admin_get_view(request):
+    """
+        This function implements the request receiving and response sending for admin get the users
+    """
+
     if request.method == 'GET':
         # pendingUser = True
         blockedUsers = {}
@@ -199,10 +174,15 @@ def admin_get_view(request):
         if len(objPendingUsers) == 0:
             response_object = construct_response(2001, "user list empty", "All users are approved by admin and doesn't have ublocked users", {})
         return render(request, 'admin-users.html', response_object)
-    else:
-        return HttpResponse()
 
 def getMultipleClassCombine(userList):
+    """
+        This function is used to combine the multiple classes of user combined as comma seprated string 
+    Args:
+        userList(List): It contains the user list
+    Returns:
+        result(List): updared user teacher classes combined as comma separated string 
+    """
     result = []
     key_data=itemgetter('userid')
     sorted_data=sorted(userList, key= key_data)
@@ -221,6 +201,13 @@ def getMultipleClassCombine(userList):
     return result
 
 def getPendingUserDetails(user):
+    """
+        This function is used to get the user details
+    Args:
+        user(object): passed individual user as input
+    Returns:
+        pending_users(List): It returns the user details
+    """
     instituteName = ''
     instituteID = -1
     classID = -1
@@ -251,10 +238,12 @@ def getPendingUserDetails(user):
         pending_user = {'userid':user.id, 'username': user.username, 'email': user.email, 'role': role, 'instituteName': instituteName, 'className': className, 'isActive':user.is_active}
         pending_users.append(pending_user)
     return pending_users
-
-# This function implements the request receiving and response sending for logout
-@csrf_exempt
+ 
+@login_required(login_url='/account/login/')
 def logout_view(request):
+    """
+        This function implements the request receiving and response sending for logout
+    """
     # If GET request is received, render the index page
     if request.method == 'GET':
         try:
@@ -277,9 +266,12 @@ def logout_view(request):
     else:
         return HttpResponse()
 
-# This function implements the request receiving and response sending for admin approve users
-@csrf_exempt
+@login_required(login_url='/account/login/')
+@user_passes_test(lambda u: u.is_superuser)
 def admin_approve_pending_users_view(request):
+    """
+        This function implements the request receiving and response sending for admin approve users
+    """
     if request.method == 'POST':
         body_unicode = request.body.decode('utf-8')
         data = json.loads(body_unicode)
@@ -291,8 +283,10 @@ def admin_approve_pending_users_view(request):
     else:
         return HttpResponse()
 
-# This function implements the logic for admin approve users
 def admin_approve_pending_users_post(users):
+    """
+        This function implements the logic for admin active the users
+    """
     try:
         code = 0
         title = ''
@@ -333,9 +327,10 @@ def admin_approve_pending_users_post(users):
         response_object = construct_response(code, title, message, data)
         return response_object
 
-# This function implements the logic for admin disapprove users
 def admin_disapprove_pending_users_post(users):
-    # print ("Inside the disapprove:", users)
+    """
+       This function implements the logic for admin inactive users 
+    """
     code = 0
     title = ''
     message = ''
@@ -375,35 +370,26 @@ def admin_disapprove_pending_users_post(users):
         response_object = construct_response(code, title, message, data)
         return response_object
 
-# This function implements the request receiving and response sending for admin approve users
-@csrf_exempt
+@login_required(login_url='/account/login/')
+@user_passes_test(lambda u: u.is_superuser)
 def admin_disapprove_pending_users_view(request):
+    """
+        This function implements the request receiving and response sending for admin inactive users
+    """
     if request.method == 'POST':
-        role = request.user.is_superuser
-        # If the user is not an admin
-        if not role:
-            code = 2031
-            title = 'Sorry, you have to be admin to perform this action'
-            message = 'Sorry, you have to be admin to perform this action'
-            data = {}
-            response_object = construct_response(code, title, message, data)
-            # print(response_object)
-        # If the user is an admin, process the request
-        else:
-            body_unicode = request.body.decode('utf-8')
-            data = json.loads(body_unicode)
-            users = data.get('users',[])
-            # print("users = ", users)
-            response_object = admin_disapprove_pending_users_post(users)
-            # print(response_object)
+        body_unicode = request.body.decode('utf-8')
+        data = json.loads(body_unicode)
+        users = data.get('users',[])
+        response_object = admin_disapprove_pending_users_post(users)
         response_text = json.dumps(response_object,ensure_ascii=False)
-
         return HttpResponse(response_text)
-    else:
-        return HttpResponse()
 
-@csrf_exempt
+@login_required(login_url='/account/login/')
+@user_passes_test(lambda u: u.is_superuser)
 def deleteUser(request):
+    """ 
+        This function is used to delete the the user
+    """
     if request.method == 'POST':
         body_unicode = request.body.decode('utf-8')
         data = json.loads(body_unicode)
@@ -422,72 +408,12 @@ def deleteUser(request):
             return HttpResponse(response_text)
         except Exception as e:
             print (e)
-   
 
-# This function implements the logic for admin unblock users
-def admin_unblock_users_post(usernames):
-    code = 0
-    title = ''
-    message = ''
-    data = {}
-    try:
-        if usernames:
-            for i in range(len(usernames)):
-                # Check if the username exists
-                username = usernames[i]
-                acess_atempts = AccessAttempt.objects.get(username = username)
-                result = User.objects.get(username=username)
-                # If exists, change is_active to True, and clear the number_of_failed_attempts
-                if result and acess_atempts:
-                    result.is_active = True;
-                    # result[0].number_of_failed_attempts = 0;
-                    acess_atempts.failures_since_start = 0
-                    result.update_date = timezone.now()
-                    result.save()
-                    acess_atempts.save()
-        response_object = construct_response(code, title, message, data)
-        return response_object
-    # If exception occurred, construct corresponding error info to the user
-    except DatabaseError:
-        code = 2001
-        title = 'Sorry, error occurred in database operations'
-        message = 'Sorry, error occurred in database operations'
-        data = {}
-        response_object = construct_response(code, title, message, data)
-        return response_object
-    except OperationalError:
-        code = 2011
-        title = 'Sorry, operational error occurred'
-        message = 'Sorry, operational error occurred'
-        data = {}
-        response_object = construct_response(code, title, message, data)
-        return response_object
-    except:
-        code = 2021
-        title = 'Sorry, error occurred at the server'
-        message = 'Sorry, error occurred at the server'
-        data = {}
-        response_object = construct_response(code, title, message, data)
-        return response_object
-
-# This function implements the request receiving and response sending for admin unblock users
 @login_required(login_url='/account/login/')
-@user_passes_test(lambda u: u.is_superuser)
-def admin_unblock_users_view(request):
-    if request.method == 'POST':
-        body_unicode = request.body.decode('utf-8')
-        data = json.loads(body_unicode)
-        usernames = data.get('usernames',[])
-        response_object = admin_unblock_users_post(usernames)
-        # print(response_object)
-        response_text = json.dumps(response_object,ensure_ascii=False)
-        return HttpResponse(response_text)
-    else:
-        return HttpResponse()
-
-# This function implements the request receiving and response sending for get page meta
-@csrf_exempt
-def get_page_meta_view(request):   
+def get_page_meta_view(request):
+    """
+    This function implements the request receiving and response sending for get page meta details
+    """   
     user = request.user
     body_unicode = request.body.decode('utf-8')
     data = json.loads(body_unicode)
@@ -498,9 +424,12 @@ def get_page_meta_view(request):
     response_text = json.dumps(objUserData,ensure_ascii=False)
     return HttpResponse(response_text,content_type='application/json')
 
-# This function implements the request receiving and response sending for get page data
-@csrf_exempt
+@login_required(login_url='/account/login/')
 def get_page_data_view(request):
+    """
+    This function implements the request receiving and response sending for get page data
+
+    """
     user = request.user
     body_unicode = request.body.decode('utf-8')
     data = json.loads(body_unicode)
@@ -516,9 +445,11 @@ def get_page_data_view(request):
     response_text = json.dumps(response_object,ensure_ascii=False)
     return HttpResponse(response_text, content_type='application/json')
 
-@csrf_exempt
+@login_required(login_url='/account/login/')
 def get_topics(request):
-    # print("Inside topics")
+    """
+        This function is used to get the channel details 
+    """
     if request.method == 'POST':
         topics = Content.objects.filter(topic_id='').first()
         obj = json.loads(topics.sub_topics)
@@ -530,9 +461,11 @@ def get_topics(request):
         response_text = json.dumps(response,ensure_ascii=False)
         return HttpResponse(response_text,content_type='application/json')
 
-@csrf_exempt
+@login_required(login_url='/account/login/')
 def get_trend(request):
-    # print ("Method:", request.method)
+    """
+    This function is used to show the mastery data in a graphical format
+    """
     if request.method == 'POST':
         body_unicode = request.body.decode('utf-8')
         params = json.loads(body_unicode)
@@ -634,7 +567,7 @@ def get_trend(request):
         response_text = json.dumps(response,ensure_ascii=False)
         return HttpResponse(response_text,content_type='application/json')
 
-@csrf_exempt
+@login_required(login_url='/account/login/')
 def get_report_mastery(request):
     if request.method == 'GET': 
         return render(request,'report-mastery.html')
