@@ -10,22 +10,23 @@ class UserProfileForm(forms.ModelForm):
     institutes = forms.ModelChoiceField(queryset=UserInfoSchool.objects.all(),
     	                           required=False, label = 'Institutes')
     classes = forms.CharField(label='Classes', required = False)
-    password1 = forms.CharField(label='Password',
-                          widget=forms.PasswordInput())
-    password2 = forms.CharField(label='Confirm Password',
-                        widget=forms.PasswordInput())
+    password=forms.CharField(label='Password', widget=forms.PasswordInput())
+    confirm_password=forms.CharField(label = 'Confirm Password', widget=forms.PasswordInput())
     email = forms.CharField(max_length=75, required=True)
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'username', 'email', 'password1','password2','role', 'institutes', 'classes']
+        fields = ['first_name', 'last_name', 'username', 'email', 'password','role', 'institutes', 'classes']
 
-    def clean_password(self):
-        if 'password1' in self.cleaned_data:
-            password1 = self.cleaned_data['password1']
-            password2 = self.cleaned_data['password2']
-            if password1 == password2:
-                return password2
-        raise forms.ValidationError('Passwords do not match.')
+    def clean(self):
+        cleaned_data = super(UserProfileForm, self).clean()
+        password = cleaned_data.get("password")
+        confirm_password = cleaned_data.get("confirm_password")
+
+        if password != confirm_password:
+            raise forms.ValidationError(
+                "password and confirm_password does not match"
+            )
+
 
     def clean_username(self):
         username = self.cleaned_data['username']
@@ -44,7 +45,7 @@ class UserProfileForm(forms.ModelForm):
         user.email = self.cleaned_data['email']
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
-        user.set_password(self.cleaned_data['password2'])
+        user.set_password(self.cleaned_data['confirm_password'])
         user.is_active = False
         if commit:
             user.save() 
