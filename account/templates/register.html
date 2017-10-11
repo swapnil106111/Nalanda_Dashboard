@@ -28,7 +28,6 @@
             // This function is performed when role is changed
             // It shows institutes or classes based on role sleected
             $("#id_role").change(function () {
-                // alert("Inside")
                 var e = document.getElementById("id_role");
                 var strUserRole = e.options[e.selectedIndex].value;
                 $("#InstitutesSelecDiv").hide();
@@ -48,11 +47,8 @@
             // It shows classes based on role selected
             $('#id_institutes').change(function () {
                 $("#ClassesSelectDiv").hide();
-                // alert("inside")
                 var valueSelected = $(this).val();
-                // alert(valueSelected)
                 idselected = $('#id_role').val();
-                // alert(idselected)
                 var classes = '';        
                 if (idselected == 3 && valueSelected !='') {
                     var option = ""
@@ -106,17 +102,17 @@
                 </div>
             </div>   
             <div class="col-sm-6">
-                {{ form.password1.label_tag }}
+                {{ form.password.label_tag }}
                 <div class ="input">
-                    {{ form.password1 }}
+                    {{ form.password }}
                 </div>
             </div>
         </div>
         <div class ="row">
             <div class="col-sm-6">
-                {{ form.password2.label_tag }}
+                {{ form.confirm_password.label_tag }}
                 <div class ="input">
-                    {{ form.password2 }}
+                    {{ form.confirm_password }}
                 </div>
             </div>
             <div class="col-sm-6">
