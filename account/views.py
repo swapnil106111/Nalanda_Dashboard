@@ -83,8 +83,13 @@ def register_view(request):
         response = {}
         if form.is_valid():
             institutes =  form.cleaned_data['institutes']
-            if not institutes:
+            if not institutes and form.cleaned_data['role'].id == 2:
                 institutes = None
+                response = construct_response(1002,"","User need to select atleast one institute", data)
+                form = UserProfileForm()
+                response['form'] = form
+                return render(request,'register.html', response)
+
             if form.cleaned_data['role'].id == 3 and len(classes) == 0:
                 response = construct_response(1002,"","User need to select atleast one class",data)
                 form = UserProfileForm()
@@ -104,19 +109,19 @@ def register_view(request):
                 up = UserRoleCollectionMapping.objects.create(class_id=userInfoClass, institute_id=institutes, user_id=user)
                 up.save()
 
-            response = construct_response(1006,"User Save","User Registered successfully! Wait for admin approve the request ",{})
+            response = construct_response(1006,"User Save","User Registered successfully! Wait for admin approve the request ",data)
             form = UserProfileForm()
             response['form'] = form
             return render(request,'register.html', response)
         #If POST request is receieved and get an any error. Erroer will display on the registration page
         else:
-            data = form.errors.as_json()
-            error_data = json.loads(data)
-            for k,v in error_data.items():
-                message = error_data[k][0]['message']
+            errorDetails = form.errors.as_json()
+            errorData = json.loads(errorDetails)
+            for k,v in errorData.items():
+                message = errorData[k][0]['message']
                 # message= str(msg)+" "+ message[4:] 
                 response_text ={}
-                response_text = construct_response(1007,"",message,{})
+                response_text = construct_response(1007,"",message,data)
                 form = UserProfileForm()
                 response_text['form'] = form
                 return render(request, 'register.html', response_text)
