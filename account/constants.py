@@ -6,3 +6,7 @@ metrics = [
 ]
 
 USERROLE = { 'BM':1, 'SL':2, 'teacher':3 }
+
+SUBJECT = "User registration"
+
+MESSAGE = "Account is registered successfully! Wait for admin approve the request"
