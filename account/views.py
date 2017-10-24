@@ -25,6 +25,13 @@ from django.views.generic import UpdateView
 from .forms import UserProfileForm
 from axes.models import AccessAttempt
 from .usermastery import UserMasteryMeta, UserMasteryData
+from django.core.mail import send_mail
+from account.constants import MESSAGE, SUBJECT
+from django.conf import settings
+
+from django.template import Context
+from django.template.loader import render_to_string, get_template
+from django.core.mail import EmailMessage
 
 # This function contructs the dict for every response
 # code = 0 represents that the processing is sucessful
@@ -108,8 +115,18 @@ def register_view(request):
                 userInfoClass = None
                 up = UserRoleCollectionMapping.objects.create(class_id=userInfoClass, institute_id=institutes, user_id=user)
                 up.save()
+            
+            ctx = {
+                    "user": user,
+                    "username": user.username
+                }
+            message = get_template('email.html').render(ctx)
 
-            response = construct_response(1006,"User Save","User Registered successfully! Wait for admin approve the request ",data)
+            msg = EmailMessage(SUBJECT, message, to=[user.email], from_email=settings.EMAIL_HOST_USER)
+            msg.content_subtype = 'html'
+            msg.send()
+
+            response = construct_response(1006,"User Save","Please check your gmail account.",data)
             form = UserProfileForm()
             response['form'] = form
             return render(request,'register.html', response)
@@ -408,7 +425,7 @@ def deleteUser(request):
                     if result:
                         result.delete()
 
-            response_object = construct_response("3001", "User Delete", "User Deleted successfully", {deleteSuccess})
+            response_object = construct_response("3001", "User Delete", "User Deleted successfully", {data:deleteSuccess})
             response_text = json.dumps(response_object, ensure_ascii=False)
             return HttpResponse(response_text)
         except Exception as e:
