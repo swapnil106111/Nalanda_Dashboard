@@ -25,13 +25,14 @@ from django.views.generic import UpdateView
 from .forms import UserProfileForm
 from axes.models import AccessAttempt
 from .usermastery import UserMasteryMeta, UserMasteryData
-from django.core.mail import send_mail
-from account.constants import MESSAGE, SUBJECT
+from account.constants import MESSAGE, SUBJECT, REGISTEREMAIl, USERACTIVEMAIL
 from django.conf import settings
 
 from django.template import Context
 from django.template.loader import render_to_string, get_template
 from django.core.mail import EmailMessage
+
+from django.core.validators import validate_email
 
 # This function contructs the dict for every response
 # code = 0 represents that the processing is sucessful
@@ -85,11 +86,20 @@ def register_view(request):
 
     # If POST request is received, process the request and return JSON object
     elif request.method == 'POST':
+        try:
+            validate_email(request.POST.get("email"))
+        except:
+            response = construct_response(1001,"","Enter a valid e-mail address.", data)
+            form = UserProfileForm()
+            response['form'] = form
+            return render(request,'register.html', response)
+        # print ("Email:", )
         classes = request.POST.getlist('classes')
         form = UserProfileForm(request.POST)
         response = {}
         if form.is_valid():
             institutes =  form.cleaned_data['institutes']
+
             if not institutes and form.cleaned_data['role'].id == 2:
                 institutes = None
                 response = construct_response(1002,"","User need to select atleast one institute", data)
@@ -98,7 +108,7 @@ def register_view(request):
                 return render(request,'register.html', response)
 
             if form.cleaned_data['role'].id == 3 and len(classes) == 0:
-                response = construct_response(1002,"","User need to select atleast one class",data)
+                response = construct_response(1003,"","User need to select atleast one class",data)
                 form = UserProfileForm()
                 response['form'] = form
                 return render(request,'register.html', response)
@@ -115,18 +125,9 @@ def register_view(request):
                 userInfoClass = None
                 up = UserRoleCollectionMapping.objects.create(class_id=userInfoClass, institute_id=institutes, user_id=user)
                 up.save()
-            
-            ctx = {
-                    "user": user,
-                    "username": user.username
-                }
-            message = get_template('email.html').render(ctx)
-
-            msg = EmailMessage(SUBJECT, message, to=[user.email], from_email=settings.EMAIL_HOST_USER)
-            msg.content_subtype = 'html'
-            msg.send()
-
-            response = construct_response(1006,"User Save","Please check your gmail account.",data)
+  
+            sendEmail(user, REGISTEREMAIl, SUBJECT[1])
+            response = construct_response(1006,"User Save","Please check your gmail account.", data)
             form = UserProfileForm()
             response['form'] = form
             return render(request,'register.html', response)
@@ -142,6 +143,20 @@ def register_view(request):
                 form = UserProfileForm()
                 response_text['form'] = form
                 return render(request, 'register.html', response_text)
+
+def sendEmail(user, template, subject):
+    try:
+        ctx = {
+                "user": user,
+                "username": user.username
+            }
+        message = get_template(template).render(ctx)
+
+        msg = EmailMessage(subject, message, to=[user.email], from_email=settings.EMAIL_HOST_USER)
+        msg.content_subtype = 'html'
+        msg.send()
+    except exception as e:
+        print (e)
 
 def get_school_and_classes():
     """
@@ -175,7 +190,7 @@ def admin_get_view(request):
     if request.method == 'GET':
         # pendingUser = True
         blockedUsers = {}
-        pendings = User.objects.filter(is_superuser = False)
+        pendings = User.objects.filter(is_superuser = False).order_by('-id')
         # blocked =  AccessAttempt.objects.filter(failures_since_start__gte=3)
         pendingUsers = list(map(lambda p: getPendingUserDetails(p), pendings))
         # print ("Users:", pendingUsers)
@@ -324,6 +339,7 @@ def admin_approve_pending_users_post(users):
                     result[0].is_active = True
                     result[0].update_date = timezone.now()
                     result[0].save()
+                    sendEmail(result[0], USERACTIVEMAIL, SUBJECT[2])
         response_object = construct_response(code, title, message, data)
         return response_object
     # If exception occurred, construct corresponding error info to the user
@@ -425,7 +441,7 @@ def deleteUser(request):
                     if result:
                         result.delete()
 
-            response_object = construct_response("3001", "User Delete", "User Deleted successfully", {data:deleteSuccess})
+            response_object = construct_response("3001", "User Delete", "User Deleted successfully", {})
             response_text = json.dumps(response_object, ensure_ascii=False)
             return HttpResponse(response_text)
         except Exception as e:
