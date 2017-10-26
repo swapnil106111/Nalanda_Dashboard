@@ -176,7 +176,7 @@
                         ajaxrequest('./api/user/disapprove', disapproveresultobj);    
                     } 
                 }
-                location.reload();
+                setTimeout(function(){window.location = window.location}, 3000);
             });
 
             $(".remove-row").on('click', function() {
@@ -189,7 +189,8 @@
                     var deleteuserobj = createRequestObject(deleteuserresult);
                     ajaxrequest('./api/user/delete', deleteuserobj);
                    }
-                   location.reload();
+                   // location.reload();
+                   setTimeout(function(){window.location = window.location}, 3000);
                 });
 
             $("#radActive").change(function(){
