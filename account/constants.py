@@ -7,6 +7,10 @@ metrics = [
 
 USERROLE = { 'BM':1, 'SL':2, 'teacher':3 }
 
-SUBJECT = "User registration"
+SUBJECT = {1:"User Registration",2:"User Activation"}
 
 MESSAGE = "Account is registered successfully! Wait for admin approve the request"
+
+REGISTEREMAIl = 'registeremail.html'
+
+USERACTIVEMAIL = 'activeuseremail.html'
