@@ -89,7 +89,7 @@ def register_view(request):
         try:
             validate_email(request.POST.get("email"))
         except:
-            response = construct_response(1001,"","Enter a valid e-mail address.", data)
+            response = construct_response(0,"","Enter a valid e-mail address.", data)
             form = UserProfileForm()
             response['form'] = form
             return render(request,'register.html', response)
@@ -102,13 +102,13 @@ def register_view(request):
 
             if not institutes and form.cleaned_data['role'].id == 2:
                 institutes = None
-                response = construct_response(1002,"","User need to select atleast one institute", data)
+                response = construct_response(0,"","User need to select atleast one institute", data)
                 form = UserProfileForm()
                 response['form'] = form
                 return render(request,'register.html', response)
 
             if form.cleaned_data['role'].id == 3 and len(classes) == 0:
-                response = construct_response(1003,"","User need to select atleast one class",data)
+                response = construct_response(0,"","User need to select atleast one class",data)
                 form = UserProfileForm()
                 response['form'] = form
                 return render(request,'register.html', response)
@@ -127,7 +127,7 @@ def register_view(request):
                 up.save()
   
             sendEmail(user, REGISTEREMAIl, SUBJECT[1])
-            response = construct_response(1006,"User Save","Please check your gmail account.", data)
+            response = construct_response(1006,"User Save","Please check your email account.", data)
             form = UserProfileForm()
             response['form'] = form
             return render(request,'register.html', response)
@@ -155,7 +155,7 @@ def sendEmail(user, template, subject):
         msg = EmailMessage(subject, message, to=[user.email], from_email=settings.EMAIL_HOST_USER)
         msg.content_subtype = 'html'
         msg.send()
-    except exception as e:
+    except Exception as e:
         print (e)
 
 def get_school_and_classes():
