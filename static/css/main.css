@@ -626,6 +626,15 @@ input[type='radio'], label{
     /*background: red;*/
 }
 
+.info {
+    padding: 9px 30px 8px;
+    background-color: #f2dede;
+    border: 1px solid #ebccd1;
+    border-left-width: 0;
+    border-right-width: 0;
+    color: #a94442;
+    margin: 15px 0 0;
+}
 @media (max-width: 1000px) {
     .page-title {
         font-size: 23px;
