@@ -628,11 +628,11 @@ input[type='radio'], label{
 
 .info {
     padding: 9px 30px 8px;
-    background-color: #f2dede;
-    border: 1px solid #ebccd1;
+    background-color: #45e611;;
+    border: 1px solid #1af30c;
     border-left-width: 0;
     border-right-width: 0;
-    color: #a94442;
+    color: #101010;
     margin: 15px 0 0;
 }
 @media (max-width: 1000px) {
