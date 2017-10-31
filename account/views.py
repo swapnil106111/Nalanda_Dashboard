@@ -147,8 +147,7 @@ def register_view(request):
 def sendEmail(user, template, subject):
     try:
         ctx = {
-                "user": user,
-                "username": user.username
+                "url":"http://127.0.0.1:8000/account/login/"
             }
         message = get_template(template).render(ctx)
 
