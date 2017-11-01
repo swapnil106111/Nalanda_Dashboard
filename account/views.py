@@ -18,12 +18,12 @@ import collections
 
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login
-from axes.decorators import watch_login
-from axes.utils import reset
+#from axes.decorators import watch_login
+#from axes.utils import reset
 from django.contrib.auth.forms import AuthenticationForm
 from django.views.generic import UpdateView
 from .forms import UserProfileForm
-from axes.models import AccessAttempt
+#from axes.models import AccessAttempt
 from .usermastery import UserMasteryMeta, UserMasteryData
 
 # This function contructs the dict for every response
@@ -35,7 +35,7 @@ def construct_response(code, title, message, data):
     response_object["data"] = data
     return response_object
 
-@watch_login
+#@watch_login
 def login_view(request):
     """ 
     This function implements the request receiving and response sending for login
