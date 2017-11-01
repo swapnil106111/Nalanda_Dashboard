@@ -75,7 +75,7 @@ def register_view(request):
     if request.method == 'GET':
     	response_str = {}
     	form = UserProfileForm(None, request.POST)
-    	code = 0
+    	code = 1000
     	title = ''
     	message = ''
     	response_object = construct_response(code, title, message, data)
@@ -127,7 +127,7 @@ def register_view(request):
                 up.save()
   
             sendEmail(user, REGISTEREMAIl, SUBJECT[1])
-            response = construct_response(1006,"User Save","Please check your email account.", data)
+            response = construct_response(1006,"User Save","You are succesfully registered to Nalanda's Dashboard. Please check your email account.", data)
             form = UserProfileForm()
             response['form'] = form
             return render(request,'register.html', response)
@@ -139,7 +139,7 @@ def register_view(request):
                 message = errorData[k][0]['message']
                 # message= str(msg)+" "+ message[4:] 
                 response_text ={}
-                response_text = construct_response(1007,"",message,data)
+                response_text = construct_response(0,"",message,data)
                 form = UserProfileForm()
                 response_text['form'] = form
                 return render(request, 'register.html', response_text)
