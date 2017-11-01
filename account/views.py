@@ -289,13 +289,7 @@ def logout_view(request):
     if request.method == 'GET':
         try:
             logout(request)
-            code = 0
-            title = ""
-            message = ""
-            data = {}
-            response_object = construct_response(code, title, message, data)
-            response = render(request, 'login.html', response_object)
-            return response
+            return redirect('/account/login/')
         except:
             code = 2021
             title = 'Sorry, error occurred at the server'
