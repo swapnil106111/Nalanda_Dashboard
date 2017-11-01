@@ -2,8 +2,8 @@
   "name": "kolibri-visualizer",
   "version": "1.0.0",
   "main": "index.js",
-  "repository": "https://github.com/renfeisong/Kolibri-Visualizer",
-  "author": "Carnegie Mellon University",
+  "repository": "https://github.com/nalandaproject/Nalanda_Dashboard",
+  "author": "Softcorner",
   "license": "MIT",
   "dependencies": {
     "bootstrap": "^3.3.7",

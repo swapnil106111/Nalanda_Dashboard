@@ -1,20 +1,21 @@
 
 {% extends "account_base.html" %}
-
+{% block style %}
 <link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet">
+{% endblock style %}
 
+{% block title %}Kolibri Visualizer{% endblock %}
 
 {% block content %}
 <body class ="login">
-    {% block title %}
-        <h1 class="site-title">Kolibri Visualizer</h1>
-    {% endblock %}
+    <h1 class="site-title">Kolibri Visualizer</h1>
+    
     <div class="content">
         <h2>Login to your account</h2>
         {% if code != 0 and info.message %}
         <div class="error">{{ info.message }}</div>
         {% endif %}
-        <form class="login-form" method="POST" action="./login" >{% csrf_token %}
+        <form class="login-form" method="POST"  >{% csrf_token %}
             <div class="input">
                 <i class="glyphicon glyphicon-user"></i>
                 <input name="username" type="text" class="form-control" placeholder="Username">
@@ -27,6 +28,9 @@
         </form>
         <div class="alternate-option">
             Doesn’t have an account? <a href="/account/register">Click to register</a>
+        </div>
+        <div class="alternate-option">
+            <a href="/account/password_reset">Forget Password</a>
         </div>
     </div>
 </body>

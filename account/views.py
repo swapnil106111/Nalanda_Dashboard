@@ -1,4 +1,4 @@
-from django.shortcuts import render, HttpResponse, redirect, get_object_or_404
+from django.shortcuts import render, HttpResponse, redirect, get_object_or_404, render_to_response
 from django.template import Context, loader
 from django.core.exceptions import ObjectDoesNotExist
 from account.models import LatestFetchDate, UserInfoClass, UserInfoSchool, UserRoleCollectionMapping, Content,  MasteryLevelStudent, MasteryLevelClass, MasteryLevelSchool, UserInfoStudent
@@ -15,6 +15,7 @@ from django.contrib.auth.decorators import user_passes_test
 from itertools import groupby
 from operator import itemgetter
 import collections
+from account.forms import Forget_Password
 
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login
@@ -25,6 +26,13 @@ from django.views.generic import UpdateView
 from .forms import UserProfileForm
 #from axes.models import AccessAttempt
 from .usermastery import UserMasteryMeta, UserMasteryData
+from account.constants import MESSAGE, SUBJECT, REGISTEREMAIl, USERACTIVEMAIL
+from django.conf import settings
+from django.template import Context
+from django.template.loader import render_to_string, get_template
+from django.core.mail import EmailMessage
+
+from django.core.validators import validate_email
 
 # This function contructs the dict for every response
 # code = 0 represents that the processing is sucessful
@@ -58,16 +66,20 @@ def login_view(request):
     response_object['form']=form
     return render(request, 'login.html', response_object)
 
+
 def register_view(request):
     """
         This function implements the request receiving and response sending for register  
     """
+    domain = request.get_host()
+    # print ("Domain:", domain)
+    # print ("Fullpath:",request.META['HTTP_REFERER'])
     data = get_school_and_classes()
     # If GET request is received, render the register page, return the school and class info
     if request.method == 'GET':
     	response_str = {}
     	form = UserProfileForm(None, request.POST)
-    	code = 0
+    	code = 1000
     	title = ''
     	message = ''
     	response_object = construct_response(code, title, message, data)
@@ -78,20 +90,29 @@ def register_view(request):
 
     # If POST request is received, process the request and return JSON object
     elif request.method == 'POST':
+        try:
+            validate_email(request.POST.get("email"))
+        except:
+            response = construct_response(0,"","Enter a valid e-mail address.", data)
+            form = UserProfileForm()
+            response['form'] = form
+            return render(request,'register.html', response)
+        # print ("Email:", )
         classes = request.POST.getlist('classes')
         form = UserProfileForm(request.POST)
         response = {}
         if form.is_valid():
             institutes =  form.cleaned_data['institutes']
+
             if not institutes and form.cleaned_data['role'].id == 2:
                 institutes = None
-                response = construct_response(1002,"","User need to select atleast one institute", data)
+                response = construct_response(0,"","User need to select atleast one institute", data)
                 form = UserProfileForm()
                 response['form'] = form
                 return render(request,'register.html', response)
 
             if form.cleaned_data['role'].id == 3 and len(classes) == 0:
-                response = construct_response(1002,"","User need to select atleast one class",data)
+                response = construct_response(0,"","User need to select atleast one class",data)
                 form = UserProfileForm()
                 response['form'] = form
                 return render(request,'register.html', response)
@@ -108,8 +129,9 @@ def register_view(request):
                 userInfoClass = None
                 up = UserRoleCollectionMapping.objects.create(class_id=userInfoClass, institute_id=institutes, user_id=user)
                 up.save()
-
-            response = construct_response(1006,"User Save","User Registered successfully! Wait for admin approve the request ",data)
+  
+            sendEmail(user, REGISTEREMAIl, SUBJECT[1], domain)
+            response = construct_response(1006,"User Save","You are succesfully registered to Nalanda's Dashboard. Please check your email account.", data)
             form = UserProfileForm()
             response['form'] = form
             return render(request,'register.html', response)
@@ -121,10 +143,24 @@ def register_view(request):
                 message = errorData[k][0]['message']
                 # message= str(msg)+" "+ message[4:] 
                 response_text ={}
-                response_text = construct_response(1007,"",message,data)
+                response_text = construct_response(0,"",message,data)
                 form = UserProfileForm()
                 response_text['form'] = form
                 return render(request, 'register.html', response_text)
+
+def sendEmail(user, template, subject, domain):
+    try:
+        ctx = {
+                "user":user,
+                "url":"http://"+domain+"/account/login/"
+            }
+        message = get_template(template).render(ctx)
+
+        msg = EmailMessage(subject, message, to=[user.email], from_email=settings.EMAIL_HOST_USER)
+        msg.content_subtype = 'html'
+        msg.send()
+    except Exception as e:
+        print (e)
 
 def get_school_and_classes():
     """
@@ -158,7 +194,7 @@ def admin_get_view(request):
     if request.method == 'GET':
         # pendingUser = True
         blockedUsers = {}
-        pendings = User.objects.filter(is_superuser = False)
+        pendings = User.objects.filter(is_superuser = False).order_by('-id')
         # blocked =  AccessAttempt.objects.filter(failures_since_start__gte=3)
         pendingUsers = list(map(lambda p: getPendingUserDetails(p), pendings))
         # print ("Users:", pendingUsers)
@@ -277,18 +313,19 @@ def admin_approve_pending_users_view(request):
     """
         This function implements the request receiving and response sending for admin approve users
     """
+    domain = request.get_host()
     if request.method == 'POST':
         body_unicode = request.body.decode('utf-8')
         data = json.loads(body_unicode)
         users = data.get('users',[])
-        response_object = admin_approve_pending_users_post(users)
+        response_object = admin_approve_pending_users_post(users, domain)
 
         response_text = json.dumps(response_object,ensure_ascii=False)
         return HttpResponse(response_text)
     else:
         return HttpResponse()
 
-def admin_approve_pending_users_post(users):
+def admin_approve_pending_users_post(users, domain):
     """
         This function implements the logic for admin active the users
     """
@@ -307,6 +344,7 @@ def admin_approve_pending_users_post(users):
                     result[0].is_active = True
                     result[0].update_date = timezone.now()
                     result[0].save()
+                    sendEmail(result[0], USERACTIVEMAIL, SUBJECT[2], domain)
         response_object = construct_response(code, title, message, data)
         return response_object
     # If exception occurred, construct corresponding error info to the user
@@ -408,7 +446,7 @@ def deleteUser(request):
                     if result:
                         result.delete()
 
-            response_object = construct_response("3001", "User Delete", "User Deleted successfully", {deleteSuccess})
+            response_object = construct_response("3001", "User Delete", "User Deleted successfully", {})
             response_text = json.dumps(response_object, ensure_ascii=False)
             return HttpResponse(response_text)
         except Exception as e:

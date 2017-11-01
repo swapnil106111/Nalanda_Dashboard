@@ -4,6 +4,15 @@ import re
 from django.core.exceptions import ObjectDoesNotExist
 from account.models import UserInfoSchool, UserRoleCollectionMapping, UserInfoClass
 
+
+
+class Forget_Password(forms.ModelForm):
+    email = forms.EmailField(required=False)
+    class Meta:
+        model = User
+        fields = ['email']
+
+
 class UserProfileForm(forms.ModelForm):
     role = forms.ModelChoiceField(queryset=Group.objects.all(),
                                    required=True)

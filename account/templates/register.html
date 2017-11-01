@@ -74,10 +74,13 @@
     <h2>Register a new account</h2>
     <!--<div><label id="Message" class="label label-info"></label></div>-->
     <div  id="Message"></div>
-    {% if code != 0 or info.message %}
+    {% if code == 0 %}
         <div class="error">{{ info.message }}</div>
-        {% endif %}
+    {% elif code == 1006%}
+        <div class="info">{{ info.message }}</div>
+    {% endif %}
     {% block content %}
+    
     <form id="register" method="POST">
         {% csrf_token %}
         <div class ="row">
