@@ -1,4 +1,4 @@
-from django.shortcuts import render, HttpResponse, redirect, get_object_or_404
+from django.shortcuts import render, HttpResponse, redirect, get_object_or_404, render_to_response
 from django.template import Context, loader
 from django.core.exceptions import ObjectDoesNotExist
 from account.models import LatestFetchDate, UserInfoClass, UserInfoSchool, UserRoleCollectionMapping, Content,  MasteryLevelStudent, MasteryLevelClass, MasteryLevelSchool, UserInfoStudent
@@ -15,6 +15,7 @@ from django.contrib.auth.decorators import user_passes_test
 from itertools import groupby
 from operator import itemgetter
 import collections
+from account.forms import Forget_Password
 
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login
@@ -27,7 +28,6 @@ from axes.models import AccessAttempt
 from .usermastery import UserMasteryMeta, UserMasteryData
 from account.constants import MESSAGE, SUBJECT, REGISTEREMAIl, USERACTIVEMAIL
 from django.conf import settings
-
 from django.template import Context
 from django.template.loader import render_to_string, get_template
 from django.core.mail import EmailMessage
@@ -65,6 +65,7 @@ def login_view(request):
     #If GET request is received, render the login page
     response_object['form']=form
     return render(request, 'login.html', response_object)
+
 
 def register_view(request):
     """
