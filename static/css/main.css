@@ -635,6 +635,12 @@ input[type='radio'], label{
     color: #a94442;
     margin: 15px 0 0;
 }
+.displaymessage{
+    margin: 0 0 10px;
+    padding-left: 30px;
+    padding-right: 30px;
+    background-color:#fff;
+}
 @media (max-width: 1000px) {
     .page-title {
         font-size: 23px;
