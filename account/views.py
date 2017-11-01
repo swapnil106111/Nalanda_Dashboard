@@ -70,6 +70,9 @@ def register_view(request):
     """
         This function implements the request receiving and response sending for register  
     """
+    domain = request.get_host()
+    # print ("Domain:", domain)
+    # print ("Fullpath:",request.META['HTTP_REFERER'])
     data = get_school_and_classes()
     # If GET request is received, render the register page, return the school and class info
     if request.method == 'GET':
@@ -126,7 +129,7 @@ def register_view(request):
                 up = UserRoleCollectionMapping.objects.create(class_id=userInfoClass, institute_id=institutes, user_id=user)
                 up.save()
   
-            sendEmail(user, REGISTEREMAIl, SUBJECT[1])
+            sendEmail(user, REGISTEREMAIl, SUBJECT[1], domain)
             response = construct_response(1006,"User Save","You are succesfully registered to Nalanda's Dashboard. Please check your email account.", data)
             form = UserProfileForm()
             response['form'] = form
@@ -144,11 +147,11 @@ def register_view(request):
                 response_text['form'] = form
                 return render(request, 'register.html', response_text)
 
-def sendEmail(user, template, subject):
+def sendEmail(user, template, subject, domain):
     try:
         ctx = {
                 "user":user,
-                "url":"http://127.0.0.1:8000/account/login/"
+                "url":"http://"+domain+"/account/login/"
             }
         message = get_template(template).render(ctx)
 
@@ -309,18 +312,19 @@ def admin_approve_pending_users_view(request):
     """
         This function implements the request receiving and response sending for admin approve users
     """
+    domain = request.get_host()
     if request.method == 'POST':
         body_unicode = request.body.decode('utf-8')
         data = json.loads(body_unicode)
         users = data.get('users',[])
-        response_object = admin_approve_pending_users_post(users)
+        response_object = admin_approve_pending_users_post(users, domain)
 
         response_text = json.dumps(response_object,ensure_ascii=False)
         return HttpResponse(response_text)
     else:
         return HttpResponse()
 
-def admin_approve_pending_users_post(users):
+def admin_approve_pending_users_post(users, domain):
     """
         This function implements the logic for admin active the users
     """
@@ -339,7 +343,7 @@ def admin_approve_pending_users_post(users):
                     result[0].is_active = True
                     result[0].update_date = timezone.now()
                     result[0].save()
-                    sendEmail(result[0], USERACTIVEMAIL, SUBJECT[2])
+                    sendEmail(result[0], USERACTIVEMAIL, SUBJECT[2], domain)
         response_object = construct_response(code, title, message, data)
         return response_object
     # If exception occurred, construct corresponding error info to the user
