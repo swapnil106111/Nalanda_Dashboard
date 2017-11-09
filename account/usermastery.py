@@ -315,14 +315,15 @@ class UserMasteryData(BaseRoleAccess):
 		for row in aggregationResult:
 			percent_complete_array.append(row[0])
 			percent_correct_array.append(row[1])
-			percent_student_completed_array.append(row[2])
-			number_of_attempts_array.append(row[3])
+			# percent_student_completed_array.append(row[2])
+			number_of_attempts_array.append(row[2])
 		
 		# Removed unwanted data of aggregation
 		for row in masteryData:
 			row.pop('aggregation', None)
 	
-		aggregation = self.getAggrigation(percent_complete_array, percent_correct_array, percent_student_completed_array, number_of_attempts_array)
+		# aggregation = self.getAggrigation(percent_complete_array, percent_correct_array, percent_student_completed_array, number_of_attempts_array)
+		aggregation = self.getAggrigation(percent_complete_array, percent_correct_array, number_of_attempts_array)
 		data['rows'] = masteryData
 		data['aggregation'] = aggregation
 		return data
@@ -376,13 +377,13 @@ class UserMasteryData(BaseRoleAccess):
 			completed_questions += mastery_student.completed_questions
 			correct_questions += mastery_student.correct_questions
 			number_of_attempts += mastery_student.attempt_questions
-			if completed:
-				completed = mastery_student.completed and completed
+			# if completed:
+			# 	completed = mastery_student.completed and completed
 
 		if len(mastery_students) == 0:
 			completed = "0.00%"
-			values = ["0.00%", "0.00%", 0, completed]
-			aggregation = [0.00, 0.00, completed, 0]
+			values = ["0.00%", "0.00%", 0]
+			aggregation = [0.00, 0.00, 0]
 			row = {'id': str(student.student_id), 'name': student.student_name, 'values': values, 'aggregation': aggregation}
 		else:
 			percent_complete_float = float(completed_questions) / total_questions
@@ -392,13 +393,15 @@ class UserMasteryData(BaseRoleAccess):
 			percent_correct_float = float(correct_questions) / total_questions
 			percent_correct = "{0:.2%}".format(percent_correct_float)
 
-			# Calculate the percentage of students completed the topic
-			if completed:
-				completed = "100.00%"
-			else:
-				completed = "0.00%"
-			values = [percent_complete, percent_correct, number_of_attempts, completed]
-			aggregation = [percent_complete_float, percent_correct_float, completed, number_of_attempts]
+			# # Calculate the percentage of students completed the topic
+			# if completed:
+			# 	completed = "100.00%"
+			# else:
+			# 	completed = "0.00%"
+			# values = [percent_complete, percent_correct, number_of_attempts, completed]
+			values = [percent_complete, percent_correct, number_of_attempts]
+			# aggregation = [percent_complete_float, percent_correct_float, completed, number_of_attempts]
+			aggregation = [percent_complete_float, percent_correct_float, number_of_attempts]
 			row = {'id': str(student.student_id), 'name': student.student_name, 'values': values, 'aggregation': aggregation}
 		return row
 
@@ -426,13 +429,13 @@ class UserMasteryData(BaseRoleAccess):
 			completed_questions += objMastery.completed_questions
 			correct_questions += objMastery.correct_questions
 			number_of_attempts += objMastery.attempt_questions
-			students_completed += objMastery.students_completed
+			# students_completed += objMastery.students_completed
 
 		# Filter mastery level belongs to a certain class with certain topic id, and within certain time range
 		total_students = masteryElement.total_students
 		if total_questions == 0 or total_students == 0:
-			values = ["0.00%", "0.00%", 0, "0.00%"]
-			aggregation = ["0.00", "0.00", 0, "0.00"]
+			values = ["0.00%", "0.00%", 0]
+			aggregation = ["0.00", "0.00", 0]
 			if self.parentLevel == 0:
 				row = {'id': str(masteryElement.school_id), 'name': masteryElement.school_name, 'values': values, 'aggregation': aggregation}
 			else:
@@ -447,19 +450,22 @@ class UserMasteryData(BaseRoleAccess):
 			percent_correct = "{0:.2%}".format(percent_correct_float)
 
 			# Calculate the percentage of students completed the topic
-			percent_student_completed_float = float(students_completed) / (total_students * total_questions)
-			percent_student_completed = "{0:.2%}".format(percent_student_completed_float)
+			# percent_student_completed_float = float(students_completed) / (total_students * total_questions)
+			# percent_student_completed = "{0:.2%}".format(percent_student_completed_float)
 
-			values = [percent_complete, percent_correct, number_of_attempts, percent_student_completed]
-			aggregation = [percent_complete_float, percent_correct_float, percent_student_completed_float, number_of_attempts]
-			
+			# values = [percent_complete, percent_correct, number_of_attempts, percent_student_completed]
+			# aggregation = [percent_complete_float, percent_correct_float, percent_student_completed_float, number_of_attempts]
+
+			values = [percent_complete, percent_correct, number_of_attempts ]
+			aggregation = [percent_complete_float, percent_correct_float, number_of_attempts]
+
 			if self.parentLevel == 0:
 				row = {'id': str(masteryElement.school_id), 'name': masteryElement.school_name, 'values': values, 'aggregation':aggregation}	
 			else:
 				row = {'id': str(masteryElement.class_id), 'name': masteryElement.class_name, 'values': values, 'aggregation': aggregation}
 		return row
 
-	def getAggrigation(self, percentCompleteList, percentCorrectList, percentStudentCompletedList, numberOfAttemptsList):
+	def getAggrigation(self, percentCompleteList, percentCorrectList, numberOfAttemptsList):
 		""" Used to calculate the aggregation for each masteryElement based on metrics data
 		Args:
 			percentCompleteList(list) :  List of completed questions(percentage)
@@ -484,17 +490,18 @@ class UserMasteryData(BaseRoleAccess):
 		        avg_percent_complete +=  percentCompleteList[i]
 		        avg_percent_correct += percentCorrectList[i]
 		        avg_number_of_attempts += numberOfAttemptsList[i]
-		        if self.parentLevel != 2:
-		            avg_percent_student_completed += percentStudentCompletedList[i]
+		        # if self.parentLevel != 2:
+		        #     avg_percent_student_completed += percentStudentCompletedList[i]
 		    avg_percent_complete /= length
 		    avg_percent_correct /= length
 		    avg_number_of_attempts /= length
-		    if self.parentLevel == 2:
-		        avg_percent_student_completed = ""
-		    else:
-		         avg_percent_student_completed /= length
-		         avg_percent_student_completed = "{0:.2%}".format(avg_percent_student_completed)
-		    values = ["{0:.2%}".format(avg_percent_complete), "{0:.2%}".format(avg_percent_correct), str(int(avg_number_of_attempts)), avg_percent_student_completed]
+		    # if self.parentLevel == 2:
+		    #     avg_percent_student_completed = ""
+		    # else:
+		    #      avg_percent_student_completed /= length
+		    #      avg_percent_student_completed = "{0:.2%}".format(avg_percent_student_completed)
+		    values = ["{0:.2%}".format(avg_percent_complete), "{0:.2%}".format(avg_percent_correct), str(int(avg_number_of_attempts))]
+		    #values = ["{0:.2%}".format(avg_percent_complete), "{0:.2%}".format(avg_percent_correct), str(int(avg_number_of_attempts)), avg_percent_student_completed]
 		    average = {'name': 'Average', 'values': values}
 		    aggregation.append(average)
 		return aggregation
