@@ -43,7 +43,7 @@ def construct_response(code, title, message, data):
     response_object["data"] = data
     return response_object
 
-@watch_login
+# @watch_login
 def login_view(request):
     """ 
     This function implements the request receiving and response sending for login
@@ -53,14 +53,12 @@ def login_view(request):
     #If POST request is received, render the mastery page
     if request.method == 'POST':
     	if form.is_valid():
-            # user = User.objects.get(is_superuser = True)
-            # if user == form.get_user():
+            login(request, form.get_user())
             if form.get_user().is_superuser:
-                return redirect('/account/admin-users')
-            else:
-                login(request, form.get_user())
-                response = redirect(reverse('get_report_mastery'))
+                response =  redirect((reverse('admin_get')))
                 return response
+            response = redirect(reverse('get_report_mastery'))
+            return response
     	else:
             data = form.errors.as_json()
             error_data = json.loads(data)
@@ -306,8 +304,8 @@ def logout_view(request):
     else:
         return HttpResponse()
 
-# @login_required(login_url='/account/login/')
-# @user_passes_test(lambda u: u.is_superuser)
+@login_required(login_url='/account/login/')
+@user_passes_test(lambda u: u.is_superuser)
 def admin_approve_pending_users_view(request):
     """
         This function implements the request receiving and response sending for admin approve users
@@ -412,8 +410,8 @@ def admin_disapprove_pending_users_post(users):
         response_object = construct_response(code, title, message, data)
         return response_object
 
-# @login_required(login_url='/account/login/')
-# @user_passes_test(lambda u: u.is_superuser)
+@login_required(login_url='/account/login/')
+@user_passes_test(lambda u: u.is_superuser)
 def admin_disapprove_pending_users_view(request):
     """
         This function implements the request receiving and response sending for admin inactive users
@@ -615,4 +613,3 @@ def get_report_mastery(request):
         return render(request,'report-mastery.html')
     else:
         return HttpResponse()
-
