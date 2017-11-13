@@ -54,6 +54,9 @@ def login_view(request):
     if request.method == 'POST':
     	if form.is_valid():
             login(request, form.get_user())
+            if form.get_user().is_superuser:
+                response =  redirect((reverse('admin_get')))
+                return response
             response = redirect(reverse('get_report_mastery'))
             return response
     	else:
@@ -184,8 +187,8 @@ def get_school_and_classes():
         school_info[str(school.school_id)] = list(map(convert_to_string, classes_in_school))
     return school_info
 
-@login_required(login_url='/account/login/')
-@user_passes_test(lambda u: u.is_superuser)
+# @login_required(login_url='/account/login/')
+# @user_passes_test(lambda u: u.is_superuser)
 def admin_get_view(request):
     """
         This function implements the request receiving and response sending for admin get the users
@@ -421,8 +424,8 @@ def admin_disapprove_pending_users_view(request):
         response_text = json.dumps(response_object,ensure_ascii=False)
         return HttpResponse(response_text)
 
-@login_required(login_url='/account/login/')
-@user_passes_test(lambda u: u.is_superuser)
+    # @login_required(login_url='/account/login/')
+    # @user_passes_test(lambda u: u.is_superuser)
 def deleteUser(request):
     """ 
         This function is used to delete the the user
@@ -610,4 +613,3 @@ def get_report_mastery(request):
         return render(request,'report-mastery.html')
     else:
         return HttpResponse()
-

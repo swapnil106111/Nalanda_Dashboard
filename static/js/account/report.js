@@ -332,7 +332,7 @@ var setTableMeta = function(data) {
         
         table = $('#data-table').DataTable({
             columnDefs: [
-                { orderable: false, targets: 5 }
+                { orderable: false, targets: 4 }
             ],
             order: [[0, 'asc']],
             dom: 'Bfrtip',
