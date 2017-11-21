@@ -259,7 +259,7 @@ var buildTopicsDropdown = function(data) {
     
     $('#topics-tree').html('');
     $('#topics-tree').fancytree({
-        checkbox: false,
+        checkbox: true,
         selectMode: 1,
         extensions: ['filter'],
         quicksearch: true,
@@ -336,7 +336,28 @@ var setTableMeta = function(data) {
             ],
             order: [[0, 'asc']],
             dom: 'Bfrtip',
-            buttons: ['pageLength'/*, 'copy'*/, 'csv', 'excel', 'pdf'/*, 'print'*/],
+            buttons: ['pageLength',
+                {
+                    extend: 'csv',           
+                    exportOptions: {
+                        columns: [0,1,2,3] // indexes of the columns that should be printed,
+                    }                      // Exclude indexes that you don't want to print.
+                },
+                {
+                    extend: 'excel',
+                    exportOptions: {
+                        columns: [0,1,2,3] 
+                    }
+
+                },
+                {
+                    extend: 'pdf',
+                    exportOptions: {
+                        columns: [0,1,2,3] 
+                    }
+                }
+            ],  
+            //buttons: ['pageLength'/*, 'copy'*/, 'csv', 'excel', 'pdf'/*, 'print'*/],
             lengthMenu: sharedLengthMenu
         });
         
