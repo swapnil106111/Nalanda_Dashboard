@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import user_passes_test
 from itertools import groupby
 from operator import itemgetter
 import collections
-from account.forms import Forget_Password
+# from account.forms import Forget_Password
 
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login
@@ -560,7 +560,7 @@ def get_trend(request):
         series.append({'name':'% exercise completed','isPercentage':True})
         series.append({'name':'% exercise correct','isPercentage':True})
         series.append({'name':'# attempts','isPercentage':False})
-        series.append({'name':'% students completed topic','isPercentage':True})
+        # series.append({'name':'% students completed topic','isPercentage':True})
         points = []
         completed_questions_sum = 0
         correct_questions_sum = 0
@@ -591,10 +591,10 @@ def get_trend(request):
             temp.append(attempt_questions_sum)
             if level == 3:
                 completed_sum += ele.completed
-                temp.append(completed_sum)
+                # temp.append(completed_sum)
             else:
                 completed_sum += ele.students_completed
-                temp.append(completed_sum)
+                # temp.append(completed_sum)
             points.append(temp)
         res['series'] = series
         res['points'] = points
