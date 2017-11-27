@@ -74,9 +74,9 @@
                         {
                             "title":"Action",
                             'className': 'dt-body-center',
-                             "render": function (data, type, full, meta){
+                            "render": function (data, type, full, meta){
                                 return '<a class="remove-row" href="javascript: void(0)"><i class="glyphicon glyphicon-trash"></i></a>';
-                             }
+                            }
                         },
                     ],
                 });
@@ -188,9 +188,8 @@
                     deleteuserresult = parseTable(row, 'appchk', deleteuserresult);
                     var deleteuserobj = createRequestObject(deleteuserresult);
                     ajaxrequest('./api/user/delete', deleteuserobj);
+                    otable.row(row).remove().draw( false );
                    }
-                   // location.reload();
-                   setTimeout(function(){window.location = window.location}, 3000);
                 });
 
             $("#radActive").change(function(){
@@ -204,11 +203,6 @@
             $("#radAll").change(function(){
                 otable.column(5).search("").draw()
             });
-
-            // {% if code == 2001 %}
-            //     toastr.info('{{ info.message }}');
-            //     return;
-            // {% endif %}
         });
     </script>
 
