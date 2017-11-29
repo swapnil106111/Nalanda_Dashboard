@@ -5,12 +5,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from account.models import UserInfoSchool, UserRoleCollectionMapping, UserInfoClass
 from django.contrib.auth.forms import PasswordResetForm
 
-# class Forget_Password(forms.ModelForm):
-#     email = forms.EmailField(required=False)
-#     class Meta:
-#         model = User
-#         fields = ['email']
-
 class EmailValidationOnForgotPassword(PasswordResetForm):
     def clean_email(self):
         email = self.cleaned_data['email']

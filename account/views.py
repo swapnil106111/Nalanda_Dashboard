@@ -1,3 +1,4 @@
+import json, datetime, time, collections
 from django.shortcuts import render, HttpResponse, redirect, get_object_or_404, render_to_response
 from django.template import Context, loader
 from django.core.exceptions import ObjectDoesNotExist
@@ -5,34 +6,25 @@ from account.models import LatestFetchDate, UserInfoClass, UserInfoSchool, UserR
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.utils import timezone
 from django.core.urlresolvers import reverse
-import json
-import datetime
-import time
 from django.db.utils import DatabaseError, Error, OperationalError
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
 from itertools import groupby
 from operator import itemgetter
-import collections
-# from account.forms import Forget_Password
-
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login
-from axes.decorators import watch_login
-from axes.utils import reset
 from django.contrib.auth.forms import AuthenticationForm
 from django.views.generic import UpdateView
-from .forms import UserProfileForm
-from axes.models import AccessAttempt
-from .usermastery import UserMasteryMeta, UserMasteryData
 from account.constants import MESSAGE, SUBJECT, REGISTEREMAIl, USERACTIVEMAIL
 from django.conf import settings
 from django.template import Context
 from django.template.loader import render_to_string, get_template
 from django.core.mail import EmailMessage
-
 from django.core.validators import validate_email
+
+from .forms import UserProfileForm
+from .usermastery import UserMasteryMeta, UserMasteryData
 
 # This function contructs the dict for every response
 # code = 0 represents that the processing is sucessful
