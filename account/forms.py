@@ -3,15 +3,15 @@ from django.contrib.auth.models import User, Group
 import re
 from django.core.exceptions import ObjectDoesNotExist
 from account.models import UserInfoSchool, UserRoleCollectionMapping, UserInfoClass
+from django.contrib.auth.forms import PasswordResetForm
 
+class EmailValidationOnForgotPassword(PasswordResetForm):
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if not User.objects.filter(email__iexact=email, is_active=True).exists():
+            raise forms.ValidationError("There is no user registered with the specified email address!")
 
-
-class Forget_Password(forms.ModelForm):
-    email = forms.EmailField(required=False)
-    class Meta:
-        model = User
-        fields = ['email']
-
+        return email
 
 class UserProfileForm(forms.ModelForm):
     role = forms.ModelChoiceField(queryset=Group.objects.all(),

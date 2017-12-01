@@ -1,3 +1,4 @@
+import json, datetime, time, collections
 from django.shortcuts import render, HttpResponse, redirect, get_object_or_404, render_to_response
 from django.template import Context, loader
 from django.core.exceptions import ObjectDoesNotExist
@@ -5,18 +6,12 @@ from account.models import LatestFetchDate, UserInfoClass, UserInfoSchool, UserR
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.utils import timezone
 from django.core.urlresolvers import reverse
-import json
-import datetime
-import time
 from django.db.utils import DatabaseError, Error, OperationalError
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
 from itertools import groupby
 from operator import itemgetter
-import collections
-from account.forms import Forget_Password
-
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login
 #from axes.decorators import watch_login
@@ -31,8 +26,10 @@ from django.conf import settings
 from django.template import Context
 from django.template.loader import render_to_string, get_template
 from django.core.mail import EmailMessage
-
 from django.core.validators import validate_email
+
+from .forms import UserProfileForm
+from .usermastery import UserMasteryMeta, UserMasteryData
 
 # This function contructs the dict for every response
 # code = 0 represents that the processing is sucessful
@@ -43,7 +40,6 @@ def construct_response(code, title, message, data):
     response_object["data"] = data
     return response_object
 
-#@watch_login
 def login_view(request):
     """ 
     This function implements the request receiving and response sending for login
@@ -75,8 +71,6 @@ def register_view(request):
         This function implements the request receiving and response sending for register  
     """
     domain = request.get_host()
-    # print ("Domain:", domain)
-    # print ("Fullpath:",request.META['HTTP_REFERER'])
     data = get_school_and_classes()
     # If GET request is received, render the register page, return the school and class info
     if request.method == 'GET':
@@ -100,7 +94,6 @@ def register_view(request):
             form = UserProfileForm()
             response['form'] = form
             return render(request,'register.html', response)
-        # print ("Email:", )
         classes = request.POST.getlist('classes')
         form = UserProfileForm(request.POST)
         response = {}
@@ -119,6 +112,13 @@ def register_view(request):
                 form = UserProfileForm()
                 response['form'] = form
                 return render(request,'register.html', response)
+
+            if User.objects.filter(email__iexact=request.POST.get("email"), is_superuser=False).exists():
+                response = construct_response(0,"","There is user registered with the specified email address!", data)
+                form = UserProfileForm()
+                response['form'] = form
+                return render(request,'register.html', response)
+
             user = form.save()
             if classes:
                 for curClass in classes:
@@ -187,30 +187,24 @@ def get_school_and_classes():
         school_info[str(school.school_id)] = list(map(convert_to_string, classes_in_school))
     return school_info
 
-# @login_required(login_url='/account/login/')
-# @user_passes_test(lambda u: u.is_superuser)
+@login_required(login_url='/account/login/')
+@user_passes_test(lambda u: u.is_superuser)
 def admin_get_view(request):
     """
         This function implements the request receiving and response sending for admin get the users
     """
 
     if request.method == 'GET':
-        # pendingUser = True
         blockedUsers = {}
         pendings = User.objects.filter(is_superuser = False).order_by('-id')
-        # blocked =  AccessAttempt.objects.filter(failures_since_start__gte=3)
         pendingUsers = list(map(lambda p: getPendingUserDetails(p), pendings))
-        # print ("Users:", pendingUsers)
         pendingUsers = sum(pendingUsers, [])
-        # print ("Users:", pendingUsers)
 
         for user in pendingUsers:
             if user['isActive']:
                 user['isActive'] = 1
             else:
                 user['isActive'] = 0
-        # blockedUsers = list(map(lambda p: getPendingUserDetails(p, False), blocked))
-        # blockedUsers = sum(blockedUsers, [])
         objPendingUsers = getMultipleClassCombine(pendingUsers)
        
         data = {'pendingUsers': objPendingUsers }
@@ -266,7 +260,6 @@ def getPendingUserDetails(user):
 
         if objUserMapping:
             for usermapped in objUserMapping:
-                # print ("usermapped:", type(usermapped))
                 instituteName = usermapped.institute_id.school_name
                 instituteID = usermapped.institute_id.school_id
                 if roleID == 3:
@@ -424,8 +417,8 @@ def admin_disapprove_pending_users_view(request):
         response_text = json.dumps(response_object,ensure_ascii=False)
         return HttpResponse(response_text)
 
-    # @login_required(login_url='/account/login/')
-    # @user_passes_test(lambda u: u.is_superuser)
+@login_required(login_url='/account/login/')
+@user_passes_test(lambda u: u.is_superuser)
 def deleteUser(request):
     """ 
         This function is used to delete the the user
@@ -560,7 +553,7 @@ def get_trend(request):
         series.append({'name':'% exercise completed','isPercentage':True})
         series.append({'name':'% exercise correct','isPercentage':True})
         series.append({'name':'# attempts','isPercentage':False})
-        series.append({'name':'% students completed topic','isPercentage':True})
+        # series.append({'name':'% students completed topic','isPercentage':True})
         points = []
         completed_questions_sum = 0
         correct_questions_sum = 0
@@ -591,10 +584,10 @@ def get_trend(request):
             temp.append(attempt_questions_sum)
             if level == 3:
                 completed_sum += ele.completed
-                temp.append(completed_sum)
+                # temp.append(completed_sum)
             else:
                 completed_sum += ele.students_completed
-                temp.append(completed_sum)
+                # temp.append(completed_sum)
             points.append(temp)
         res['series'] = series
         res['points'] = points

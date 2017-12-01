@@ -38,13 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'account.apps.AccountConfig',
-    #'axes',
-    # 'BruteBuster',
 ]   
-
-AXES_LOGIN_FAILURE_LIMIT = 3
-AXES_ONLY_USER_FAILURES = True
-AXES_LOCKOUT_TEMPLATE = "403.html"
 
 MIDDLEWARE = [
     # 'BruteBuster.middleware.RequestMiddleware',
