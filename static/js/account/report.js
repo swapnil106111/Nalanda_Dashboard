@@ -259,7 +259,7 @@ var buildTopicsDropdown = function(data) {
     
     $('#topics-tree').html('');
     $('#topics-tree').fancytree({
-        checkbox: true,
+        checkbox: false,
         selectMode: 1,
         extensions: ['filter'],
         quicksearch: true,
