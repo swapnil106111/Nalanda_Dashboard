@@ -15,7 +15,7 @@ class BaseRoleAccess(object):
 							   i) exculding user as teacher parentLevel is set to 0 to view the visualizer
 							   ii) Selction on class, school parent level changed for each user(1=schools, 2=class etc)
 		"""
-		parentLevelMethods = {2:self.schoolLeader, 3:self.teacher}	
+		parentLevelMethods = {1:self.boardMember, 2:self.schoolLeader, 3:self.teacher}	
 		self.user = user
 		self.role = 0
 
@@ -30,22 +30,36 @@ class BaseRoleAccess(object):
 			schools, classes = parentLevelMethods[self.role]()
 			level = {0: schools, 1:schools , 2: classes}
 
+			print ("Schools:", schools)
+			print ("classes:", classes)
+
 			if parentID == -1: # Here set the parent id for teacher. when showing data of teacher we don't have the parent inforamtion for teacher user
 				parentID = schools[0]
 
-			if parentLevel in level: # Checked particular user have the access of schools or class
-				if not parentID in level[parentLevel]:
+			if parentLevel in level and classes is not None: # Checked particular user have the access of schools or class
+				if not parentID in level[parentLevel] and classes is not None:
 					raise Exception("1. Not authorized to access the data")
 				else:
-					# print ("Else - 1")
 					self.institutes = UserInfoSchool.objects.filter(school_id = schools[0])
 					self.classes = UserInfoClass.objects.filter(class_id__in = classes)
+			#1.Added here to BM who has access the certain set of school data if he/she selected schools while registration so we add funcationality for the BM. 
+			#2.Default BM has access all the schools data."""
+			elif self.role == 1 and classes is None:
+				if (len(schools) > 0):
+					self.institutes = UserInfoSchool.objects.filter(school_id__in = schools)
+				else:
+					self.institutes = UserInfoSchool.objects.filter(school_id = schools[0])
+				print ("Institutes:", self.institutes)
+				self.classes = None
 			else:
 				self.institutes = UserInfoSchool.objects.filter(school_id = schools[0])
 				# raise Exception("2. Not authorized to access the data")
 
 		# For user admin and board member we have fetched all the institues data
-		else:
+		# Only for admin user view all the schools data as per provide functionality to board Member who can view specific Schools data --Discussed with Harish
+		elif self.role == 0:
+			userMapping = UserRoleCollectionMapping.objects.filter(user_id= self.user)
+			schools = list(userMapping.values_list('institute_id_id', flat=True))
 			self.institutes = UserInfoSchool.objects.all()
 			self.classes = None
 		self.parentLevel = int(parentLevel)
@@ -67,9 +81,13 @@ class BaseRoleAccess(object):
 		"""
 		userMapping = UserRoleCollectionMapping.objects.filter(user_id= self.user)
 		schools = list(userMapping.values_list('institute_id_id', flat=True))
-		# print ("schools:", schools)
 		classes = list(UserInfoClass.objects.filter(parent = schools[0]).values_list('class_id', flat = True))
-		# print ("classes:", classes)
+		return schools, classes
+
+	def boardMember(self):
+		userMapping = UserRoleCollectionMapping.objects.filter(user_id= self.user)
+		schools = list(userMapping.values_list('institute_id_id', flat=True))
+		classes = None
 		return schools, classes
 
 	# AccessList = [2, 3]
@@ -183,7 +201,8 @@ class UserMasteryMeta(BaseRoleAccess):
 			objBreadcrumb.append(self.construct_breadcrumb(class_name, self.parentLevels['class'], self.parentId))
 
 		objStudentData = UserInfoStudent.objects.filter(parent = self.parentId)
-
+		if not objStudentData:
+			return rows, objBreadcrumb
 		for student in objStudentData:
 			studentInfo = {
 			'id': str(student.student_id),
@@ -202,6 +221,7 @@ class UserMasteryMeta(BaseRoleAccess):
 			rows(list) = it returns institutes information
 		"""
 		objBreadcrumb.append(self.construct_breadcrumb("Institutes", 0, "-1"))	
+		# print ("Institutes:", self.institutes)
 		for institute in self.institutes:
 			school_info = {
 			    "id": str(institute.school_id),
@@ -353,6 +373,8 @@ class UserMasteryData(BaseRoleAccess):
 			data(dict): It contains rows of mastry data and it's aggregation
 		"""
 		students = UserInfoStudent.objects.filter(parent = self.parentId)
+		if not students:
+			return None
 		res = list(map(self.getStudentDetails, students))
 		
 		aggregationResult = [res['aggregation'] for res in res] 
