@@ -18,6 +18,7 @@ class UserProfileForm(forms.ModelForm):
                                    required=True)
     institutes = forms.ModelChoiceField(queryset=UserInfoSchool.objects.all(),
     	                           required=False, label = 'Institutes')
+    institutesforbm = forms.CharField(label='Institutes', required = False)
     classes = forms.CharField(label='Classes', required = False)
     password=forms.CharField(label='Password', widget=forms.PasswordInput())
     confirm_password=forms.CharField(label = 'Confirm Password', widget=forms.PasswordInput())
@@ -49,7 +50,7 @@ class UserProfileForm(forms.ModelForm):
         raise forms.ValidationError('Username is already taken.')
 
     def save(self, commit=True):
-        # instance = super(SelectCourseYear, self).save(commit=False)
+        print ("Form Data:", str(self.cleaned_data))
         user = User.objects.create_user(self.cleaned_data['username'])
         user.email = self.cleaned_data['email']
         user.first_name = self.cleaned_data['first_name']

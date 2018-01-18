@@ -30,11 +30,29 @@
             $("#id_role").change(function () {
                 var e = document.getElementById("id_role");
                 var strUserRole = e.options[e.selectedIndex].value;
+                $("#InstitutesSelecDivforBM").hide();
                 $("#InstitutesSelecDiv").hide();
                 $("#ClassesSelectDiv").hide();
                 if (strUserRole != "" && strUserRole != 1) {
                     $("#InstitutesSelecDiv").show();
                     $("#id_institutes").val("");
+                }
+                else if (strUserRole == 1){
+                    select  = document.getElementById('id_institutes');
+                    var option = ""
+                    var institutesforbm = ""
+                    $.each(select, function(k,v)
+                    {
+                        if (v.value!=""){
+                            option += '<input type="checkbox" name="institutesforbm"  value="' + v.value + '"/> ' + v.text + '<br />'
+                        }
+                    });
+                    institutesforbm = option
+                    $("#checkBoxesOuterdivforBM div").html(institutesforbm);
+                    if (institutesforbm!="")
+                        $("#InstitutesSelecDivforBM").show();
+                    // $("#InstitutesSelecDiv").show();
+                    // $("#id_institutes").val("");
                 }
                 else
                 {
@@ -137,6 +155,16 @@
                     {{ form.institutes.label_tag }}
                     <div class="input">
                        {{ form.institutes }}
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div id="InstitutesSelecDivforBM">
+                    <div id = "checkBoxesOuterdivforBM">
+                        {{ form.institutesforbm.label_tag }}
+                        <div class="input">
+                        {   { form.institutesforbm }}
+                        </div>
                     </div>
                 </div>
             </div>
