@@ -1,7 +1,7 @@
 import json, datetime, time, collections
 from django.shortcuts import render, HttpResponse, redirect, get_object_or_404, render_to_response
 from django.template import Context, loader
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from account.models import LatestFetchDate, UserInfoClass, UserInfoSchool, UserRoleCollectionMapping, Content,  MasteryLevelStudent, MasteryLevelClass, MasteryLevelSchool, UserInfoStudent
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.utils import timezone
@@ -22,6 +22,8 @@ from django.template import Context
 from django.template.loader import render_to_string, get_template
 from django.core.mail import EmailMessage
 from django.core.validators import validate_email
+# from django.utils import simplejson
+from django.views.decorators.csrf import csrf_protect
 
 from .forms import UserProfileForm
 from .usermastery import UserMasteryMeta, UserMasteryData
@@ -90,6 +92,9 @@ def register_view(request):
             response['form'] = form
             return render(request,'register.html', response)
         classes = request.POST.getlist('classes')
+        print ("classes:", str(classes))
+        institutesList = request.POST.getlist('institutesforbm')
+        print ("institutesList:", str(institutesList))
         form = UserProfileForm(request.POST)
         response = {}
         if form.is_valid():
@@ -123,6 +128,18 @@ def register_view(request):
                         userInfoClass = None
                     up = UserRoleCollectionMapping.objects.create(class_id=userInfoClass, institute_id=form.cleaned_data['institutes'], user_id=user)
                     up.save()
+
+            elif institutesList:
+                print ("Inside else")
+                for curInstitute in institutesList:
+                    try:
+                        userInfoSchool = UserInfoSchool.objects.get(pk = int(curInstitute))
+                    except userInfoSchool.DoesNotExist:
+                        userInfoSchool = None
+                    userInfoClass = None
+                    up = UserRoleCollectionMapping.objects.create(class_id=userInfoClass, institute_id=userInfoSchool, user_id=user)
+                    up.save()
+
             else:
                 userInfoClass = None
                 up = UserRoleCollectionMapping.objects.create(class_id=userInfoClass, institute_id=institutes, user_id=user)
@@ -139,7 +156,6 @@ def register_view(request):
             errorData = json.loads(errorDetails)
             for k,v in errorData.items():
                 message = errorData[k][0]['message']
-                # message= str(msg)+" "+ message[4:] 
                 response_text ={}
                 response_text = construct_response(0,"",message,data)
                 form = UserProfileForm()
@@ -250,7 +266,8 @@ def getPendingUserDetails(user):
     role = user.groups.values()[0]['name']
     roleID = user.groups.values()[0]['id']
     
-    if roleID != 1:
+    # if roleID != 1:
+    if roleID:
         objUserMapping = UserRoleCollectionMapping.objects.filter(user_id = user)
 
         if objUserMapping:
@@ -265,10 +282,10 @@ def getPendingUserDetails(user):
                 pending_users.append(pending_user)
         else:
             raise Exception("User is not belongs to any class")
-    else:
-        pending_user = collections.OrderedDict()
-        pending_user = {'userid':user.id, 'username': user.username, 'email': user.email, 'role': role, 'instituteName': instituteName, 'className': className, 'isActive':user.is_active}
-        pending_users.append(pending_user)
+    # else:
+    #     pending_user = collections.OrderedDict()
+    #     pending_user = {'userid':user.id, 'username': user.username, 'email': user.email, 'role': role, 'instituteName': instituteName, 'className': className, 'isActive':user.is_active}
+    #     pending_users.append(pending_user)
     return pending_users
  
 @login_required(login_url='/account/login/')
@@ -601,3 +618,30 @@ def get_report_mastery(request):
         return render(request,'report-mastery.html')
     else:
         return HttpResponse()
+
+# def apply_permissions(view_func):
+#     def _wrapped_view(request, *args, **kwargs):
+#         # it is possible to add some other checks, that return booleans
+#         # or do it in a separate `if` statement
+#         # for example, check for some user permissions or properties
+#         permissions = [
+#             request.is_ajax(),
+#             request.method == "POST",
+#             # request.user.is_authenticated()
+#         ]
+#         if not all(permissions):
+#             raise PermissionDenied
+#         return view_func(request, *args, **kwargs)
+#     return _wrapped_view
+
+@csrf_protect
+@login_required(login_url='/account/login/')
+# @apply_permissions
+def getUser(request):
+    if request.method == 'GET': 
+        print ("Hello inside get_user")
+        to_json = {
+        "Name": "Yogesh",
+        "Role": "Teacher"
+        }
+        return HttpResponse(json.dumps(to_json))
