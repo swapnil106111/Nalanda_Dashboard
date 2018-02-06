@@ -43,7 +43,7 @@ def construct_response(code, title, message, data):
     response_object["data"] = data
     return response_object
 
-@watch_login
+# @watch_login
 def login_view(request):
     """ 
     This function implements the request receiving and response sending for login
@@ -65,7 +65,6 @@ def login_view(request):
     #If GET request is received, render the login page
     response_object['form']=form
     return render(request, 'login.html', response_object)
-
 
 def register_view(request):
     """
@@ -560,15 +559,20 @@ def get_trend(request):
                     date__gte=start,date__lte=end).order_by('date')
         res = {}
         series = []
+        series.append({'name':'# Mastered topics','isPercentage':False})
+        series.append({'name':'% of mastered topics','isPercentage':True})
         series.append({'name':'% exercise completed','isPercentage':True})
         series.append({'name':'% exercise correct','isPercentage':True})
         series.append({'name':'# attempts','isPercentage':False})
-        series.append({'name':'% students completed topic','isPercentage':True})
+        #series.append({'name':'% students completed topic','isPercentage':True})
+        series.append({'name':'Sample metrics','isPercentage':True})  # Added For Testing
         points = []
         completed_questions_sum = 0
         correct_questions_sum = 0
         attempt_questions_sum = 0
         completed_sum = 0
+        mastered_topics = 0
+        percent_mastered_topics = 0
         for ele in data:
             temp = []
             '''if topic_id=="-1":
@@ -585,22 +589,37 @@ def get_trend(request):
                     completed_sum += ele['students_completed__sum']
                 temp.append(100.0*completed_sum/total_students)
             else:'''
+            
+            # Future change for percent_mastered_topics -- START
+            percent_mastered_topics += ele.completed_questions
+            # Future change for percent_mastered_topics -- END
+
             completed_questions_sum += ele.completed_questions
+            mastered_topics += ele.attempt_questions # future change
             correct_questions_sum += ele.correct_questions
             attempt_questions_sum += ele.attempt_questions
             temp.append(time.mktime(ele.date.timetuple()))
+            temp.append(mastered_topics)
+            # Future change for percent_mastered_topics -- START
+            temp.append(100.0*percent_mastered_topics/(total_students*total_questions))
+            # Future change for percent_mastered_topics -- END
+
             temp.append(100.0*completed_questions_sum/(total_students*total_questions))
             temp.append(100.0*correct_questions_sum/(total_students*total_questions))
             temp.append(attempt_questions_sum)
-            if level == 3:
-                completed_sum += ele.completed
-                temp.append(completed_sum)
-            else:
-                completed_sum += ele.students_completed
-                temp.append(completed_sum)
+            temp.append(5)
+            # if level == 3: # Added for Testing 
+            #     completed_sum += ele.completed # Added for Testing 
+            #     temp.append(completed_sum) # Added for Testing 
+            # else: # Added for Testing 
+            #     completed_sum += ele.students_completed # Added for Testing 
+            #     temp.append(completed_sum) # Added for Testing 
+            #temp.append(15)   # Added For Testing
             points.append(temp)
         res['series'] = series
+        print(res['series'])
         res['points'] = points
+        print(res['points'])
         #data_str = serializers.serialize('json', data)
         response = construct_response(0,'','',res)
         response_text = json.dumps(response,ensure_ascii=False)
