@@ -271,8 +271,8 @@ def getPendingUserDetails(user):
     role = user.groups.values()[0]['name']
     roleID = user.groups.values()[0]['id']
     
-    # if roleID != 1:
-    if roleID:
+    if roleID != 1:
+    #if roleID!:
         objUserMapping = UserRoleCollectionMapping.objects.filter(user_id = user)
 
         if objUserMapping:
@@ -287,10 +287,10 @@ def getPendingUserDetails(user):
                 pending_users.append(pending_user)
         else:
             raise Exception("User is not belongs to any class")
-    # else:
-    #     pending_user = collections.OrderedDict()
-    #     pending_user = {'userid':user.id, 'username': user.username, 'email': user.email, 'role': role, 'instituteName': instituteName, 'className': className, 'isActive':user.is_active}
-    #     pending_users.append(pending_user)
+    else:
+         pending_user = collections.OrderedDict()
+         pending_user = {'userid':user.id, 'username': user.username, 'email': user.email, 'role': role, 'instituteName': instituteName, 'className': className, 'isActive':user.is_active}
+         pending_users.append(pending_user)
     return pending_users
  
 @login_required(login_url='/account/login/')
