@@ -14,8 +14,13 @@ from itertools import groupby
 from operator import itemgetter
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login
+#from axes.decorators import watch_login
+#from axes.utils import reset
 from django.contrib.auth.forms import AuthenticationForm
 from django.views.generic import UpdateView
+from .forms import UserProfileForm
+#from axes.models import AccessAttempt
+from .usermastery import UserMasteryMeta, UserMasteryData
 from account.constants import MESSAGE, SUBJECT, REGISTEREMAIl, USERACTIVEMAIL
 from django.conf import settings
 from django.template import Context
@@ -267,8 +272,8 @@ def getPendingUserDetails(user):
     role = user.groups.values()[0]['name']
     roleID = user.groups.values()[0]['id']
     
-    # if roleID != 1:
-    if roleID:
+    if roleID != 1:
+    #if roleID!:
         objUserMapping = UserRoleCollectionMapping.objects.filter(user_id = user)
 
         if objUserMapping:
@@ -283,10 +288,10 @@ def getPendingUserDetails(user):
                 pending_users.append(pending_user)
         else:
             raise Exception("User is not belongs to any class")
-    # else:
-    #     pending_user = collections.OrderedDict()
-    #     pending_user = {'userid':user.id, 'username': user.username, 'email': user.email, 'role': role, 'instituteName': instituteName, 'className': className, 'isActive':user.is_active}
-    #     pending_users.append(pending_user)
+    else:
+         pending_user = collections.OrderedDict()
+         pending_user = {'userid':user.id, 'username': user.username, 'email': user.email, 'role': role, 'instituteName': instituteName, 'className': className, 'isActive':user.is_active}
+         pending_users.append(pending_user)
     return pending_users
  
 @login_required(login_url='/account/login/')
@@ -642,30 +647,3 @@ def get_report_mastery(request):
         return render(request,'report-mastery.html')
     else:
         return HttpResponse()
-
-# def apply_permissions(view_func):
-#     def _wrapped_view(request, *args, **kwargs):
-#         # it is possible to add some other checks, that return booleans
-#         # or do it in a separate `if` statement
-#         # for example, check for some user permissions or properties
-#         permissions = [
-#             request.is_ajax(),
-#             request.method == "POST",
-#             # request.user.is_authenticated()
-#         ]
-#         if not all(permissions):
-#             raise PermissionDenied
-#         return view_func(request, *args, **kwargs)
-#     return _wrapped_view
-
-@csrf_protect
-@login_required(login_url='/account/login/')
-# @apply_permissions
-def getUser(request):
-    if request.method == 'GET': 
-        print ("Hello inside get_user")
-        to_json = {
-        "Name": "Yogesh",
-        "Role": "Teacher"
-        }
-        return HttpResponse(json.dumps(to_json))
