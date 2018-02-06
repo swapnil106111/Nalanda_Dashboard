@@ -15,7 +15,7 @@ class BaseRoleAccess(object):
 							   i) exculding user as teacher parentLevel is set to 0 to view the visualizer
 							   ii) Selction on class, school parent level changed for each user(1=schools, 2=class etc)
 		"""
-		parentLevelMethods = {2:self.schoolLeader, 3:self.teacher}	
+		parentLevelMethods = {1:self.boardMember, 2:self.schoolLeader, 3:self.teacher}	
 		self.user = user
 		self.role = 0
 
@@ -30,22 +30,36 @@ class BaseRoleAccess(object):
 			schools, classes = parentLevelMethods[self.role]()
 			level = {0: schools, 1:schools , 2: classes}
 
+			print ("Schools:", schools)
+			print ("classes:", classes)
+
 			if parentID == -1: # Here set the parent id for teacher. when showing data of teacher we don't have the parent inforamtion for teacher user
 				parentID = schools[0]
 
-			if parentLevel in level: # Checked particular user have the access of schools or class
-				if not parentID in level[parentLevel]:
+			if parentLevel in level and classes is not None: # Checked particular user have the access of schools or class
+				if not parentID in level[parentLevel] and classes is not None:
 					raise Exception("1. Not authorized to access the data")
 				else:
-					# print ("Else - 1")
 					self.institutes = UserInfoSchool.objects.filter(school_id = schools[0])
 					self.classes = UserInfoClass.objects.filter(class_id__in = classes)
+			#1.Added here to BM who has access the certain set of school data if he/she selected schools while registration so we add funcationality for the BM. 
+			#2.Default BM has access all the schools data."""
+			elif self.role == 1 and classes is None:
+				if (len(schools) > 0):
+					self.institutes = UserInfoSchool.objects.filter(school_id__in = schools)
+				else:
+					self.institutes = UserInfoSchool.objects.filter(school_id = schools[0])
+				print ("Institutes:", self.institutes)
+				self.classes = None
 			else:
 				self.institutes = UserInfoSchool.objects.filter(school_id = schools[0])
 				# raise Exception("2. Not authorized to access the data")
 
 		# For user admin and board member we have fetched all the institues data
-		else:
+		# Only for admin user view all the schools data as per provide functionality to board Member who can view specific Schools data --Discussed with Harish
+		elif self.role == 0:
+			userMapping = UserRoleCollectionMapping.objects.filter(user_id= self.user)
+			schools = list(userMapping.values_list('institute_id_id', flat=True))
 			self.institutes = UserInfoSchool.objects.all()
 			self.classes = None
 		self.parentLevel = int(parentLevel)
@@ -67,9 +81,13 @@ class BaseRoleAccess(object):
 		"""
 		userMapping = UserRoleCollectionMapping.objects.filter(user_id= self.user)
 		schools = list(userMapping.values_list('institute_id_id', flat=True))
-		# print ("schools:", schools)
 		classes = list(UserInfoClass.objects.filter(parent = schools[0]).values_list('class_id', flat = True))
-		# print ("classes:", classes)
+		return schools, classes
+
+	def boardMember(self):
+		userMapping = UserRoleCollectionMapping.objects.filter(user_id= self.user)
+		schools = list(userMapping.values_list('institute_id_id', flat=True))
+		classes = None
 		return schools, classes
 
 	# AccessList = [2, 3]
@@ -183,7 +201,8 @@ class UserMasteryMeta(BaseRoleAccess):
 			objBreadcrumb.append(self.construct_breadcrumb(class_name, self.parentLevels['class'], self.parentId))
 
 		objStudentData = UserInfoStudent.objects.filter(parent = self.parentId)
-
+		if not objStudentData:
+			return rows, objBreadcrumb
 		for student in objStudentData:
 			studentInfo = {
 			'id': str(student.student_id),
@@ -202,6 +221,7 @@ class UserMasteryMeta(BaseRoleAccess):
 			rows(list) = it returns institutes information
 		"""
 		objBreadcrumb.append(self.construct_breadcrumb("Institutes", 0, "-1"))	
+		# print ("Institutes:", self.institutes)
 		for institute in self.institutes:
 			school_info = {
 			    "id": str(institute.school_id),
@@ -359,6 +379,8 @@ class UserMasteryData(BaseRoleAccess):
 			data(dict): It contains rows of mastry data and it's aggregation
 		"""
 		students = UserInfoStudent.objects.filter(parent = self.parentId)
+		if not students:
+			return None
 		res = list(map(self.getStudentDetails, students))
 		
 		aggregationResult = [res['aggregation'] for res in res] 
@@ -400,6 +422,7 @@ class UserMasteryData(BaseRoleAccess):
 			values = [0,"0.00%","0.00%", "0.00%", 0,"0.00%"]#, completed] # Added for Testing # New matrix
 			# aggregation = [0.00, 0.00, completed, 0] # Added for Testing
 			aggregation = [0, 0.00, 0.00, 0.00, 0, 0.00] # New matrix
+
 			row = {'id': str(student.student_id), 'name': student.student_name, 'values': values, 'aggregation': aggregation}
 		else:
 			percent_complete_float = float(completed_questions) / total_questions
@@ -418,9 +441,6 @@ class UserMasteryData(BaseRoleAccess):
 			percent_mastered_topics = "{0:.2%}".format(percent_mastered_topics_float)
 			# Future change for percent_mastered_topics -- END
 
-
-
-
 			# Calculate the percentage of students completed the topic
 			# if completed: # Added for Testing 
 			# 	completed = "100.00%" # Added for Testing 
@@ -430,6 +450,7 @@ class UserMasteryData(BaseRoleAccess):
 			values = [mastered_topics, percent_mastered_topics, percent_complete, percent_correct, number_of_attempts, percent_sample_metrix]
 			#aggregation = [percent_complete_float, percent_correct_float, completed, number_of_attempts] # Added for Testing
 			aggregation = [mastered_topics, percent_mastered_topics,percent_complete_float, percent_correct_float, number_of_attempts, percent_sample_metrix]
+
 			row = {'id': str(student.student_id), 'name': student.student_name, 'values': values, 'aggregation': aggregation}
 		return row
 
@@ -502,12 +523,13 @@ class UserMasteryData(BaseRoleAccess):
 
 			values = [mastered_topics, percent_mastered_topics, percent_complete, percent_correct, number_of_attempts, percent_sample_metrix]#, percent_student_completed, 15] # Added For Testing last parameter
 			aggregation = [mastered_topics, percent_mastered_topics, percent_complete_float, percent_correct_float, number_of_attempts, percent_sample_metrix]#,  percent_student_completed_float, 15] # Added For Testing last parameter
-			
+
 			if self.parentLevel == 0:
 				row = {'id': str(masteryElement.school_id), 'name': masteryElement.school_name, 'values': values, 'aggregation':aggregation}	
 			else:
 				row = {'id': str(masteryElement.class_id), 'name': masteryElement.class_name, 'values': values, 'aggregation': aggregation}
 		return row
+
 
 	def getAggrigation(self, mastered_topics, percent_mastered_topics, percentCompleteList, percentCorrectList, numberOfAttemptsList, fourthArgument_which_not_used_in_method): #, percentStudentCompletedList): # Added for testing
 		""" Used to calculate the aggregation for each masteryElement based on metrics data
@@ -553,6 +575,7 @@ class UserMasteryData(BaseRoleAccess):
 		    #      avg_percent_student_completed /= length # Added for Testing
 		    #      avg_percent_student_completed = "{0:.2%}".format(avg_percent_student_completed) # Added for Testing
 		    values = [str(int(avg_mastered_topics)), "{0:.2%}".format(avg_percent_mastered_topics), "{0:.2%}".format(avg_percent_complete), "{0:.2%}".format(avg_percent_correct), str(int(avg_number_of_attempts)), "{0:.2%}".format(0.05)] #, avg_percent_student_completed, 15] # Added for testing last parameter
+
 		    average = {'name': 'Average', 'values': values}
 		    aggregation.append(average)
 		print(aggregation)

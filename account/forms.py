@@ -3,21 +3,22 @@ from django.contrib.auth.models import User, Group
 import re
 from django.core.exceptions import ObjectDoesNotExist
 from account.models import UserInfoSchool, UserRoleCollectionMapping, UserInfoClass
+from django.contrib.auth.forms import PasswordResetForm
 
+class EmailValidationOnForgotPassword(PasswordResetForm):
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if not User.objects.filter(email__iexact=email, is_active=True).exists():
+            raise forms.ValidationError("There is no user registered with the specified email address!")
 
-
-class Forget_Password(forms.ModelForm):
-    email = forms.EmailField(required=False)
-    class Meta:
-        model = User
-        fields = ['email']
-
+        return email
 
 class UserProfileForm(forms.ModelForm):
     role = forms.ModelChoiceField(queryset=Group.objects.all(),
                                    required=True)
     institutes = forms.ModelChoiceField(queryset=UserInfoSchool.objects.all(),
     	                           required=False, label = 'Institutes')
+    institutesforbm = forms.CharField(label='Institutes', required = False)
     classes = forms.CharField(label='Classes', required = False)
     password=forms.CharField(label='Password', widget=forms.PasswordInput())
     confirm_password=forms.CharField(label = 'Confirm Password', widget=forms.PasswordInput())
@@ -49,7 +50,7 @@ class UserProfileForm(forms.ModelForm):
         raise forms.ValidationError('Username is already taken.')
 
     def save(self, commit=True):
-        # instance = super(SelectCourseYear, self).save(commit=False)
+        print ("Form Data:", str(self.cleaned_data))
         user = User.objects.create_user(self.cleaned_data['username'])
         user.email = self.cleaned_data['email']
         user.first_name = self.cleaned_data['first_name']

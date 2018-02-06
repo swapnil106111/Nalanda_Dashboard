@@ -1,0 +1,1 @@
+<Password reset> Your password has been reset successfully!
