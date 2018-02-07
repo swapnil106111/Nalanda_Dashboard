@@ -14,8 +14,13 @@ from itertools import groupby
 from operator import itemgetter
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login
+#from axes.decorators import watch_login
+#from axes.utils import reset
 from django.contrib.auth.forms import AuthenticationForm
 from django.views.generic import UpdateView
+from .forms import UserProfileForm
+#from axes.models import AccessAttempt
+from .usermastery import UserMasteryMeta, UserMasteryData
 from account.constants import MESSAGE, SUBJECT, REGISTEREMAIl, USERACTIVEMAIL
 from django.conf import settings
 from django.template import Context
@@ -36,6 +41,8 @@ def construct_response(code, title, message, data):
     response_object["info"] = {"title": title,"message": message}
     response_object["data"] = data
     return response_object
+
+
 
 def login_view(request):
     """ 
@@ -61,7 +68,6 @@ def login_view(request):
     #If GET request is received, render the login page
     response_object['form']=form
     return render(request, 'login.html', response_object)
-
 
 def register_view(request):
     """
@@ -266,8 +272,8 @@ def getPendingUserDetails(user):
     role = user.groups.values()[0]['name']
     roleID = user.groups.values()[0]['id']
     
-    # if roleID != 1:
-    if roleID:
+    if roleID != 1:
+    #if roleID!:
         objUserMapping = UserRoleCollectionMapping.objects.filter(user_id = user)
 
         if objUserMapping:
@@ -282,10 +288,10 @@ def getPendingUserDetails(user):
                 pending_users.append(pending_user)
         else:
             raise Exception("User is not belongs to any class")
-    # else:
-    #     pending_user = collections.OrderedDict()
-    #     pending_user = {'userid':user.id, 'username': user.username, 'email': user.email, 'role': role, 'instituteName': instituteName, 'className': className, 'isActive':user.is_active}
-    #     pending_users.append(pending_user)
+    else:
+         pending_user = collections.OrderedDict()
+         pending_user = {'userid':user.id, 'username': user.username, 'email': user.email, 'role': role, 'instituteName': instituteName, 'className': className, 'isActive':user.is_active}
+         pending_users.append(pending_user)
     return pending_users
  
 @login_required(login_url='/account/login/')
@@ -562,15 +568,21 @@ def get_trend(request):
                     date__gte=start,date__lte=end).order_by('date')
         res = {}
         series = []
+        series.append({'name':'# Mastered topics','isPercentage':False})
+        series.append({'name':'% of mastered topics','isPercentage':True})
         series.append({'name':'% exercise completed','isPercentage':True})
         series.append({'name':'% exercise correct','isPercentage':True})
         series.append({'name':'# attempts','isPercentage':False})
-        # series.append({'name':'% students completed topic','isPercentage':True})
+        #series.append({'name':'% students completed topic','isPercentage':True})
+        series.append({'name':'Sample metrics','isPercentage':True})  # Added For Testing
+
         points = []
         completed_questions_sum = 0
         correct_questions_sum = 0
         attempt_questions_sum = 0
         completed_sum = 0
+        mastered_topics = 0
+        percent_mastered_topics = 0
         for ele in data:
             temp = []
             '''if topic_id=="-1":
@@ -587,22 +599,39 @@ def get_trend(request):
                     completed_sum += ele['students_completed__sum']
                 temp.append(100.0*completed_sum/total_students)
             else:'''
+            
+            # Future change for percent_mastered_topics -- START
+            percent_mastered_topics += ele.completed_questions
+            # Future change for percent_mastered_topics -- END
+
             completed_questions_sum += ele.completed_questions
+            mastered_topics += ele.attempt_questions # future change
             correct_questions_sum += ele.correct_questions
             attempt_questions_sum += ele.attempt_questions
             temp.append(time.mktime(ele.date.timetuple()))
+            temp.append(mastered_topics)
+            # Future change for percent_mastered_topics -- START
+            temp.append(100.0*percent_mastered_topics/(total_students*total_questions))
+            # Future change for percent_mastered_topics -- END
+
             temp.append(100.0*completed_questions_sum/(total_students*total_questions))
             temp.append(100.0*correct_questions_sum/(total_students*total_questions))
             temp.append(attempt_questions_sum)
-            if level == 3:
-                completed_sum += ele.completed
-                # temp.append(completed_sum)
-            else:
-                completed_sum += ele.students_completed
-                # temp.append(completed_sum)
+
+            temp.append(5)
+            # if level == 3: # Added for Testing 
+            #     completed_sum += ele.completed # Added for Testing 
+            #     temp.append(completed_sum) # Added for Testing 
+            # else: # Added for Testing 
+            #     completed_sum += ele.students_completed # Added for Testing 
+            #     temp.append(completed_sum) # Added for Testing 
+            #temp.append(15)   # Added For Testing
+
             points.append(temp)
         res['series'] = series
+        print(res['series'])
         res['points'] = points
+        print(res['points'])
         #data_str = serializers.serialize('json', data)
         response = construct_response(0,'','',res)
         response_text = json.dumps(response,ensure_ascii=False)
@@ -618,30 +647,3 @@ def get_report_mastery(request):
         return render(request,'report-mastery.html')
     else:
         return HttpResponse()
-
-# def apply_permissions(view_func):
-#     def _wrapped_view(request, *args, **kwargs):
-#         # it is possible to add some other checks, that return booleans
-#         # or do it in a separate `if` statement
-#         # for example, check for some user permissions or properties
-#         permissions = [
-#             request.is_ajax(),
-#             request.method == "POST",
-#             # request.user.is_authenticated()
-#         ]
-#         if not all(permissions):
-#             raise PermissionDenied
-#         return view_func(request, *args, **kwargs)
-#     return _wrapped_view
-
-@csrf_protect
-@login_required(login_url='/account/login/')
-# @apply_permissions
-def getUser(request):
-    if request.method == 'GET': 
-        print ("Hello inside get_user")
-        to_json = {
-        "Name": "Yogesh",
-        "Role": "Teacher"
-        }
-        return HttpResponse(json.dumps(to_json))

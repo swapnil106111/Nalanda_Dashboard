@@ -329,10 +329,11 @@ var setTableMeta = function(data) {
         }
         
         // initialize tables
-        
+
+
         table = $('#data-table').DataTable({
             columnDefs: [
-                { orderable: false, targets: 4 }
+                { orderable: false, targets: 7 }
             ],
             order: [[0, 'asc']],
             dom: 'Bfrtip',
@@ -360,6 +361,17 @@ var setTableMeta = function(data) {
             //buttons: ['pageLength'/*, 'copy'*/, 'csv', 'excel', 'pdf'/*, 'print'*/],
             lengthMenu: sharedLengthMenu
         });
+        
+        // Added for Testing Above code and commented below code
+        // table = $('#data-table').DataTable({
+        //     columnDefs: [
+        //         { orderable: false, targets: 4 } // Added for Testing make 4 instead of 5
+        //     ],
+        //     order: [[0, 'asc']],
+        //     dom: 'Bfrtip',
+        //     buttons: ['pageLength'/*, 'copy'*/, 'csv', 'excel', 'pdf'/*, 'print'*/],
+        //     lengthMenu: sharedLengthMenu
+        // });
         
         aggregationTable = $('#aggregation-table').DataTable({
             paging: false,
@@ -617,6 +629,7 @@ var drawTrendChart = function(itemId, itemName) {
         
         var seriesIndex = 0;
         var idx;
+            
         for (idx in trendData.series) {
             var dict = trendData.series[idx];
             var type = dict.isPercentage ? 'percentage' : 'number';
@@ -625,13 +638,15 @@ var drawTrendChart = function(itemId, itemName) {
         }
         
         chartData.addRows(trendData.points);
-        
+
         var chartContainer = document.getElementById('chart-wrapper');
         var chart = new google.charts.Line(chartContainer);
         
+
         chart.draw(chartData, options);
         setTrendChartVisible(true);
         
+
         // scroll to chart w/ animation
         $('html, body').animate({
             scrollTop: $('#chart-wrapper').offset().top
@@ -1004,10 +1019,23 @@ var tableMetaData = function() {
             parentLevel: 1,
             parentId: '10'
         }],
+        // metrics: [{
+        //        displayName: "% exercise completed",
+        //        toolTip: "help text goes here"
+        // }, 
+        // {
+        //     displayName: "% exercise correct",
+        //     toolTip: "help text goes here"
+        // }, {
+        //     displayName: "# attempts",
+        //     toolTip: "help text goes here"
+        // }],
+
         metrics: [{
-            displayName: "% exercise completed",
-            toolTip: "help text goes here"
-        }, {
+               displayName: "% exercise completed",
+               toolTip: "help text goes here"
+        }, 
+        {
             displayName: "% exercise correct",
             toolTip: "help text goes here"
         }, {
@@ -1017,6 +1045,9 @@ var tableMetaData = function() {
             displayName: "% students completed the topic",
             toolTip: "help text goes here"
         }],
+
+
+
         rows: [{
             id: "1",
             name: "Allegheny K-5"
