@@ -341,20 +341,20 @@ var setTableMeta = function(data) {
                 {
                     extend: 'csv',           
                     exportOptions: {
-                        columns: [0,1,2,3] // indexes of the columns that should be printed,
+                        columns: [0,1,2,3,4,5,6] // indexes of the columns that should be printed,
                     }                      // Exclude indexes that you don't want to print.
                 },
                 {
                     extend: 'excel',
                     exportOptions: {
-                        columns: [0,1,2,3] 
+                        columns: [0,1,2,3,4,5,6] 
                     }
 
                 },
                 {
                     extend: 'pdf',
                     exportOptions: {
-                        columns: [0,1,2,3] 
+                        columns: [0,1,2,3,4,5,6] 
                     }
                 }
             ],  
