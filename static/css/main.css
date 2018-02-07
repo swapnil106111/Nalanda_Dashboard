@@ -477,7 +477,7 @@ th.bar-column {
 }
 
 th.name-column {
-    min-width: 200px;
+    min-width: 100px;
 }
 
 #data-table thead tr {
