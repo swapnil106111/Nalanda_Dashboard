@@ -566,7 +566,9 @@ def get_trend(request):
         series.append({'name':'# Mastered topics','isPercentage':False})
         series.append({'name':'% Mastered topics','isPercentage':True})
         series.append({'name':'# attempts','isPercentage':False})
+        series.append({'name':'# exercise correct','isPercentage':False})
         series.append({'name':'% exercise correct','isPercentage':True})
+        series.append({'name':'# exercise completed','isPercentage':True})
         series.append({'name':'% exercise completed','isPercentage':True})
         
         #series.append({'name':'% students completed topic','isPercentage':True})
@@ -606,11 +608,12 @@ def get_trend(request):
             attempt_questions_sum += ele.attempt_questions
             temp.append(time.mktime(ele.date.timetuple()))
             temp.append(mastered_topics)
-            # Future change for percent_mastered_topics -- START
+            
             temp.append(100.0*mastered_topics/(total_students*sub_topics_total))
-            # Future change for percent_mastered_topics -- END
             temp.append(attempt_questions_sum)
+            temp.append(correct_questions_sum)
             temp.append(100.0*correct_questions_sum/(total_students*attempt_questions_sum))
+            temp.append(completed_questions_sum)
             temp.append(100.0*completed_questions_sum/(total_students*total_questions))
             
             
@@ -626,9 +629,7 @@ def get_trend(request):
 
             points.append(temp)
         res['series'] = series
-        # print(res['series'])
         res['points'] = points
-        # print(res['points'])
         #data_str = serializers.serialize('json', data)
         response = construct_response(0,'','',res)
         response_text = json.dumps(response,ensure_ascii=False)
