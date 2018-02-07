@@ -158,7 +158,7 @@ var verifyTrendResponse = function(response) {
 		console.error('Data Error: `get-trend` did not return valid name data for series.');
 		return;
 	}
-	if (!data.series[0].isPercentage) {
+	if (data.series[0].isPercentage) {
 		console.error('Data Error: `get-trend` did not return valid isPercentage data for series.');
 		return;
 	}
@@ -333,7 +333,7 @@ var setTableMeta = function(data) {
 
         table = $('#data-table').DataTable({
             columnDefs: [
-                { orderable: false, targets: 7 }
+                { orderable: false, targets: 6 }
             ],
             order: [[0, 'asc']],
             dom: 'Bfrtip',
