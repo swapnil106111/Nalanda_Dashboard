@@ -279,6 +279,22 @@ class UserMasteryData(BaseRoleAccess):
 		total_questions = topic.total_questions
 		return total_questions
 
+	def getSubTopicsData(self):
+		""" Used to calculate the total_subtopics based on the selected topicID and channelID
+		Args:
+			None
+		Returns:
+			total_questions(int) : Count of total_subtopics
+		"""
+		total_questions = 0
+		filterTopics = {'topic_id':self.topicID}
+		if self.topicID:
+			filterTopics['channel_id']=self.channelID
+
+		topic = Content.objects.filter(**filterTopics).first()
+		total_subtopics = topic.sub_topics_total
+		return total_subtopics
+
 	def getLogData(self, masteryElement):
 		""" Used to fetch the log data of each masteryElement(class, school, student)
 		Args:
