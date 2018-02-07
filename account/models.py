@@ -38,6 +38,7 @@ class Content(models.Model):
     channel_id = models.CharField(max_length=32)
     total_questions = models.IntegerField()
     sub_topics = models.TextField()
+    sub_topics_total = models.IntegerField()
 
 class MasteryLevelStudent(models.Model):
     id = models.CharField(max_length=40,primary_key=True)
@@ -49,6 +50,7 @@ class MasteryLevelStudent(models.Model):
     correct_questions = models.IntegerField(default=0)
     attempt_questions = models.IntegerField(default=0)
     completed = models.BooleanField(default=False)
+    mastered = models.IntegerField(default=0)
 
 class MasteryLevelClass(models.Model):
     id = models.CharField(max_length=40,primary_key=True)
@@ -60,6 +62,7 @@ class MasteryLevelClass(models.Model):
     correct_questions = models.IntegerField(default=0)
     attempt_questions = models.IntegerField(default=0)
     students_completed = models.IntegerField(default=0)
+    mastered = models.IntegerField(default=0 )
 
 class MasteryLevelSchool(models.Model):
     id = models.CharField(max_length=40,primary_key=True)
@@ -71,6 +74,7 @@ class MasteryLevelSchool(models.Model):
     correct_questions = models.IntegerField(default=0)
     attempt_questions = models.IntegerField(default=0)
     students_completed = models.IntegerField(default=0)
+    mastered = models.IntegerField(default=0 )
 
 class LatestFetchDate(models.Model):
     date_id = models.IntegerField(primary_key=True)
