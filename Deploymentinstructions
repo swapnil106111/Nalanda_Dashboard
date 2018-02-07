@@ -41,4 +41,7 @@ password: admin
 ---------------------------------------------------------------------------------
 
 ---------To create an admin user use following command-------------------------------
+insert into auth_user values(1,admin,now(),1,'admin','admin','admin','admin@gmail.com',0,1,now());
+insert into auth_group(name) Values ('Board Member'), ('School Leader'), ('Teacher');
+
 #INSERT INTO `nalanda_users` VALUES (2,'sonia','sonia','sonia','sonia','sonia',1,0,'2017-07-24 16:13:17.817470','2017-07-24 15:43:07.365502','2017-07-24 15:43:57.428226',4);
