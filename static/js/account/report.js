@@ -333,7 +333,7 @@ var setTableMeta = function(data) {
 
         table = $('#data-table').DataTable({
             columnDefs: [
-                { orderable: false, targets: 8 }
+                { orderable: false, targets: 7 }
             ],
             order: [[0, 'asc']],
             dom: 'Bfrtip',
@@ -341,20 +341,20 @@ var setTableMeta = function(data) {
                 {
                     extend: 'csv',           
                     exportOptions: {
-                        columns: [0,1,2,3,4,5,6] // indexes of the columns that should be printed,
+                        columns: [0,1,2,3,4,5] // indexes of the columns that should be printed,
                     }                      // Exclude indexes that you don't want to print.
                 },
                 {
                     extend: 'excel',
                     exportOptions: {
-                        columns: [0,1,2,3,4,5,6] 
+                        columns: [0,1,2,3,4,5] 
                     }
 
                 },
                 {
                     extend: 'pdf',
                     exportOptions: {
-                        columns: [0,1,2,3,4,5,6] 
+                        columns: [0,1,2,3,4,5] 
                     }
                 }
             ],  
