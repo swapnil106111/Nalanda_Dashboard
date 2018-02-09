@@ -8,10 +8,10 @@
 metrics = [	
 	{'displayName': '# Mastered topics', 'toolTip': ''},
 	{'displayName': '% Mastered topics', 'toolTip': ''},
-	{'displayName': '# attempts completed', 'toolTip': ''},
-	{'displayName': '# exercise correct', 'toolTip': ''},
-	{'displayName': '% exercise correct', 'toolTip': ''},
-	{'displayName': '# exercise completed', 'toolTip': ''},
+	{'displayName': '# Question attempts ', 'toolTip': ''},
+	{'displayName': '# Question correct', 'toolTip': ''},
+	{'displayName': '% correct', 'toolTip': ''},
+	# {'displayName': '# exercise completed', 'toolTip': ''},
 	{'displayName': '% exercise completed', 'toolTip': ''},
 ]
 
