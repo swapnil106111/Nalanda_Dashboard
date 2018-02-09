@@ -568,7 +568,7 @@ def get_trend(request):
         series.append({'name':'# attempts','isPercentage':False})
         series.append({'name':'# exercise correct','isPercentage':False})
         series.append({'name':'% exercise correct','isPercentage':True})
-        series.append({'name':'# exercise completed','isPercentage':True})
+        # series.append({'name':'# exercise completed','isPercentage':True})
         series.append({'name':'% exercise completed','isPercentage':True})
         
         #series.append({'name':'% students completed topic','isPercentage':True})
@@ -613,7 +613,7 @@ def get_trend(request):
             temp.append(attempt_questions_sum)
             temp.append(correct_questions_sum)
             temp.append(100.0*correct_questions_sum/(total_students*attempt_questions_sum))
-            temp.append(completed_questions_sum)
+            # temp.append(completed_questions_sum)
             temp.append(100.0*completed_questions_sum/(total_students*total_questions))
             
             
