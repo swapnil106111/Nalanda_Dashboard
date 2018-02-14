@@ -451,6 +451,7 @@ var setTableMeta = function(data) {
 var setTableData = function(data) {
     tableData = data;
     var idx;
+    var tq;
     
     // update data rows
     for (idx in data.rows) {
@@ -471,12 +472,18 @@ var setTableData = function(data) {
         array.push('');
         aggregationTable.row.add(array).draw(false);
     }
-    
+    tq = data.rows[0]['total_questions']
+    showTotalQuestions(tq)
     precalculate();
     setCompareMetricIndex(compareMetricIndex);
     setPerformanceMetricIndex(performanceMetricIndex);
 };
 
+var showTotalQuestions = function(qCount){
+    var strQCount ;
+    strQCount = qCount.toString()
+    $('#totalQ').text(strQCount);
+}
 // Calculate statistical values
 var precalculate = function() {
 	compareMaxValues = [];
