@@ -46,7 +46,6 @@ class BaseRoleAccess(object):
 					self.institutes = UserInfoSchool.objects.filter(school_id__in = schools)
 				else:
 					self.institutes = UserInfoSchool.objects.filter(school_id = schools[0])
-				print ("Institutes:", self.institutes)
 				self.classes = None
 			else:
 				self.institutes = UserInfoSchool.objects.filter(school_id = schools[0])
@@ -218,7 +217,6 @@ class UserMasteryMeta(BaseRoleAccess):
 			rows(list) = it returns institutes information
 		"""
 		objBreadcrumb.append(self.construct_breadcrumb("Institutes", 0, "-1"))	
-		# print ("Institutes:", self.institutes)
 		for institute in self.institutes:
 			school_info = {
 			    "id": str(institute.school_id),
@@ -311,12 +309,10 @@ class UserMasteryData(BaseRoleAccess):
 			masteryData = MasteryLevelSchool.objects.filter(**filterTopics)
 		elif self.parentLevel == 1:
 			filterTopics['class_id'] = masteryElement
-			# print ("**filterTopics**:", **filterTopics)
 			masteryData = MasteryLevelClass.objects.filter(**filterTopics)
 		elif self.parentLevel == 2:
 			filterTopics['student_id'] = masteryElement
 			masteryData = MasteryLevelStudent.objects.filter(**filterTopics)
-		print ("masteryData:", masteryData)
 		return masteryData
 
 	def getInstitutesData(self):
@@ -328,9 +324,7 @@ class UserMasteryData(BaseRoleAccess):
 		"""
 		res = list(map(self.getMastryLogDetails, self.institutes))
 		aggregationResult = [res['aggregation'] for res in res]
-		print(aggregationResult)
 		data = self.getMasteryAggregationData(aggregationResult, res)
-		print ("Data:", data)
 		return data
 
 	def getMasteryAggregationData(self, aggregationResult, masteryData):
@@ -341,7 +335,6 @@ class UserMasteryData(BaseRoleAccess):
 		Returns:
 			data(dict) = it contains aggregation result and mastery data of class, school
 		"""
-		print ("aggregationResult:", aggregationResult)
 		data = {}	
 		percent_complete_array = []
 		percent_correct_array = []
@@ -431,7 +424,7 @@ class UserMasteryData(BaseRoleAccess):
 			values = [0, "0.00%", 0, 0, "0.00%", "0.00%"]
 			aggregation = [0, 0.00, 0, 0, 0.00, 0.00] 
 
-			row = {'id': str(student.student_id), 'name': student.student_name, 'values': values, 'aggregation': aggregation}
+			row = {'id': str(student.student_id), 'name': student.student_name, 'total_questions': total_questions, 'values': values, 'aggregation': aggregation}
 		else:
 			percent_complete_float = float(completed_questions) / total_questions
 			percent_complete = "{0:.2%}".format(percent_complete_float)
@@ -447,7 +440,7 @@ class UserMasteryData(BaseRoleAccess):
 			#aggregation = [percent_complete_float, percent_correct_float, completed, number_of_attempts] # Added for Testing
 			aggregation = [mastered_topics, percent_mastered_topics_float,number_of_attempts,correct_questions ,percent_correct_float, percent_complete_float]
 
-			row = {'id': str(student.student_id), 'name': student.student_name, 'values': values, 'aggregation': aggregation}
+			row = {'id': str(student.student_id), 'name': student.student_name, 'total_questions': total_questions, 'values': values, 'aggregation': aggregation}
 		return row
 
 	def getMastryLogDetails(self, masteryElement):
@@ -471,13 +464,7 @@ class UserMasteryData(BaseRoleAccess):
 		total_subtopics = self.getSubTopicsData()
 		objMasteryData = self.getLogData(masteryElement)
 
-		print ("masteryElement:", masteryElement)
 		for objMastery in objMasteryData:
-			print ("mastered_topics:", objMastery.mastered)
-			print ("completed_questions:", objMastery.completed_questions)
-			print ("correct_questions:", objMastery.correct_questions)
-			print ("number_of_attempts:", objMastery.attempt_questions)
-			# print ("objMastery:", objMastery.attempt_questions)
 			mastered_topics += objMastery.mastered
 			completed_questions += objMastery.completed_questions
 			correct_questions += objMastery.correct_questions
@@ -485,18 +472,13 @@ class UserMasteryData(BaseRoleAccess):
 		
 		# Filter mastery level belongs to a certain class with certain topic id, and within certain time range
 		total_students = masteryElement.total_students
-		# print ("total_students", total_students)
-		# print ("completed_questions:", completed_questions)
-		# print ("correct_questions:", correct_questions)
-		# print ("number_of_attempts:", number_of_attempts)
-		# print ("mastered_topics:", mastered_topics)
 		if total_questions == 0 or total_students == 0 or completed_questions ==0 or correct_questions == 0:
 			values = [0, "0.00%",0,0,"0.00%","0.00%"]
 			aggregation = [0, 0.00, 0, 0,0.00,0.00] 
 			if self.parentLevel == 0:
-				row = {'id': str(masteryElement.school_id), 'name': masteryElement.school_name, 'values': values, 'aggregation': aggregation}
+				row = {'id': str(masteryElement.school_id), 'name': masteryElement.school_name, 'total_questions': total_questions, 'values': values, 'aggregation': aggregation}
 			else:
-				row = {'id': str(masteryElement.class_id), 'name': masteryElement.class_name, 'values': values, 'aggregation': aggregation}
+				row = {'id': str(masteryElement.class_id), 'name': masteryElement.class_name, 'total_questions': total_questions, 'values': values, 'aggregation': aggregation}
 		else:
 			# Calculate the percentage of completed questions
 			percent_complete_float = float(completed_questions) / (total_questions * total_students)
@@ -506,19 +488,15 @@ class UserMasteryData(BaseRoleAccess):
 			percent_correct_float = float(correct_questions) / (number_of_attempts) # changed the formula to calculate the % correct based on total_attempts instead of total_questions of respective content. As discussed with Harish
 			percent_correct = "{0:.2%}".format(percent_correct_float)
 
-			print ("percent_correct:", percent_correct)
-			print ("mastered_topics:", mastered_topics)
-			print ("subtopics:", total_subtopics)
 			percent_mastered_topics_float = float(mastered_topics) / (total_subtopics * total_students)
 			percent_mastered_topics = "{0:.2%}".format(percent_mastered_topics_float)
-			print ("percent_mastered_topics:", percent_mastered_topics)
 
 			values = [mastered_topics, percent_mastered_topics, number_of_attempts,correct_questions,percent_correct,percent_complete]#, percent_student_completed, 15] # Added For Testing last parameter
 			aggregation = [mastered_topics, percent_mastered_topics_float, number_of_attempts,correct_questions,percent_correct_float,percent_complete_float]#,  percent_student_completed_float, 15] # Added For Testing last parameter
 			if self.parentLevel == 0:
-				row = {'id': str(masteryElement.school_id), 'name': masteryElement.school_name, 'values': values, 'aggregation':aggregation}	
+				row = {'id': str(masteryElement.school_id), 'name': masteryElement.school_name, 'total_questions': total_questions, 'values': values, 'aggregation':aggregation}	
 			else:
-				row = {'id': str(masteryElement.class_id), 'name': masteryElement.class_name, 'values': values, 'aggregation': aggregation}
+				row = {'id': str(masteryElement.class_id), 'name': masteryElement.class_name, 'total_questions': total_questions, 'values': values, 'aggregation': aggregation}
 		return row
 
 
