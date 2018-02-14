@@ -92,9 +92,7 @@ def register_view(request):
             response['form'] = form
             return render(request,'register.html', response)
         classes = request.POST.getlist('classes')
-        print ("classes:", str(classes))
         institutesList = request.POST.getlist('institutesforbm')
-        print ("institutesList:", str(institutesList))
         form = UserProfileForm(request.POST)
         response = {}
         if form.is_valid():
@@ -130,7 +128,6 @@ def register_view(request):
                     up.save()
 
             elif institutesList:
-                print ("Inside else")
                 for curInstitute in institutesList:
                     try:
                         userInfoSchool = UserInfoSchool.objects.get(pk = int(curInstitute))
