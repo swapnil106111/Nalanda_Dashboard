@@ -452,6 +452,7 @@ var setTableData = function(data) {
     tableData = data;
     var idx;
     var tq;
+    var te;
     
     // update data rows
     for (idx in data.rows) {
@@ -473,16 +474,20 @@ var setTableData = function(data) {
         aggregationTable.row.add(array).draw(false);
     }
     tq = data.rows[0]['total_questions']
-    showTotalQuestions(tq)
+    te = data.rows[0]['total_subtopics']
+    showTotalQuestions(tq, te);
     precalculate();
     setCompareMetricIndex(compareMetricIndex);
     setPerformanceMetricIndex(performanceMetricIndex);
 };
 
-var showTotalQuestions = function(qCount){
+var showTotalQuestions = function(qCount, eCount){
     var strQCount ;
-    strQCount = qCount.toString()
+    var strExerciseCount;
+    strQCount = qCount.toString();
+    strExerciseCount = eCount.toString();
     $('#totalQ').text(strQCount);
+    $('#totalExercise').text(strExerciseCount);
 }
 // Calculate statistical values
 var precalculate = function() {
