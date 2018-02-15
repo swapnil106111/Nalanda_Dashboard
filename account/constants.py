@@ -6,13 +6,13 @@
 
 
 metrics = [	
-	{'displayName': '# Mastered topics', 'toolTip': ''},
-	{'displayName': '% Mastered topics', 'toolTip': ''},
+	{'displayName': '# Mastered exercise', 'toolTip': ''},
+	{'displayName': '% Mastered exercise', 'toolTip': ''},
 	{'displayName': '# Question attempts ', 'toolTip': ''},
 	{'displayName': '# Question correct', 'toolTip': ''},
 	{'displayName': '% correct', 'toolTip': ''},
 	# {'displayName': '# exercise completed', 'toolTip': ''},
-	{'displayName': '% exercise completed', 'toolTip': ''},
+	{'displayName': '% completed exercise', 'toolTip': ''},
 ]
 
 USERROLE = { 'BM':1, 'SL':2, 'teacher':3 }
