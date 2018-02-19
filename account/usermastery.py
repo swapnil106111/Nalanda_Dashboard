@@ -428,7 +428,8 @@ class UserMasteryData(BaseRoleAccess):
 		else:
 			percent_complete_float = float(completed_questions) / total_questions
 			percent_complete = "{0:.2%}".format(percent_complete_float)
-
+			# print ("completed_questions:", completed_questions)
+			# print ("number_of_attempts:", number_of_attempts)
 			# Calculate the percentage of correct questions
 			percent_correct_float = float(correct_questions) / number_of_attempts # changed the formula to calculate the % correct based on total_attempts instead of total_questions of respective content. As discussed with Harish
 			percent_correct = "{0:.2%}".format(percent_correct_float)
