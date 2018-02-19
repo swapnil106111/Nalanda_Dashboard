@@ -560,13 +560,13 @@ def get_trend(request):
                     date__gte=start,date__lte=end).order_by('date')
         res = {}
         series = []
-        series.append({'name':'# Mastered topics','isPercentage':False})
-        series.append({'name':'% Mastered topics','isPercentage':True})
-        series.append({'name':'# attempts','isPercentage':False})
-        series.append({'name':'# exercise correct','isPercentage':False})
-        series.append({'name':'% exercise correct','isPercentage':True})
+        series.append({'name':'# Exercsie mastered','isPercentage':False})
+        series.append({'name':'% Exercsie mastered','isPercentage':True})
+        series.append({'name':'# Question attempts','isPercentage':False})
+        series.append({'name':'# Question correct','isPercentage':False})
+        series.append({'name':'% Correct','isPercentage':True})
         # series.append({'name':'# exercise completed','isPercentage':True})
-        series.append({'name':'% exercise completed','isPercentage':True})
+        series.append({'name':'% Question completed','isPercentage':True})
         
         #series.append({'name':'% students completed topic','isPercentage':True})
         # series.append({'name':'Sample metrics','isPercentage':True})  # Added For Testing
@@ -609,7 +609,7 @@ def get_trend(request):
             temp.append(100.0*mastered_topics/(total_students*sub_topics_total))
             temp.append(attempt_questions_sum)
             temp.append(correct_questions_sum)
-            temp.append(100.0*correct_questions_sum/(total_students*attempt_questions_sum))
+            temp.append(100.0*correct_questions_sum/(attempt_questions_sum))
             # temp.append(completed_questions_sum)
             temp.append(100.0*completed_questions_sum/(total_students*total_questions))
             
