@@ -482,7 +482,7 @@ th.bar-column {
 }
 
 th.name-column {
-    min-width: 100px;
+    min-width: 150px;
 }
 
 #data-table thead tr {
@@ -492,7 +492,12 @@ th.name-column {
 #data-table td:last-child {
     padding: 5px 10px;
 }
-
+#data-table td:first-child {
+    padding: 5px 10px;
+}
+#data-table td {
+    padding: 8px 35px;
+}
 #data-compare-table th:last-child span,
 #data-compare-table th:last-child .dropdown button {
     opacity: 0;
