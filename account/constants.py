@@ -10,7 +10,7 @@ metrics = [
 	{'displayName': '% Exercise mastered', 'toolTip': ''},
 	{'displayName': '# Question attempts ', 'toolTip': ''},
 	{'displayName': '# Question correct', 'toolTip': ''},
-	{'displayName': '% Correct', 'toolTip': ''},
+	{'displayName': '% Question correct', 'toolTip': ''},
 	# {'displayName': '# exercise completed', 'toolTip': ''},
 	{'displayName': '% Question completed ', 'toolTip': ''},
 ]

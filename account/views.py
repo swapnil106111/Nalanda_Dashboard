@@ -564,7 +564,7 @@ def get_trend(request):
         series.append({'name':'% Exercsie mastered','isPercentage':True})
         series.append({'name':'# Question attempts','isPercentage':False})
         series.append({'name':'# Question correct','isPercentage':False})
-        series.append({'name':'% Correct','isPercentage':True})
+        series.append({'name':'% Question Correct','isPercentage':True})
         # series.append({'name':'# exercise completed','isPercentage':True})
         series.append({'name':'% Question completed','isPercentage':True})
         
