@@ -1,25 +1,20 @@
-<html>
-<head>
-    <script type="text/javascript" src="/static/node_modules/jquery/dist/jquery.js"></script>
-    <script type="text/javascript" src="/static/node_modules/datatables/media/js/jquery.dataTables.js"></script>
-    <link rel="stylesheet" href="/static/node_modules/bootstrap/dist/css/bootstrap.min.css" media="all">
-    <script type="text/javascript" src="/static/js/account/common.js"></script>
-    <!--<script type="text/javascript" src="/static/js/datatables.min.js"></script>-->
-    
-   
-    <!-- toastr -->
-    <script type="text/javascript" src="/static/node_modules/toastr/build/toastr.min.js"></script>
-    <link rel="stylesheet" href="/static/node_modules/toastr/build/toastr.min.css" media="all">
-    <link rel="stylesheet" href="/static/css/main.css" media="all">
-    <link rel="stylesheet" href="/static/css/datatables.min.css" media="all">
-    
+{% extends "base_site.html" %}
 
+{% block style %}
+    <link rel="stylesheet" href="/static/node_modules/toastr/build/toastr.min.css" media="all">
+    <link rel="stylesheet" href="/static/css/datatables.min.css" media="all">
+{% endblock style %}
+
+{% block script %} 
+    <script type="text/javascript" src="/static/node_modules/datatables/media/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" src="/static/js/account/common.js"></script>
+    <script type="text/javascript" src="/static/node_modules/toastr/build/toastr.min.js"></script>
     {% if code != 2031%}
-    {% csrf_token %}
-    <script>
+        {% csrf_token %}
+        <script>
         $(document).ready(function () {
             {% if code == 2001%}
-    
+
                 otable = $('#usertable').DataTable({
                 columns:[
                   
@@ -195,7 +190,7 @@
             $("#radActive").change(function(){
                 otable.column(5).search("#").draw()
             });
-    
+
             $("#radInActive").change(function(){
                 otable.column(5).search("$").draw()
             });
@@ -204,47 +199,32 @@
                 otable.column(5).search("").draw()
             });
         });
-    </script>
-
+        </script>
     {% endif %}
-</head>
-<body class="report mastery">
-<header id="masthead" class="site-header">
-    <div class="inner">
-        <h1 class="site-title"><a class="site-title-link">Nalanda Visualizer</a></h1>
-        <!--<span style="color:#ffffff">Current User: {{ "current_user" }}</span>-->
-        <a href="./logout" class="log-out" title="Log Out"><i class="glyphicon glyphicon-log-out"></i> Log Out</a>
-    </div>
-</header>
-<div id="main" class="site-main">
-    <div class="content-area"> 
-        <div class="site-content">
-            <h1 class="section-title"> User registration approval </h1><br>
-            <div id="section-radio">
-                <input type="radio" name="Active_user" value="Active" id = "radAll">
-                <label for="Active_user">All</label>
-                <input type="radio" name="Active_user" value="Active" id = "radActive">
-                <label for="Active_user">Active</label>
-                <input type="radio" name="Active_user" value="Inactive" id = "radInActive">
-                <label for="InActive_user">Inactive</label> 
+    <!-- {% if code == 2031 %}
+         <div class="alert alert-danger">{{ info.message }}</div>
+    {% endif %} -->
+{% endblock script %}
+
+{% block content %}
+<div class="report mastery">
+    <div id="main" class="site-main">
+        <div class="content-area"> 
+            <div class="site-content">
+                <h1 class="section-title"> User registration approval </h1><br>
+                <div id="section-radio">
+                    <input type="radio" name="Active_user" value="Active" id = "radAll">
+                    <label for="Active_user">All</label>
+                    <input type="radio" name="Active_user" value="Active" id = "radActive">
+                    <label for="Active_user">Active</label>
+                    <input type="radio" name="Active_user" value="Inactive" id = "radInActive">
+                    <label for="InActive_user">Inactive</label> 
+                </div>
+
+                <table id="usertable" class="display" cellspacing="0" width="100%">
+                </table>
             </div>
-
-            <table id="usertable" class="display" cellspacing="0" width="100%">
-            </table>
-
-            {% if code == 2031 %}
-            <div class="alert alert-danger">{{ info.message }}</div>
-            {% endif %}
         </div>
     </div>
-    <div id="secondary" class="site-sidebar">
-        <ul class="site-navigation">
-            <li class="heading">Admin</li>
-            <li class="navigation-item current"><a href="./admin-users"><i class="glyphicon glyphicon-user"></i>&nbsp; Users</a></li>
-            <li class="heading">Reports</li>
-            <li class="navigation-item"><a href="./report-mastery">Mastery</a></li>
-        </ul>
-    </div>
 </div>
-</body>
-</html>
+{% endblock content %}
