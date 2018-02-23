@@ -37,7 +37,7 @@ var updatePageContent = function() {
     var data1 = null;
     var data2 = null;
     
-    sendPOSTRequest('./api/mastery/get-page-meta', {
+    sendPOSTRequest('/account/api/mastery/get-page-meta', {
         startTimestamp: startTimestamp,
         endTimestamp: endTimestamp,
         contentId: contentId,
@@ -48,7 +48,7 @@ var updatePageContent = function() {
         setBreadcrumb(response.data);
         setTableMeta(response.data);
         data1 = response.data;
-	    sendPOSTRequest('./api/mastery/get-page-data', {
+	    sendPOSTRequest('/account/api/mastery/get-page-data', {
 	        startTimestamp: startTimestamp,
 	        endTimestamp: endTimestamp,
 	        contentId: contentId,
@@ -103,7 +103,7 @@ var checkTableDataConsistancy = function(data1, data2) {
 // Fetch topics by calling API and update the dropdown menu
 // Called only once upon page initialization
 var refreshTopicsDropdown = function() {
-    sendPOSTRequest('./api/mastery/topics', {
+    sendPOSTRequest('/account/api/mastery/topics', {
         startTimestamp: startTimestamp,
         endTimestamp: endTimestamp,
         parentLevel: parentLevel,
@@ -116,7 +116,7 @@ var refreshTopicsDropdown = function() {
 // Get trend data with specific item id from server (via POST) and sanitize it 
 // Used by `drawTrendChart`
 var getTrendData = function(itemId, callback) {    
-    sendPOSTRequest('./api/mastery/trend', {
+    sendPOSTRequest('/account/api/mastery/trend', {
         startTimestamp: startTimestamp,
         endTimestamp: endTimestamp,
         contentId: contentId,
