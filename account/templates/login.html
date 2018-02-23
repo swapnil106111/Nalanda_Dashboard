@@ -1,15 +1,14 @@
 
-{% extends "account_base.html" %}
+{% extends "base.html" %}
 {% block style %}
-<link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet"> 
 {% endblock style %}
 
 {% block title %}Nalanda Visualizer{% endblock %}
 
 {% block content %}
 <body class ="login">
-    <h1 class="site-title">Nalanda Visualizer</h1>
-    
+    <h1 class="site-title">Nalanda Visualizer</h1>  
     <div class="content">
         <h2>Login to your account</h2>
         {% if code != 0 and info.message %}
@@ -27,10 +26,10 @@
             <button name="submit" type="submit" class="btn btn-success submit-button">Login <i class="glyphicon glyphicon-log-in"></i></button>
         </form>
         <div class="alternate-option">
-            Doesn’t have an account? <a href="/account/register">Click to register</a>
+            Doesn’t have an account? <a href="{% url 'register' %}">Click to register</a>
         </div>
         <div class="alternate-option">
-            <a href="/account/password_reset">Forgot Password</a>
+            <a href="{% url 'password_reset' %}">Forgot Password</a>
         </div>
     </div>
 </body>
