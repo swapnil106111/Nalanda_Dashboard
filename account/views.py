@@ -51,7 +51,7 @@ def login_view(request):
             if form.get_user().is_superuser:
                 response =  redirect((reverse('admin_get')))
                 return response
-            response = redirect(reverse('get_report_mastery'))
+            response = redirect(reverse('get_report_mastery', kwargs= {"analytics":"mastery"}))
             return response
     	else:
             data = form.errors.as_json()
@@ -528,7 +528,6 @@ def get_trend(request):
             content = Content.objects.filter(topic_id=topic_id,channel_id=channel_id).first()
         total_questions = content.total_questions
         sub_topics_total = content.sub_topics_total
-        # print(total_questions)
         total_students = 1.0
         if level == -1 or level == 0:
             pass
@@ -536,9 +535,6 @@ def get_trend(request):
             school = UserInfoSchool.objects.filter(school_id=item_id).first()
             total_students = school.total_students
             if topic_id == "-1":
-                '''data = MasteryLevelSchool.objects.filter(school_id=item_id).filter(date__gt=start).filter(date__lt=end).values('channel_id')\
-                .annotate(Sum('completed_questions'),Sum('correct_questions'),Sum('attempt_questions'),Sum('students_completed')).order_by('date')
-                print(data)'''
                 data = MasteryLevelSchool.objects.filter(school_id=item_id,content_id="",date__gte=start,date__lte=end).order_by('date')
             else:
                 data = MasteryLevelSchool.objects.filter(school_id=item_id,content_id=topic_id, channel_id=channel_id,\
@@ -565,12 +561,7 @@ def get_trend(request):
         series.append({'name':'# Question attempts','isPercentage':False})
         series.append({'name':'# Question correct','isPercentage':False})
         series.append({'name':'% Question Correct','isPercentage':True})
-        # series.append({'name':'# exercise completed','isPercentage':True})
         series.append({'name':'% Question completed','isPercentage':True})
-        
-        #series.append({'name':'% students completed topic','isPercentage':True})
-        # series.append({'name':'Sample metrics','isPercentage':True})  # Added For Testing
-
         points = []
         completed_questions_sum = 0
         correct_questions_sum = 0
@@ -580,24 +571,6 @@ def get_trend(request):
         percent_mastered_topics = 0
         for ele in data:
             temp = []
-            '''if topic_id=="-1":
-                completed_questions_sum += ele['completed_questions__sum']
-                correct_questions_sum += ele['correct_questions__sum']
-                attempt_questions_sum += ele['attempt_questions__sum']
-                temp.append(time.mktime(ele['date'].timetuple()))
-                temp.append(100.0*completed_questions_sum/(total_students*total_questions))
-                temp.append(100.0*correct_questions_sum/(total_students*total_questions))
-                temp.append(attempt_questions_sum)
-                if level == 3:
-                    completed_sum += ele['completed__sum']
-                else:
-                    completed_sum += ele['students_completed__sum']
-                temp.append(100.0*completed_sum/total_students)
-            else:'''
-            
-            # Future change for percent_mastered_topics -- START
-            
-            # Future change for percent_mastered_topics -- END
 
             completed_questions_sum += ele.completed_questions
             mastered_topics += ele.mastered # future change
@@ -612,18 +585,6 @@ def get_trend(request):
             temp.append(100.0*correct_questions_sum/(attempt_questions_sum))
             # temp.append(completed_questions_sum)
             temp.append(100.0*completed_questions_sum/(total_students*total_questions))
-            
-            
-
-            # temp.append(5)
-            # if level == 3: # Added for Testing 
-            #     completed_sum += ele.completed # Added for Testing 
-            #     temp.append(completed_sum) # Added for Testing 
-            # else: # Added for Testing 
-            #     completed_sum += ele.students_completed # Added for Testing 
-            #     temp.append(completed_sum) # Added for Testing 
-            #temp.append(15)   # Added For Testing
-
             points.append(temp)
         res['series'] = series
         res['points'] = points
@@ -637,8 +598,10 @@ def get_trend(request):
         return HttpResponse(response_text,content_type='application/json')
 
 @login_required(login_url='/account/login/')
-def get_report_mastery(request):
-    if request.method == 'GET': 
-        return render(request,'report-mastery.html')
+def get_report_mastery(request, analytics):
+    print (analytics)
+    ANALYTICS_CODES= {"session":1, "mastery":2}
+    if request.method == 'GET':
+        return render(request,'report-mastery.html', {'usersessioncode': ANALYTICS_CODES[analytics]})
     else:
         return HttpResponse()
