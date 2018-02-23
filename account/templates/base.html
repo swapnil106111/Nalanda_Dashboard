@@ -1,0 +1,19 @@
+<html>
+	<head>
+		{% block header_javascript %} 
+			<script type="text/javascript" src="/static/node_modules/jquery/dist/jquery.min.js"></script>
+			<link rel="stylesheet" href="/static/node_modules/bootstrap/dist/css/bootstrap.min.css" media="all">
+			<link rel="stylesheet" href="/static/css/main.css" media="all">
+		{% endblock header_javascript %} 
+		{% block style %}{% endblock style %}
+		{% block script %}{% endblock script %}
+		<title> {% block title %}{% endblock title %}</title>	
+	</head>
+	<body> 
+		{% block header %} {% endblock header %}
+		{% block content %} {% endblock content %}
+		{% block left-menu %}{% endblock left-menu %}
+		{% block footer %} {% endblock footer %}
+	</body>
+</html>
+	
