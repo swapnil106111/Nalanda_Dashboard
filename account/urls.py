@@ -17,7 +17,7 @@ urlpatterns = [
 	url(r'^admin', views.admin_get_view, name='admin_get'),
 	url(r'^api/mastery/topics',views.get_topics, name='get_topics'),
 	url(r'^api/mastery/trend',views.get_trend, name='get_trend'),
-    url(r'^report-mastery',views.get_report_mastery,name='get_report_mastery'),
+    url(r'^report-mastery/(?P<analytics>[A-Za-z]+)',views.get_report_mastery,name='get_report_mastery'),
     url(r'^password_reset/$', auth_views.password_reset,{'subject_template_name': 'resetemailsubject.txt',
     													 'password_reset_form': EmailValidationOnForgotPassword}, name='password_reset'),
     url(r'^password_reset/done/$', auth_views.password_reset_done, name='password_reset_done'),
