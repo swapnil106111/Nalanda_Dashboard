@@ -25,7 +25,7 @@ from django.template.loader import render_to_string, get_template
 from django.core.mail import EmailMessage
 from django.core.validators import validate_email
 from django.views.decorators.csrf import csrf_protect
-
+from .constants import metrics
 from .forms import UserProfileForm
 from .usermastery import UserMasteryMeta, UserMasteryData
 
@@ -462,7 +462,7 @@ def get_page_meta_view(request):
     parent_level = data.get('parentLevel', -2)
     parent_id = int(data.get('parentId', '').strip())
     objUserMastery = UserMasteryMeta(user, parent_id, parent_level)
-    objUserData = objUserMastery.getPageMeta()
+    objUserData = objUserMastery.getPageMeta(metrics)
     response_text = json.dumps(objUserData,ensure_ascii=False)
     return HttpResponse(response_text,content_type='application/json')
 
