@@ -21,7 +21,7 @@ var compareMaxValues = [];
 var pendingRequests = 0; // number of requests that are sent but not received yet
 var maxItemLevel = 3; // students (read-only)
 var debug = true; // whether to print debug outputs to console
-var selfServe = true;
+var selfServe = false;
 var count = 0;
 var setParenrtLevel = false
 
@@ -31,27 +31,21 @@ var setParenrtLevel = false
 // Uses global variables `startTimestamp`, `endTimestamp`, `contentId`, `channelId`, `parentLevel`, and `parentId`
 // Called every time the page needs update
 var updatePageContent = function() {
-    $(".totalquestions-breadcrumb").remove();
-    $(".topic").remove();
-    var active = document.querySelector(".report-breadcrumb");
-    active.classList.remove("col-md-7");
     // Making sure `setTableData` happens AFTER `setTableMeta` 
-    
+    removeclasses();
     var data1 = null;
     var data2 = null;
     
-    sendPOSTRequest('./api/usersession/get-page-meta', {
+    sendPOSTRequest('/usersession/api/usersession/get-page-meta', {
         startTimestamp: startTimestamp,
         endTimestamp: endTimestamp,
-        // contentId: contentId,
-        // channelId: channelId,
         parentLevel: parentLevel,
         parentId: parentId
     }, function(response) {
         setBreadcrumb(response.data);
         setTableMeta(response.data);
         data1 = response.data;
-	    sendPOSTRequest('./api/usersession/get-page-data', {
+	    sendPOSTRequest('/usersession/api/usersession/get-page-data', {
 	        startTimestamp: startTimestamp,
 	        endTimestamp: endTimestamp,
 	        // contentId: contentId,
@@ -103,23 +97,10 @@ var checkTableDataConsistancy = function(data1, data2) {
 	}
 };
 
-// Fetch topics by calling API and update the dropdown menu
-// Called only once upon page initialization
-// var refreshTopicsDropdown = function() {
-//     sendPOSTRequest('./api/mastery/topics', {
-//         startTimestamp: startTimestamp,
-//         endTimestamp: endTimestamp,
-//         parentLevel: parentLevel,
-//         parentId: parentId
-//     }, function(response) {
-//         buildTopicsDropdown(response.data);
-//     });
-// };
-
 // Get trend data with specific item id from server (via POST) and sanitize it 
 // Used by `drawTrendChart`
 var getTrendData = function(itemId, callback) {    
-    sendPOSTRequest('./api/usersession/trend', {
+    sendPOSTRequest('/usersession/api/usersession/trend', {
         startTimestamp: startTimestamp,
         endTimestamp: endTimestamp,
         // contentId: contentId,
@@ -231,85 +212,6 @@ var setBreadcrumb = function(data) {
     }
 };
 
-// Initializes the topics dropdown according to given data
-// Calls `_setTopics` recursively
-// Called only once upon page initialization
-// var buildTopicsDropdown = function(data) {
-//     var content = [];
-//     _setTopics(content, data.topics);
-
-//     // wrap "everything"
-//     content = [{
-//         title: 'Everything', 
-//         key: '-1,-1', 
-//         folder: true, 
-//         children: content,
-//         expanded: true
-//     }];
-    
-//     var opts = {
-//         autoApply: true,            // Re-apply last filter if lazy data is loaded
-//         autoExpand: true,           // Expand all branches that contain matches while filtered
-//         counter: false,             // Show a badge with number of matching child nodes near parent icons
-//         fuzzy: false,               // Match single characters in order, e.g. 'fb' will match 'FooBar'
-//         hideExpandedCounter: true,  // Hide counter badge if parent is expanded
-//         hideExpanders: false,       // Hide expanders if all child nodes are hidden by filter
-//         highlight: true,            // Highlight matches by wrapping inside <mark> tags
-//         leavesOnly: false,          // Match end nodes only
-//         nodata: false,              // Display a 'no data' status node if result is empty
-//         mode: 'hide'                // Grayout unmatched nodes (pass "hide" to remove unmatched node instead)
-//     };
-    
-//     $('#topics-tree').html('');
-//     $('#topics-tree').fancytree({
-//         checkbox: false,
-//         selectMode: 1,
-//         extensions: ['filter'],
-//         quicksearch: true,
-//         source: content,
-//         filter: opts
-//     });
-    
-//     // filter field
-//     $('#topic-filter-field').keyup(function(e) {
-//         var n; // number of results
-//         var tree = $.ui.fancytree.getTree();
-//         var filterFunc = tree.filterBranches;
-//         var match = $(this).val();
-
-//         if (e && e.which === $.ui.keyCode.ESCAPE || $.trim(match) === ''){
-//             // reset search
-//             $('#topic-filter-field').val('');
-//             var tree = $.ui.fancytree.getTree();
-//             tree.clearFilter();
-//             return;
-//         }
-
-//         n = filterFunc.call(tree, match, opts);
-//     });
-    
-//     // automatic reset
-//     $('#reset-search').click(function(e){
-//         $('#topic-filter-field').val('');
-//         var tree = $.ui.fancytree.getTree();
-//         tree.clearFilter();
-//     });
-    
-//     // click background to dismiss
-//     $('html').click(function() {
-//         closeTopicDropdown();
-//     });
-    
-//     $('#topic-dropdown-container').click(function(e) {
-//         e.stopPropagation();
-//     });
-    
-//     $('.topic .toggle-button').click(function(e) {
-//         toggleTopicDropdown();
-//         e.stopPropagation();
-//     });
-// };
-
 // Instantiate both tables, insert rows with data partially populated
 // Called every time the page needs update
 var metaSetOnce = false;
@@ -326,6 +228,7 @@ var setTableMeta = function(data) {
         var idx;
         for (idx in data.metrics) {
             $('#data-table .trend-column').before('<th>' + data.metrics[idx].displayName + '</th>');
+            // $('#data-table .trend-column').before('<th> ' + data.metrics[idx].displayName+'<span class="tooltip">'+ data.metrics[idx].toolTip +'</span>' +'</th>');
             $('#aggregation-table .trend-column').before('<th>' + data.metrics[idx].displayName + '</th>');
             $('#data-compare-table .dropdown-menu').append('<li><a href="#" onclick="setCompareMetricIndex(' + idx + ')">' + data.metrics[idx].displayName + '</a></li>');
             $('#data-performance-table .dropdown-menu-metric').append('<li><a href="#" onclick="setPerformanceMetricIndex(' + idx + ')">' + data.metrics[idx].displayName + '</a></li>');
@@ -365,16 +268,6 @@ var setTableMeta = function(data) {
             lengthMenu: sharedLengthMenu
         });
         
-        // Added for Testing Above code and commented below code
-        // table = $('#data-table').DataTable({
-        //     columnDefs: [
-        //         { orderable: false, targets: 4 } // Added for Testing make 4 instead of 5
-        //     ],
-        //     order: [[0, 'asc']],
-        //     dom: 'Bfrtip',
-        //     buttons: ['pageLength'/*, 'copy'*/, 'csv', 'excel', 'pdf'/*, 'print'*/],
-        //     lengthMenu: sharedLengthMenu
-        // });
         
         aggregationTable = $('#aggregation-table').DataTable({
             paging: false,
@@ -476,22 +369,13 @@ var setTableData = function(data) {
         array.push('');
         aggregationTable.row.add(array).draw(false);
     }
-    // tq = data.rows[0]['total_questions']
-    // te = data.rows[0]['total_subtopics']
+
     // showTotalQuestions(tq, te);
     precalculate();
     setCompareMetricIndex(compareMetricIndex);
     setPerformanceMetricIndex(performanceMetricIndex);
 };
 
-// var showTotalQuestions = function(qCount, eCount){
-//     var strQCount ;
-//     var strExerciseCount;
-//     strQCount = qCount.toString();
-//     strExerciseCount = eCount.toString();
-//     $('#totalQ').text(strQCount);
-//     $('#totalExercise').text(strExerciseCount);
-// }
 // Calculate statistical values
 var precalculate = function() {
 	compareMaxValues = [];
@@ -759,7 +643,8 @@ var dismissTrendChart = function() {
 var appendBreadcrumbItem = function(name, level, id, isLast) {
     var html;
     if (isLast) {
-        html = '<span class="breadcrumb-text">' + name + '</span>';
+        // alert(name)
+        html = '<span class="breadcrumb-text ">' + name + '</span>';
     } else {
         html = '<a class="breadcrumb-link" href="#" onclick="clickBreadcrumbLink(' + level + ', \'' + id + '\')">' + name + '</a>';
         if (!isLast) {
@@ -1246,10 +1131,19 @@ var sendPOSTRequest_test = function(url, dataObject, callback) {
     }, getRandomInt(100, 2000));
 };
 
+var removeclasses = function(){
+    $(".totalquestions-breadcrumb").remove();
+    $(".topic").remove();
+    var active = document.querySelector(".report-breadcrumb");
+    active.classList.remove("col-md-7");
+
+}
+
 $(function() {
     google.charts.load('current', {'packages':['line', 'corechart']});
     updateLoadingInfo();
     setupDateRangePicker();
     // refreshTopicsDropdown();
     updatePageContent();
+
 });
