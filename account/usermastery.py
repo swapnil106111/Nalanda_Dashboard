@@ -111,10 +111,6 @@ class UserMasteryMeta(BaseRoleAccess):
 		super(self.__class__, self).__init__(user, parentID, parentLevel)
 		self.parentLevelMethods = [self.getInstituteMeta, self.getClassMeta, self.getStudentMeta]
 		self.parentLevels = { 'institutes':0, 'school':1, 'class':2, 'students': 3 }
-
-	# Construct the metrics format
-	def construct_metrics(self):
-		return metrics
     
     # Construct the breadcrumb format
 	def construct_breadcrumb(self, parentName, parentLevel, parentId):
@@ -225,7 +221,7 @@ class UserMasteryMeta(BaseRoleAccess):
 			rows.append(school_info)
 		return rows, objBreadcrumb
 
-	def getPageMeta(self):
+	def getPageMeta(self, objMetrics):
 		"""" Used to fetch mastery meta inforamtion
 		Args:
 			None
@@ -237,7 +233,8 @@ class UserMasteryMeta(BaseRoleAccess):
 		message = ""
 		rows = []
 		objBreadcrumb = []
-		objMetrics = self.construct_metrics()
+		# objMetrics = self.construct_metrics()
+		# objMetrics = metricsList
 		rows, objBreadcrumb = self.parentLevelMethods[self.parentLevel](objBreadcrumb, rows)
 		
 		data = { 'breadcrumb': objBreadcrumb, 'metrics': objMetrics, 'rows': rows }
