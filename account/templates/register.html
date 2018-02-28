@@ -74,12 +74,7 @@
                 }).change();
             });
         </script>
-        {% if code == 0 %}
-            <div class="error">{{ info.message }}</div>
-        {% elif code == 1006%}
-            <div class="info">{{ info.message }}</div>
-        {% endif %}
- 
+
     {% endblock script %}
 {% block content %}
 <body class="login">
@@ -87,8 +82,13 @@
 <div class="content">
     <h2>Register a new account</h2>
     <!--<div><label id="Message" class="label label-info"></label></div>-->
-    <div  id="Message"></div>
-    
+    <div  id="Message">
+        {% if code == 0 %}
+            <div class="error">{{ info.message }}</div>
+        {% elif code == 1006%}
+            <div class="info">{{ info.message }}</div>
+        {% endif %} 
+    </div>
     
     <form id="register" method="POST">
         {% csrf_token %}
