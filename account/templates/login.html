@@ -3,25 +3,28 @@
 {% block style %}
 <link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet"> 
 {% endblock style %}
-
 {% block title %}Nalanda Visualizer{% endblock %}
-
 {% block content %}
 <body class ="login">
+
     <h1 class="site-title">Nalanda Visualizer</h1>  
     <div class="content">
         <h2>Login to your account</h2>
-        {% if code != 0 and info.message %}
-        <div class="error">{{ info.message }}</div>
-        {% endif %}
+        {% if form.non_field_errors %}
+            <ul class='error'>
+                {% for error in form.non_field_errors %}
+                   <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}        
         <form class="login-form" method="POST"  >{% csrf_token %}
             <div class="input">
                 <i class="glyphicon glyphicon-user"></i>
-                <input name="username" type="text" class="form-control" placeholder="Username">
+                <input name="username" id="id_username" type="text" class="form-control" placeholder="Username" required="true" autofocus="autofocus">
             </div>
             <div class="input">
                 <i class="glyphicon glyphicon-lock"></i>
-                <input name="password" type="password" class="form-control" placeholder="Password">
+                <input name="password" id="id_password" type="password" class="form-control" placeholder="Password" required="true">
             </div>
             <button name="submit" type="submit" class="btn btn-success submit-button">Login <i class="glyphicon glyphicon-log-in"></i></button>
         </form>
