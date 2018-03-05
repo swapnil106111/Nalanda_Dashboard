@@ -196,6 +196,8 @@ class userSessionPageData(BaseRoleAccess):
 		length = len(hoursList)
 		if length != 0:
 		    for i in range(length):
+		    	if hoursList[i] == 0:
+		    		continue
 		    	p = hoursList[i].split(':')
 		    	avg_hours_usage += int(p[0]) * 3600 + int(p[1])*60 + int(p[2])
 		    	# avg_minutes_usage += minutesList[i]
