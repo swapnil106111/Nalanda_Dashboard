@@ -46,20 +46,18 @@ def login_view(request):
     form = AuthenticationForm(None, request.POST)
     #If POST request is received, render the mastery page
     if request.method == 'POST':
-    	if form.is_valid():
+        if form.is_valid():
             login(request, form.get_user())
             if form.get_user().is_superuser:
                 response =  redirect((reverse('admin_get')))
                 return response
             response = redirect(reverse('get_report_mastery', kwargs= {"analytics":"mastery"}))
             return response
-    	else:
-            data = form.errors.as_json()
-            error_data = json.loads(data)
-            for msg in error_data:
-                message = error_data[msg][0]['message']
-                response_object = construct_response(1001, "",message, {})
+        else:
+            response_object['form']=form
+            return render(request, 'login.html', response_object)
     #If GET request is received, render the login page
+    form = AuthenticationForm()
     response_object['form']=form
     return render(request, 'login.html', response_object)
 
