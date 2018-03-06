@@ -18,6 +18,23 @@
 
                 // This function is performed when role is changed
                 // It shows institutes or classes based on role sleected
+                // $("#id_username" ).keyup(function() {
+                //     var re = /^\w+$/;
+                //     var username = document.getElementById('id_username').value;
+                //     if (username == '' ){
+                //         return true;
+                //     }
+                //     var res = re.exec(username);
+                //     if (res == null) {
+                //         alert("Error: Username must contain only letters, numbers and underscores!");
+                //         return false;
+                //     } else {
+                //         var s = "Match at position " + res.index + ":\n";
+                //         for (i = 0; i < res.length; i++) {
+                //           s = s + res[i] + "\n";
+                //         }
+                //     }
+                // });
                 $("#id_role").change(function () {
                     var e = document.getElementById("id_role");
                     var strUserRole = e.options[e.selectedIndex].value;
@@ -82,7 +99,7 @@
 <div class="content">
     <h2>Register a new account</h2>
     <!--<div><label id="Message" class="label label-info"></label></div>-->
-    <div  id="Message">
+    <div id="Message">
         {% if code == 0 %}
             <div class="error">{{ info.message }}</div>
         {% elif code == 1006%}
