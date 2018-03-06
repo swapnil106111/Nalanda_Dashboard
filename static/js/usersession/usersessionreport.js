@@ -32,7 +32,7 @@ var setParenrtLevel = false
 // Called every time the page needs update
 var updatePageContent = function() {
     // Making sure `setTableData` happens AFTER `setTableMeta` 
-    removeclasses();
+    removeHtmlClasses();
     var data1 = null;
     var data2 = null;
     
@@ -247,20 +247,20 @@ var setTableMeta = function(data) {
                 {
                     extend: 'csv',           
                     exportOptions: {
-                        columns: [0,1,2,3,4,5] // indexes of the columns that should be printed,
+                        columns: [0,1] // indexes of the columns that should be printed,
                     }                      // Exclude indexes that you don't want to print.
                 },
                 {
                     extend: 'excel',
                     exportOptions: {
-                        columns: [0,1,2,3,4,5] 
+                        columns: [0,1] 
                     }
 
                 },
                 {
                     extend: 'pdf',
                     exportOptions: {
-                        columns: [0,1,2,3,4,5] 
+                        columns: [0,1] 
                     }
                 }
             ],  
@@ -370,7 +370,6 @@ var setTableData = function(data) {
         aggregationTable.row.add(array).draw(false);
     }
 
-    // showTotalQuestions(tq, te);
     precalculate();
     setCompareMetricIndex(compareMetricIndex);
     setPerformanceMetricIndex(performanceMetricIndex);
@@ -401,26 +400,36 @@ var precalculate = function() {
 	
 	for (metricIndex in tableMeta.metrics) {
 		// update compared-to values
-		var isPercentage = (tableData.rows.length > 0) && (typeof tableData.rows[0].values[metricIndex] === 'string');
+		var isMinute = (tableData.rows.length > 0) && (typeof tableData.rows[0].values[metricIndex] === 'string');
 	    var values = [];
 	    var idx;
+        var totaltime;
 	    for (idx in tableData.rows) {
-	        values.push(parseFloat(tableData.rows[idx].values[metricIndex]));
+            totaltime = convertTimetoMin(tableData.rows[idx].values[metricIndex])
+            if (totaltime){
+	           values.push(Math.floor(totaltime / 60));
+           }
+           else{
+            values.push(0);
+           }
 	    }
 	    
 	    values.sort(function(a, b) { 
 	        return a - b;
 	    });
 	    
-	    var min = values[0];
-	    var max = values[values.length - 1];
+	    // var min = values[0];
+        var min = parseFloat(values[0].toFixed(2));
+	    // var max = values[values.length - 1];
+        var max = parseFloat(values[values.length - 1].toFixed(2));
 	    var sum = values.reduce(function(a, b) {
 	        return a + b; 
 	    }, 0);
 	    var average = sum / values.length;
 	    var half = Math.floor(values.length / 2);
 	    var median = (values.length % 2) ? values[half] : ((values[half-1] + values[half]) / 2.0);
-	    var suffix = isPercentage ? '%' : '';
+        var median = median.toFixed(1);
+	    var suffix = isMinute ? ' (Min)' : '';
 	    
 	    // set globals
 	    
@@ -448,7 +457,9 @@ var setCompareMetricIndex = function(metricIndex) {
     var idx;
     // update data rows
     for (idx in tableData.rows) {
-        var rowValue = parseFloat(tableData.rows[idx].values[metricIndex]);
+        var totaltimeMinutes = convertTimetoMin(tableData.rows[idx].values[metricIndex]);
+        var rowValue = totaltimeMinutes/60;
+        // var rowValue = parseFloat(tableData.rows[idx].values[metricIndex]);
         var percentage = Math.round(maxValue == 0 ? 0 : (rowValue / maxValue * 100));
         var barHTML =   '<div class="progress">'+
                         '<div class="progress-bar" role="progressbar" aria-valuenow="' + percentage + 
@@ -508,7 +519,7 @@ var drawTrendChart = function(itemId, itemName) {
         var lateDate = trendData.points[trendData.points.length - 1][0];
         var options = {
             chart: {
-                title: itemName + ' Mastery Trend',
+                title: itemName + ' User Session Trend',
                 subtitle: 'Data from ' + moment(earlyDate).format('MM/DD/YYYY') + ' to ' + moment(lateDate).format('MM/DD/YYYY')
             },
             legend: { position: 'bottom' },
@@ -519,7 +530,7 @@ var drawTrendChart = function(itemId, itemName) {
             axes: {
                 y: {
                     percentage: {label: 'Percentage'},
-                    number: {label: 'Number'}
+                    number: {label: 'Minutes'}
                 }
             }
         };
@@ -755,7 +766,10 @@ var updatePerformanceView = function() {
     var idx;
     
     for (idx in tableData.rows) {
-        var rawValue = parseFloat(tableData.rows[idx].values[performanceMetricIndex]);
+
+        var totaltimeMinutes = convertTimetoMin(tableData.rows[idx].values[performanceMetricIndex]);
+        // var rawValue = parseFloat(tableData.rows[idx].values[performanceMetricIndex])
+        var rawValue = Math.floor(totaltimeMinutes/60);
         var compareValue = (rawValue - pivot) / pivot * 100;
         if (compareValue > max) {
             max = compareValue;
@@ -766,7 +780,9 @@ var updatePerformanceView = function() {
     }
     
     for (idx in tableData.rows) {
-        var rawValue = parseFloat(tableData.rows[idx].values[performanceMetricIndex]);
+        var totaltimeMinutes = convertTimetoMin(tableData.rows[idx].values[performanceMetricIndex]);
+        // var rawValue = parseFloat(tableData.rows[idx].values[performanceMetricIndex]);
+        var rawValue = Math.floor(totaltimeMinutes/60);
         var compareValue = (rawValue - pivot) / pivot * 100;
         var positiveValue = 0;
         var negativeValue = 0;
@@ -1131,7 +1147,7 @@ var sendPOSTRequest_test = function(url, dataObject, callback) {
     }, getRandomInt(100, 2000));
 };
 
-var removeclasses = function(){
+var removeHtmlClasses = function(){
     $(".totalquestions-breadcrumb").remove();
     $(".topic").remove();
     var active = document.querySelector(".report-breadcrumb");
@@ -1139,6 +1155,13 @@ var removeclasses = function(){
 
 }
 
+var convertTimetoMin = function(totaltime){
+    if (totaltime){
+    var res = totaltime.split(":"); 
+    var totaltimeMin = parseFloat(res[0])*3600 + parseFloat(res[1])*60 + parseFloat(res[2]);
+    return totaltimeMin
+    }
+}
 $(function() {
     google.charts.load('current', {'packages':['line', 'corechart']});
     updateLoadingInfo();
