@@ -38,7 +38,7 @@ class Content(models.Model):
     channel_id = models.CharField(max_length=32)
     total_questions = models.IntegerField()
     sub_topics = models.TextField()
-    sub_topics_total = models.IntegerField()
+    sub_topics_total = models.IntegerField(default=0)
 
 class MasteryLevelStudent(models.Model):
     id = models.CharField(max_length=40,primary_key=True)
