@@ -555,34 +555,37 @@ def get_trend(request):
         res = {}
         series = []
         series.append({'name':'# Exercsie mastered','isPercentage':False})
+        series.append({'name':'# Exercsie attempts','isPercentage':False})
         series.append({'name':'% Exercsie mastered','isPercentage':True})
         series.append({'name':'# Question attempts','isPercentage':False})
         series.append({'name':'# Question correct','isPercentage':False})
         series.append({'name':'% Question Correct','isPercentage':True})
-        series.append({'name':'% Question completed','isPercentage':True})
+        # series.append({'name':'% Question completed','isPercentage':True})
         points = []
         completed_questions_sum = 0
         correct_questions_sum = 0
         attempt_questions_sum = 0
+        attempts_exercise_sum = 0
         completed_sum = 0
         mastered_topics = 0
         percent_mastered_topics = 0
         for ele in data:
             temp = []
 
-            completed_questions_sum += ele.completed_questions
+            # completed_questions_sum += ele.completed_questions
             mastered_topics += ele.mastered # future change
             correct_questions_sum += ele.correct_questions
             attempt_questions_sum += ele.attempt_questions
+            attempts_exercise_sum += ele.attempt_exercise
             temp.append(time.mktime(ele.date.timetuple()))
             temp.append(mastered_topics)
-            
+            temp.append(attempts_exercise_sum)
             temp.append(100.0*mastered_topics/(total_students*sub_topics_total))
             temp.append(attempt_questions_sum)
             temp.append(correct_questions_sum)
             temp.append(100.0*correct_questions_sum/(attempt_questions_sum))
             # temp.append(completed_questions_sum)
-            temp.append(100.0*completed_questions_sum/(total_students*total_questions))
+            # temp.append(100.0*completed_questions_sum/(total_students*total_questions))
             points.append(temp)
         res['series'] = series
         res['points'] = points
