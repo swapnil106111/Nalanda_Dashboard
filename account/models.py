@@ -51,6 +51,7 @@ class MasteryLevelStudent(models.Model):
     attempt_questions = models.IntegerField(default=0)
     # completed = models.BooleanField(default=False)
     mastered = models.IntegerField(default=0)
+    attempt_exercise = models.IntegerField(default=0)
 
 class MasteryLevelClass(models.Model):
     id = models.CharField(max_length=40,primary_key=True)
@@ -62,7 +63,8 @@ class MasteryLevelClass(models.Model):
     correct_questions = models.IntegerField(default=0)
     attempt_questions = models.IntegerField(default=0)
     # students_completed = models.IntegerField(default=0)
-    mastered = models.IntegerField(default=0 )
+    mastered = models.IntegerField(default=0)
+    attempt_exercise = models.IntegerField(default=0)
 
 class MasteryLevelSchool(models.Model):
     id = models.CharField(max_length=40,primary_key=True)
@@ -74,7 +76,8 @@ class MasteryLevelSchool(models.Model):
     correct_questions = models.IntegerField(default=0)
     attempt_questions = models.IntegerField(default=0)
     # students_completed = models.IntegerField(default=0)
-    mastered = models.IntegerField(default=0 )
+    mastered = models.IntegerField(default=0)
+    attempt_exercise = models.IntegerField(default=0)
 
 class LatestFetchDate(models.Model):
     date_id = models.IntegerField(primary_key=True)
