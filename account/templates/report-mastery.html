@@ -57,7 +57,12 @@
         <div class="content-area">
             <div id="primary" class="site-content">
                 <div class="report-header">
-                    <h1 class="page-title">Report: Student Mastery</h1>
+                    {% if usersessioncode == 2%}
+                        <h1 class="page-title">Report: Student Mastery</h1>
+                    {%endif%}
+                    {% if usersessioncode == 1%}
+                        <h1 class="page-title">Report: User Session</h1>
+                    {%endif%}
                     <div class="btn-group report-types" role="group">
                         <button type="button" class="btn btn-primary switch-view-button switch-view-button-1 current" onclick="switchView(1);">
                         	<i class="fa fa-table" aria-hidden="true"></i><span class="text"> Table</span>
