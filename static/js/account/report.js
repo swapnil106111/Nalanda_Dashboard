@@ -183,7 +183,7 @@ var setupDateRangePicker = function() {
     }, function(start, end, label) {
     startTimestamp = new Date(start.format('YYYY-MM-DD')).getTime() / 1000;
     // endTimestamp = new Date(end.format('YYYY-MM-DD')).getTime() / 1000;
-    // updatePageContent();
+    updatePageContent();
     });
 };
 
