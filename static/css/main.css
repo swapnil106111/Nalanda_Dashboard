@@ -325,7 +325,7 @@ input.daterangepicker {
     border-radius: 4px;
 }
 
-input.daterangepicker1 {
+input.daterangepickerenddate {
     position: relative;
     display: inline-block;
     top: 0;
@@ -339,7 +339,7 @@ input.daterangepicker1 {
 }
 .datepicker-title {
     display: inline-block;
-    padding: 5px 0px;
+    padding: 5px 15px;
 }
 
 .report-view {
@@ -664,8 +664,12 @@ input[type='radio'], label{
     padding-right: 30px;
     background-color:#fff;
 }
-#errorname{
-    color:red;
+
+.errormessage{
+    background-color: #f2dede;
+    border-left-width: 0;
+    border-right-width: 0;
+    color: #a94442;
 }
 @media (max-width: 1000px) {
     .page-title {

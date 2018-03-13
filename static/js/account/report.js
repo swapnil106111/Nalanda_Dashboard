@@ -176,22 +176,22 @@ var verifyTrendResponse = function(response) {
 // Called only once upon page initialization
 var setupDateRangePicker = function() {
     $('.daterangepicker').daterangepicker({
-        // singleDatePicker: true,
-        // showDropdowns: true,
+        singleDatePicker: true,
+        showDropdowns: true,
         startDate: new Date(startTimestamp * 1000),
-        endDate: new Date(endTimestamp * 1000)
+        // endDate: new Date(endTimestamp * 1000)
     }, function(start, end, label) {
     startTimestamp = new Date(start.format('YYYY-MM-DD')).getTime() / 1000;
-    endTimestamp = new Date(end.format('YYYY-MM-DD')).getTime() / 1000;
-    updatePageContent();
+    // endTimestamp = new Date(end.format('YYYY-MM-DD')).getTime() / 1000;
+    // updatePageContent();
     });
 };
 
-var setupDateRangePicker1 = function() {
-    $('.daterangepicker1').daterangepicker({
+var setupDateRangePickerEndDate = function() {
+    $('.daterangepickerenddate').daterangepicker({
         singleDatePicker: true,
         showDropdowns: true,
-        endDate: new Date(endTimestamp * 1000)
+        startDate: new Date(endTimestamp * 1000)
     },function(start, end, label) {
     endTimestamp = new Date(end.format('YYYY-MM-DD')).getTime() / 1000;
     updatePageContent();
@@ -1294,7 +1294,7 @@ $(function() {
     google.charts.load('current', {'packages':['line', 'corechart']});
     updateLoadingInfo();
     setupDateRangePicker();
-    // setupDateRangePicker1();
+    setupDateRangePickerEndDate();
     refreshTopicsDropdown();
     updatePageContent();
 });

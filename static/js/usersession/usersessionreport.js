@@ -160,15 +160,26 @@ var verifyTrendResponse = function(response) {
 // Called only once upon page initialization
 var setupDateRangePicker = function() {
     $('.daterangepicker').daterangepicker({
+        singleDatePicker: true,
+        showDropdowns: true,
         startDate: new Date(startTimestamp * 1000),
-        endDate: new Date(endTimestamp * 1000)
+        // endDate: new Date(endTimestamp * 1000)
     }, function(start, end, label) {
-        startTimestamp = new Date(start.format('YYYY-MM-DD')).getTime() / 1000;
-        endTimestamp = new Date(end.format('YYYY-MM-DD')).getTime() / 1000;
-        updatePageContent();
+    startTimestamp = new Date(start.format('YYYY-MM-DD')).getTime() / 1000;
+    // endTimestamp = new Date(end.format('YYYY-MM-DD')).getTime() / 1000;
+    updatePageContent();
     });
 };
-
+var setupDateRangePickerEndDate = function() {
+    $('.daterangepickerenddate').daterangepicker({
+        singleDatePicker: true,
+        showDropdowns: true,
+        startDate: new Date(endTimestamp * 1000)
+    },function(start, end, label) {
+    endTimestamp = new Date(end.format('YYYY-MM-DD')).getTime() / 1000;
+    updatePageContent();
+    });
+};
 // Update loading info (on top of screen) according to current system status. Calling this method will either show it, change it, or hide it.
 var updateLoadingInfo = function() {
     if (pendingRequests > 0) {
@@ -1166,6 +1177,7 @@ $(function() {
     google.charts.load('current', {'packages':['line', 'corechart']});
     updateLoadingInfo();
     setupDateRangePicker();
+    setupDateRangePickerEndDate();
     // refreshTopicsDropdown();
     updatePageContent();
 
