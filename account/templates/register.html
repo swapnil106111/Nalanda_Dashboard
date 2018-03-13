@@ -27,7 +27,7 @@
                     var res = re.exec(username);
                     if (res == null) {
                         var errorname = document.getElementById('errorname')
-                        errorname.innerText = 'Error : Username must contain only letters, numbers and underscores!';
+                        errorname.innerText = 'Username must contain only letters, numbers and underscores!';
                         // alert("Error: Username must contain only letters, numbers and underscores!");
                         return false;
                     }
@@ -139,7 +139,9 @@
         </div>
         <div class="row">
             <div class="col-sm-12">
-                <span id="errorname"></span>
+                <div class = 'errormessage'>
+                    <span id="errorname"></span>
+                </div>
             </div>
         </div>
         <div class ="row">
