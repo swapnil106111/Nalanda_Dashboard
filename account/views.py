@@ -475,10 +475,10 @@ def get_page_data_view(request):
     data = json.loads(body_unicode)
     startTimestamp = data.get('startTimestamp', 0)
     endTimestamp = data.get('endTimestamp', 0)
-    topicID = data.get('contentId', '').strip()
+    topicID = data.get('contentId', '')
     parentLevel = data.get('parentLevel', -1)
     parentID = int(data.get('parentId', '').strip())
-    channelID = data.get('channelId', '').strip()
+    channelID = data.get('channelId', '')
     objUserMastery = UserMasteryData(user, parentID, parentLevel, topicID, channelID, startTimestamp, endTimestamp)
     objUserMasteryData = objUserMastery.getPageData()
     response_object = construct_response(0, "", "", objUserMasteryData)
@@ -600,7 +600,6 @@ def get_trend(request):
 
 @login_required(login_url='/account/login/')
 def get_report_mastery(request, analytics):
-    print (analytics)
     ANALYTICS_CODES= {"session":1, "mastery":2}
     if request.method == 'GET':
         return render(request,'report-mastery.html', {'usersessioncode': ANALYTICS_CODES[analytics]})

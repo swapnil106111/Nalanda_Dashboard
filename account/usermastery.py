@@ -247,8 +247,8 @@ class UserMasteryData(BaseRoleAccess):
 	"""
 	def __init__(self, user, parentID, parentLevel, topicID, channelID, startTimestamp, endTimestamp):
 		super(self.__class__, self).__init__(user, parentID, parentLevel)
-		self.topicID = topicID if topicID != '-1' else ''
-		self.channelID = channelID
+		self.topicID = topicID if topicID[0] != '-1' else ['']
+		self.channelID = channelID if channelID[0] != '-1' else ['']
 		endTimestamp = str(int(endTimestamp) + 86400)
 		self.startTimestamp = datetime.date.fromtimestamp(int(startTimestamp)).strftime('%Y-%m-%d')
 		self.endTimestamp = datetime.date.fromtimestamp(int(endTimestamp)).strftime('%Y-%m-%d')
@@ -263,12 +263,14 @@ class UserMasteryData(BaseRoleAccess):
 			total_questions(int) : Count of total_questions
 		"""
 		total_questions = 0
-		filterTopics = {'topic_id':self.topicID}
+		topic_id = self.topicID
+		filterTopics = {'topic_id__in':self.topicID}
 		if self.topicID:
-			filterTopics['channel_id']=self.channelID
-
-		topic = Content.objects.filter(**filterTopics).first()
-		total_questions = topic.total_questions
+			filterTopics['channel_id__in']=self.channelID
+		topic = Content.objects.filter(**filterTopics)
+		for t in topic:
+		# topic = Content.objects.filter(topic_id__in=topic_ids).filter(channel_id__in=channel_ids).first()
+			total_questions += t.total_questions
 		return total_questions
 
 	def getSubTopicsData(self):
@@ -278,13 +280,15 @@ class UserMasteryData(BaseRoleAccess):
 		Returns:
 			total_questions(int) : Count of total_subtopics
 		"""
-		total_questions = 0
-		filterTopics = {'topic_id':self.topicID}
+		total_subtopics = 0
+		topic_id= self.topicID
+		filterTopics = {'topic_id__in':self.topicID}
 		if self.topicID:
-			filterTopics['channel_id']=self.channelID
-
-		topic = Content.objects.filter(**filterTopics).first()
-		total_subtopics = topic.sub_topics_total
+			filterTopics['channel_id__in']=self.channelID
+		topic = Content.objects.filter(**filterTopics)
+		# topic = Content.objects.filter(topic_id__in=topic_ids).filter(channel_id__in=channel_ids).first()
+		for st in topic:
+			total_subtopics += st.sub_topics_total
 		return total_subtopics
 
 	def getLogData(self, masteryElement):
@@ -295,11 +299,11 @@ class UserMasteryData(BaseRoleAccess):
 			masteryData(Queryset): It contains mastry logs of each masteryElement
 		"""
 
-		filterTopics = {'content_id':self.topicID}
+		filterTopics = {'content_id__in':self.topicID}
 		filterTopics['date__range'] = (self.startTimestamp, self.endTimestamp)
 
 		if self.topicID:
-			filterTopics['channel_id']=self.channelID
+			filterTopics['channel_id__in']=self.channelID
 
 		if self.parentLevel == 0:
 			filterTopics['school_id'] = masteryElement

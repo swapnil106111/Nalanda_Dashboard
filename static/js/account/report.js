@@ -9,8 +9,8 @@ var tableData; // see API specs
 var tableMeta; // see API specs
 var startTimestamp = 1496948693; // default: from server
 var endTimestamp = 1596948693; // default: from server
-var contentId = '-1'; // default: everything
-var channelId = '-1'; // default: everything
+var contentId = ['-1']; // default: everything
+var channelId = ['-1']; // default: everything
 var parentLevel = 0; // default: parent-of-root-level
 var parentId = '-1'; // default: none (at root level already, no parent)
 var compareMetricIndex = 0; // current metric index of the compare table
@@ -271,8 +271,8 @@ var buildTopicsDropdown = function(data) {
     
     $('#topics-tree').html('');
     $('#topics-tree').fancytree({
-        checkbox: false,
-        selectMode: 1,
+        checkbox: true,
+        selectMode: 3,
         extensions: ['filter'],
         quicksearch: true,
         source: content,
@@ -329,7 +329,7 @@ var setTableMeta = function(data) {
     if (!metaSetOnce) {
         metaSetOnce = true;
         
-        var sharedLengthMenu = [[10, 25, 50, 100], [10, 25, 50, 100]];
+        var sharedLengthMenu = [[30, 60, 90, 120], [30, 60, 90, 120]];
 
         // insert columns
         var idx;
@@ -345,7 +345,7 @@ var setTableMeta = function(data) {
 
         table = $('#data-table').DataTable({
             columnDefs: [
-                { orderable: false, targets: 7 }
+                { orderable: false, targets: 7, "type": "html"}
             ],
             order: [[0, 'asc']],
             dom: 'Bfrtip',
@@ -725,18 +725,38 @@ var toggleTopicDropdownExpandAll = function() {
 // Apply currently selected topic, dismiss the dropdown, and update the page (async)
 // UIAction
 var applyAndDismissTopicDropdown = function() {
-    var node = $('#topics-tree').fancytree('getTree').getActiveNode();
-    if (node !== null) {
-        var topicIdentifiers = node.key.split(','); // update global state
-        channelId = topicIdentifiers[0];
-        contentId = topicIdentifiers[1];
-        $('.topic-dropdown-text').html(node.title);
+    // var node = $('#topics-tree').fancytree('getTree').getActiveNode();
+    var nodes = $('#topics-tree').fancytree('getTree').getSelectedNodes();
+    channelId =[];
+    contentId =[];
+    var node = 0;
+    if (nodes.length != 0) {
+        for(node in nodes){
+            if(nodes[node].children){
+                var topicIdentifiers = nodes[node].key.split(','); // update global state
+                channelId.push(topicIdentifiers[0]);
+                contentId.push(topicIdentifiers[1]);
+                updatePageContent();
+                $('.topic-dropdown-text').html(nodes[node].title);
+                break;
+            }
+            var topicIdentifiers = nodes[node].key.split(','); // update global state
+            channelId.push(topicIdentifiers[0]);
+            contentId.push(topicIdentifiers[1]);
+            updatePageContent();
+            $('.topic-dropdown-text').html(nodes[node].parent.title); 
+        }
+        if(channelId.length == 0 && contentId.length == 0){
+            channelId = ['-1'];
+            contentId = ['-1'];
+        }
         updatePageContent();
-    } else {
-        // a node is not selected
+        toggleTopicDropdown();
+    }
+    else
+    {
         toastr.warning('You must select a topic to apply the filter.');
     }
-    toggleTopicDropdown();
 };
 
 // Handle click event of a drilldown link
