@@ -732,18 +732,12 @@ var applyAndDismissTopicDropdown = function() {
     var node = 0;
     if (nodes.length != 0) {
         for(node in nodes){
-            if(nodes[node].children){
+            if(nodes[node].children == null){
                 var topicIdentifiers = nodes[node].key.split(','); // update global state
                 channelId.push(topicIdentifiers[0]);
                 contentId.push(topicIdentifiers[1]);
                 updatePageContent();
-                $('.topic-dropdown-text').html(nodes[node].title);
-                break;
             }
-            var topicIdentifiers = nodes[node].key.split(','); // update global state
-            channelId.push(topicIdentifiers[0]);
-            contentId.push(topicIdentifiers[1]);
-            updatePageContent();
             $('.topic-dropdown-text').html(nodes[node].parent.title); 
         }
         if(channelId.length == 0 && contentId.length == 0){
@@ -753,6 +747,7 @@ var applyAndDismissTopicDropdown = function() {
         updatePageContent();
         toggleTopicDropdown();
     }
+
     else
     {
         toastr.warning('You must select a topic to apply the filter.');
