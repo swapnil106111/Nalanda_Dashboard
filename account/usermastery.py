@@ -422,7 +422,7 @@ class UserMasteryData(BaseRoleAccess):
 			number_of_attempts += mastery_student.attempt_questions
 			number_of_exercise_attempts += mastery_student.attempt_exercise
 
-		if len(mastery_students) == 0:
+		if len(mastery_students) == 0 or number_of_exercise_attempts == 0 or mastered_topics==0:
 			completed = "0.00%"
 			values = [0,0,"0.00%", 0, 0, "0.00%"]
 			aggregation = [0,0,0.00, 0, 0, 0.00] 
@@ -555,7 +555,7 @@ class UserMasteryData(BaseRoleAccess):
 		    # else: # Added for Testing
 		    #      avg_percent_student_completed /= length # Added for Testing
 		    #      avg_percent_student_completed = "{0:.2%}".format(avg_percent_student_completed) # Added for Testing
-		    values = [str(int(avg_mastered_topics)), round(avg_number_of_exercise_attempts, 2) ,"{0:.2%}".format(avg_percent_mastered_topics), str(int(avg_correct)), str(int(avg_number_of_attempts)),"{0:.2%}".format(avg_percent_correct)] #, avg_percent_student_completed, 15] # Added for testing last parameter
+		    values = [str(int(avg_mastered_topics)), int(avg_number_of_exercise_attempts) ,"{0:.2%}".format(avg_percent_mastered_topics), str(int(avg_correct)), str(int(avg_number_of_attempts)),"{0:.2%}".format(avg_percent_correct)] #, avg_percent_student_completed, 15] # Added for testing last parameter
 
 		    average = {'name': 'Average', 'values': values}
 		    aggregation.append(average)

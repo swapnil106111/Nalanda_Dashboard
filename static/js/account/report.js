@@ -736,10 +736,9 @@ var applyAndDismissTopicDropdown = function() {
                 var topicIdentifiers = nodes[node].key.split(','); // update global state
                 channelId.push(topicIdentifiers[0]);
                 contentId.push(topicIdentifiers[1]);
-                updatePageContent();
             }
             $('.topic-dropdown-text').html(nodes[node].parent.title); 
-        }
+        } 
         if(channelId.length == 0 && contentId.length == 0){
             channelId = ['-1'];
             contentId = ['-1'];
