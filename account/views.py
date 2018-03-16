@@ -69,16 +69,16 @@ def register_view(request):
     data = get_school_and_classes()
     # If GET request is received, render the register page, return the school and class info
     if request.method == 'GET':
-    	response_str = {}
-    	form = UserProfileForm(None, request.POST)
-    	code = 1000
-    	title = ''
-    	message = ''
-    	response_object = construct_response(code, title, message, data)
-    	response_text = json.dumps(response_object,ensure_ascii=False)
-    	response_str = json.loads(response_text)
-    	response_str['form'] = form
-    	return render(request, 'register.html', response_str)
+        response_str = {}
+        form = UserProfileForm(None, request.POST)
+        code = 1000
+        title = ''
+        message = ''
+        response_object = construct_response(code, title, message, data)
+        # response_text = json.dumps(response_object,ensure_ascii=False)
+        # response_str = json.loads(response_text)
+        response_object['form'] = form
+        return render(request, 'register.html', response_object)
 
     # If POST request is received, process the request and return JSON object
     elif request.method == 'POST':
@@ -509,6 +509,7 @@ def get_trend(request):
     if request.method == 'POST':
         body_unicode = request.body.decode('utf-8')
         params = json.loads(body_unicode)
+        print (params)
         start_timestamp = params.get('startTimestamp','')
         start = datetime.datetime.fromtimestamp(start_timestamp)
         end_timestamp = params.get('endTimestamp', '')
@@ -518,47 +519,52 @@ def get_trend(request):
         level =params.get('level')
         item_id = params.get('itemId')
         
+        total_questions = 0
+        sub_topics_total = 0
         data = None
         content = None
-        if topic_id == "-1":
-            content = Content.objects.filter(topic_id='').first()
+        if topic_id[0]== "-1":
+            content = Content.objects.filter(topic_id='')
         else:
-            content = Content.objects.filter(topic_id=topic_id,channel_id=channel_id).first()
-        total_questions = content.total_questions
-        sub_topics_total = content.sub_topics_total
+            content = Content.objects.filter(topic_id__in=topic_id,channel_id__in=channel_id)
+
+        for i in content:
+            total_questions += i.total_questions
+            sub_topics_total += i.sub_topics_total
+
         total_students = 1.0
         if level == -1 or level == 0:
             pass
         elif level == 1:
             school = UserInfoSchool.objects.filter(school_id=item_id).first()
             total_students = school.total_students
-            if topic_id == "-1":
+            if topic_id[0] == "-1":
                 data = MasteryLevelSchool.objects.filter(school_id=item_id,content_id="",date__gte=start,date__lte=end).order_by('date')
             else:
-                data = MasteryLevelSchool.objects.filter(school_id=item_id,content_id=topic_id, channel_id=channel_id,\
+                data = MasteryLevelSchool.objects.filter(school_id=item_id,content_id__in=topic_id, channel_id__in=channel_id,\
                     date__gte=start,date__lte=end).order_by('date')
                 # print(data)
         elif level == 2:
             classroom = UserInfoClass.objects.filter(class_id=item_id).first()
             total_students = classroom.total_students
-            if topic_id == "-1":
+            if topic_id[0] == "-1":
                 data = MasteryLevelClass.objects.filter(class_id=item_id,content_id="",date__gte=start,date__lte=end).order_by('date')
             else:
-                data = MasteryLevelClass.objects.filter(class_id=item_id, content_id=topic_id, channel_id=channel_id,\
+                data = MasteryLevelClass.objects.filter(class_id=item_id, content_id__in=topic_id, channel_id__in=channel_id,\
                     date__gte=start,date__lte=end).order_by('date')
         elif level == 3:
-            if topic_id == "-1":
+            if topic_id[0] == "-1":
                 data = MasteryLevelStudent.objects.filter(student_id=item_id,content_id="",date__gte=start,date__lte=end).order_by('date')
             else:
-                data = MasteryLevelStudent.objects.filter(student_id=item_id, content_id=topic_id, channel_id=channel_id,\
+                data = MasteryLevelStudent.objects.filter(student_id=item_id, content_id__in=topic_id, channel_id__in=channel_id,\
                     date__gte=start,date__lte=end).order_by('date')
         res = {}
         series = []
         series.append({'name':'# Exercsie mastered','isPercentage':False})
         series.append({'name':'# Exercsie attempts','isPercentage':False})
         series.append({'name':'% Exercsie mastered','isPercentage':True})
-        series.append({'name':'# Question attempts','isPercentage':False})
         series.append({'name':'# Question correct','isPercentage':False})
+        series.append({'name':'# Question attempts','isPercentage':False})
         series.append({'name':'% Question Correct','isPercentage':True})
         # series.append({'name':'% Question completed','isPercentage':True})
         points = []
@@ -571,7 +577,6 @@ def get_trend(request):
         percent_mastered_topics = 0
         for ele in data:
             temp = []
-
             # completed_questions_sum += ele.completed_questions
             mastered_topics += ele.mastered # future change
             correct_questions_sum += ele.correct_questions
@@ -580,9 +585,9 @@ def get_trend(request):
             temp.append(time.mktime(ele.date.timetuple()))
             temp.append(mastered_topics)
             temp.append(attempts_exercise_sum)
-            temp.append(100.0*mastered_topics/(total_students*sub_topics_total))
-            temp.append(attempt_questions_sum)
+            temp.append(100.0*mastered_topics/(sub_topics_total))
             temp.append(correct_questions_sum)
+            temp.append(attempt_questions_sum)
             temp.append(100.0*correct_questions_sum/(attempt_questions_sum))
             # temp.append(completed_questions_sum)
             # temp.append(100.0*completed_questions_sum/(total_students*total_questions))

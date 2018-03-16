@@ -555,7 +555,7 @@ class UserMasteryData(BaseRoleAccess):
 		    # else: # Added for Testing
 		    #      avg_percent_student_completed /= length # Added for Testing
 		    #      avg_percent_student_completed = "{0:.2%}".format(avg_percent_student_completed) # Added for Testing
-		    values = [str(int(avg_mastered_topics)), avg_number_of_exercise_attempts ,"{0:.2%}".format(avg_percent_mastered_topics), str(int(avg_correct)), str(int(avg_number_of_attempts)),"{0:.2%}".format(avg_percent_correct)] #, avg_percent_student_completed, 15] # Added for testing last parameter
+		    values = [str(int(avg_mastered_topics)), round(avg_number_of_exercise_attempts, 2) ,"{0:.2%}".format(avg_percent_mastered_topics), str(int(avg_correct)), str(int(avg_number_of_attempts)),"{0:.2%}".format(avg_percent_correct)] #, avg_percent_student_completed, 15] # Added for testing last parameter
 
 		    average = {'name': 'Average', 'values': values}
 		    aggregation.append(average)
