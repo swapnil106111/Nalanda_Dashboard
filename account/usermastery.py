@@ -351,8 +351,8 @@ class UserMasteryData(BaseRoleAccess):
 			mastered_topics.append(row[0])
 			number_of_exercise_attempts_list.append(row[1])
 			percent_mastered_topics.append(row[2])
-			number_of_attempts_array.append(row[3])
-			correct_questionsList.append(row[4])
+			correct_questionsList.append(row[3])
+			number_of_attempts_array.append(row[4])
 			percent_correct_array.append(row[5])
 			# completed_questionsList.append(row[5])
 			# percent_complete_array.append(row[5])
@@ -439,9 +439,9 @@ class UserMasteryData(BaseRoleAccess):
 			percent_mastered_topics_float = float(mastered_topics) / number_of_exercise_attempts 
 			percent_mastered_topics = "{0:.2%}".format(percent_mastered_topics_float)
 
-			values = [mastered_topics, number_of_exercise_attempts, percent_mastered_topics, number_of_attempts, correct_questions, percent_correct]
+			values = [mastered_topics, number_of_exercise_attempts, percent_mastered_topics, correct_questions, number_of_attempts, percent_correct]
 			#aggregation = [percent_complete_float, percent_correct_float, completed, number_of_attempts] # Added for Testing
-			aggregation = [mastered_topics, number_of_exercise_attempts, percent_mastered_topics_float,number_of_attempts,correct_questions ,percent_correct_float]
+			aggregation = [mastered_topics, number_of_exercise_attempts, percent_mastered_topics_float, correct_questions, number_of_attempts,percent_correct_float]
 
 			row = {'id': str(student.student_id), 'name': student.student_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation': aggregation}
 		return row
@@ -497,8 +497,8 @@ class UserMasteryData(BaseRoleAccess):
 			percent_mastered_topics_float = float(mastered_topics) / (number_of_exercise_attempts) # changed formula to calculate the % exrecise mastered based on total_exercise_attempts instead of total_subtopics of respective content.
 			percent_mastered_topics = "{0:.2%}".format(percent_mastered_topics_float)
 
-			values = [mastered_topics, number_of_exercise_attempts,percent_mastered_topics, number_of_attempts,correct_questions,percent_correct]
-			aggregation = [mastered_topics, number_of_exercise_attempts,percent_mastered_topics_float, number_of_attempts,correct_questions,percent_correct_float]
+			values = [mastered_topics, number_of_exercise_attempts,percent_mastered_topics, correct_questions,number_of_attempts,percent_correct]
+			aggregation = [mastered_topics, number_of_exercise_attempts,percent_mastered_topics_float, correct_questions, number_of_attempts,percent_correct_float]
 			if self.parentLevel == 0:
 				row = {'id': str(masteryElement.school_id), 'name': masteryElement.school_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation':aggregation}	
 			else:
@@ -506,7 +506,7 @@ class UserMasteryData(BaseRoleAccess):
 		return row
 
 
-	def getAggrigation(self, mastered_topics, percent_of_exercise_attempts_list, percent_mastered_topics, numberOfAttemptsList,correctQuestionsList,percentCorrectList):
+	def getAggrigation(self, mastered_topics, percent_of_exercise_attempts_list, percent_mastered_topics, correctQuestionsList, numberOfAttemptsList,percentCorrectList):
 		""" Used to calculate the aggregation for each masteryElement based on metrics data
 		Args:
 			percentCompleteList(list) :  List of completed questions(percentage)
@@ -534,8 +534,8 @@ class UserMasteryData(BaseRoleAccess):
 		    	avg_mastered_topics += mastered_topics[i]
 		    	avg_number_of_exercise_attempts += percent_of_exercise_attempts_list[i]
 		    	avg_percent_mastered_topics += percent_mastered_topics[i]
-		    	avg_number_of_attempts += numberOfAttemptsList[i]
 		    	avg_correct += correctQuestionsList[i]
+		    	avg_number_of_attempts += numberOfAttemptsList[i]
 		    	avg_percent_correct += percentCorrectList[i]
 		    	# avg_complete += completedQuestionsList[i]
 		    	# avg_percent_complete +=  percentCompleteList[i]
@@ -543,8 +543,8 @@ class UserMasteryData(BaseRoleAccess):
 		    avg_mastered_topics /= length
 		    avg_number_of_exercise_attempts /= length
 		    avg_percent_mastered_topics /= length
-		    avg_number_of_attempts /= length
 		    avg_correct /= length
+		    avg_number_of_attempts /= length
 		    avg_percent_correct /= length
 		    # avg_complete /= length
 		    # avg_percent_complete /= length
@@ -555,7 +555,7 @@ class UserMasteryData(BaseRoleAccess):
 		    # else: # Added for Testing
 		    #      avg_percent_student_completed /= length # Added for Testing
 		    #      avg_percent_student_completed = "{0:.2%}".format(avg_percent_student_completed) # Added for Testing
-		    values = [str(int(avg_mastered_topics)), avg_number_of_exercise_attempts ,"{0:.2%}".format(avg_percent_mastered_topics), str(int(avg_number_of_attempts)),str(int(avg_correct)),"{0:.2%}".format(avg_percent_correct)] #, avg_percent_student_completed, 15] # Added for testing last parameter
+		    values = [str(int(avg_mastered_topics)), avg_number_of_exercise_attempts ,"{0:.2%}".format(avg_percent_mastered_topics), str(int(avg_correct)), str(int(avg_number_of_attempts)),"{0:.2%}".format(avg_percent_correct)] #, avg_percent_student_completed, 15] # Added for testing last parameter
 
 		    average = {'name': 'Average', 'values': values}
 		    aggregation.append(average)
