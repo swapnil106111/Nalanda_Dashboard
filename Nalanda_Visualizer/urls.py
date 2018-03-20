@@ -18,9 +18,11 @@ from django.contrib import admin
 
 import account.views
 import usersession.views
+import contentusage.views
 
 urlpatterns = [
     url(r'^account/', include('account.urls')),
     url(r'^usersession/', include('usersession.urls')),
+    url(r'^contentusage/', include('contentusage.urls')),
     url(r'^admin/', admin.site.urls)
 ]
