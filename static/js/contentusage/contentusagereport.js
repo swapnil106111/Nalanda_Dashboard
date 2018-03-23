@@ -11,6 +11,7 @@ var startTimestamp = 1496948693; // default: from server
 var endTimestamp = 1596948693; // default: from server
 var contentId = ['-1']; // default: everything
 var channelId = ['-1']; // default: everything
+var filetrcontetusage = []
 var parentLevel = 0; // default: parent-of-root-level
 var parentId = '-1'; // default: none (at root level already, no parent)
 var compareMetricIndex = 0; // current metric index of the compare table
@@ -23,6 +24,7 @@ var maxItemLevel = 3; // students (read-only)
 var debug = true; // whether to print debug outputs to console
 var selfServe = false;
 var count = 0;
+var std = false;
 var setParenrtLevel = false
 
 /** Pragma Mark - Starting Points **/
@@ -37,22 +39,24 @@ var updatePageContent = function() {
     var data1 = null;
     var data2 = null;
     
-    sendPOSTRequest('/account/api/mastery/get-page-meta', {
+    sendPOSTRequest('/contentusage/api/contentusage/get-page-meta', {
         startTimestamp: startTimestamp,
         endTimestamp: endTimestamp,
-        contentId: contentId,
-        channelId: channelId,
+        // contentId: contentId,
+        filetrcontetusage: filetrcontetusage,
         parentLevel: parentLevel,
         parentId: parentId
     }, function(response) {
         setBreadcrumb(response.data);
         setTableMeta(response.data);
         data1 = response.data;
-	    sendPOSTRequest('/account/api/mastery/get-page-data', {
+	    sendPOSTRequest('/contentusage/api/contentusage/get-page-data', {
 	        startTimestamp: startTimestamp,
 	        endTimestamp: endTimestamp,
 	        contentId: contentId,
 	        channelId: channelId,
+            std:std,
+            // filetrcontetusage:filetrcontetusage
 	        parentLevel: parentLevel,
 	        parentId: parentId
 	    }, function(response) {
@@ -103,7 +107,7 @@ var checkTableDataConsistancy = function(data1, data2) {
 // Fetch topics by calling API and update the dropdown menu
 // Called only once upon page initialization
 var refreshSchoolsDropdown = function() {
-    sendPOSTRequest('../api/contentusage/schools', {
+    sendPOSTRequest('/contentusage/api/contentusage/schools', {
         startTimestamp: startTimestamp,
         endTimestamp: endTimestamp,
         parentLevel: parentLevel,
@@ -345,7 +349,7 @@ var setTableMeta = function(data) {
 
         table = $('#data-table').DataTable({
             columnDefs: [
-                { orderable: false, targets: 7, "type": "html"}
+                { orderable: false, targets: 3, "type": "html"}
             ],
             order: [[0, 'asc']],
             dom: 'Bfrtip',
@@ -733,9 +737,10 @@ var applyAndDismissTopicDropdown = function() {
     if (nodes.length != 0) {
         for(node in nodes){
             if(nodes[node].children == null){
-                var topicIdentifiers = nodes[node].key.split(','); // update global state
-                channelId.push(topicIdentifiers[0]);
-                contentId.push(topicIdentifiers[1]);
+                var selectionIdentifiers = nodes[node].key; // update global state
+                filetrcontetusage.push(selectionIdentifiers);
+                std = true;
+                // contentId.push(topicIdentifiers[1]);
             }
             $('.topic-dropdown-text').html(nodes[node].parent.title); 
         } 
@@ -1018,308 +1023,11 @@ var sendPOSTRequest_real = function(url, dataObject, callback) {
     });
 };
 
-/** Testing **/
-
-var getRandomInt = function(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
-}
-
-var trendData = function() {
-    var i = 0, j = 0, k = 0;
-    var data = {
-        series: [
-            {
-                name: '% exercise completed',
-                isPercentage: true
-            },{
-                name: '% exercise correct',
-                isPercentage: true
-            },{
-                name: '# attempts',
-                isPercentage: false
-            }
-        ],
-        points: [
-            [1496941452, i=getRandomInt(0,20), j=getRandomInt(0,20), k=getRandomInt(0,50)],
-            [1497042452, i=getRandomInt(i,40), j=getRandomInt(j,40), k=k+getRandomInt(0,50)],
-            [1497143452, i=getRandomInt(i,40), j=getRandomInt(j,40), k=k+getRandomInt(0,50)],
-            [1497344452, i=getRandomInt(i,60), j=getRandomInt(j,60), k=k+getRandomInt(0,50)],
-            [1497945452, i=getRandomInt(i,60), j=getRandomInt(j,60), k=k+getRandomInt(0,50)],
-            [1499246452, i=getRandomInt(i,80), j=getRandomInt(j,80), k=k+getRandomInt(0,50)],
-            [1499347452, i=getRandomInt(i,80), j=getRandomInt(j,80), k=k+getRandomInt(0,50)],
-            [1499448452, i=getRandomInt(i,100), j=getRandomInt(j,100), k=k+getRandomInt(0,50)],
-            [1499949452, i=getRandomInt(i,100), j=getRandomInt(j,100), k=k+getRandomInt(0,50)]
-        ]
-    };            
-    
-    return data;
-};
-
-var tableMetaData = function() {
-    return {
-        breadcrumb: [{
-            parentName: "All Regions",
-            parentLevel: 0,
-            parentId: '0'
-        }, {
-            parentName: "East Sector",
-            parentLevel: 1,
-            parentId: '10'
-        }],
-        // metrics: [{
-        //        displayName: "% exercise completed",
-        //        toolTip: "help text goes here"
-        // }, 
-        // {
-        //     displayName: "% exercise correct",
-        //     toolTip: "help text goes here"
-        // }, {
-        //     displayName: "# attempts",
-        //     toolTip: "help text goes here"
-        // }],
-
-        metrics: [{
-               displayName: "% exercise completed",
-               toolTip: "help text goes here"
-        }, 
-        {
-            displayName: "% exercise correct",
-            toolTip: "help text goes here"
-        }, {
-            displayName: "# attempts",
-            toolTip: "help text goes here"
-        }, {
-            displayName: "% students completed the topic",
-            toolTip: "help text goes here"
-        }],
-
-
-
-        rows: [{
-            id: "1",
-            name: "Allegheny K-5"
-        }, {
-            id: "2",
-            name: "Arsenal Elementary School"
-        }, {
-            id: "3",
-            name: "Banksville Elementary School"
-        }, {
-            id: "4",
-            name: "Beechwood Elementary School"
-        }, {
-            id: "5",
-            name: "Concord Elementary School"
-        }, {
-            id: "6",
-            name: "Dilworth Traditional Academy"
-        }, {
-            id: "7",
-            name: "Grandview Elementary School"
-        }, {
-            id: "8",
-            name: "Brookline School"
-        }, {
-            id: "9",
-            name: "Manchester School"
-        }, {
-            id: "10",
-            name: "Westwood School"
-        }]
-    };
-};
-
-var tableDataData = function() {
-    return {
-        rows: [{
-            id: "1",
-            name: "Allegheny K-5",
-            values: [
-                "30%",
-                "25%",
-                34,
-                "9%"
-            ]
-        }, {
-            id: "2",
-            name: "Arsenal Elementary School",
-            values: [
-                "20%",
-                "20%",
-                14,
-                "59%"
-            ]
-        }, {
-            id: "3",
-            name: "Banksville Elementary School",
-            values: [
-                "80%",
-                "1%",
-                88,
-                "16%"
-            ]
-        }, {
-            id: "4",
-            name: "Beechwood Elementary School",
-            values: [
-                "15%",
-                "32%",
-                2,
-                "44%"
-            ]
-        }, {
-            id: "5",
-            name: "Concord Elementary School",
-            values: [
-                "34%",
-                "54%",
-                123,
-                "8%"
-            ]
-        }, {
-            id: "6",
-            name: "Dilworth Traditional Academy",
-            values: [
-                "21%",
-                "37%",
-                320,
-                "25%"
-            ]
-        }, {
-            id: "7",
-            name: "Grandview Elementary School",
-            values: [
-                "58%",
-                "52%",
-                14,
-                "33%"
-            ]
-        }, {
-            id: "8",
-            name: "Brookline School",
-            values: [
-                "98%",
-                "100%",
-                210,
-                "88%"
-            ]
-        }, {
-            id: "9",
-            name: "Manchester School",
-            values: [
-                "14%",
-                "2%",
-                4,
-                "3%"
-            ]
-        }, {
-            id: "10",
-            name: "Westwood School",
-            values: [
-                "45%",
-                "56%",
-                120,
-                "20%"
-            ]
-        }],
-        aggregation: [{
-            name: "Average",
-            values: [
-                "30.75%",
-                "28.75%",
-                2.75,
-                "10%"
-            ]
-        }]
-    };
-};
-
-var topicsData = function() {
-    return {
-        "topics": [{
-            "id": "bb",
-            "channelId": "aa",
-            "name": "Channel 1",
-            "children": [{
-                "id": "bb",
-				"channelId": "aa",
-                "name": "Physics",
-                "children": null
-            }]
-        },{
-            "id": "bdb",
-            "channelId": "adsa",
-            "name": "Channel 2",
-            "children": [{
-                "id": "bb",
-				"channelId": "aa",
-                "name": "Algorithms",
-                "children": null
-            }]
-        }]
-    };
-};
-
-var sendPOSTRequest_test = function(url, dataObject, callback) {
-    pendingRequests++;
-    updateLoadingInfo();
-    
-    if (debug) {
-        console.log('POST request sent to: ' + JSON.stringify(url) + '. POST data: ' + JSON.stringify(dataObject));
-    }
-    
-    setTimeout(function() {
-        var response;
-        
-        if (url === './api/mastery/get-page-meta') {
-            response = ({
-                code: 0,
-                data: tableMetaData()
-            });
-        }
-        
-        if (url === './api/mastery/get-page-data') {
-            response = ({
-                code: 0,
-                data: tableDataData()
-            });
-        }
-        
-        if (url === './api/mastery/topics') {
-            response = ({
-                code: 0,
-                data: topicsData()
-            });
-        }
-        
-        if (url === './api/mastery/trend') {
-            response = ({
-                code: 0,
-                data: trendData()
-            });
-        }
-        
-        if (response.code) {
-            toastr.error(response.info.message, response.info.title);
-        } else if (!response.data) {
-            toastr.error('There is an error communicating with the server. Please try again later.');
-            console.error('Invalid response: A valid `data` field is not found.');
-        } else {
-            callback(response);
-        }
-        
-        pendingRequests--;
-        updateLoadingInfo();
-    }, getRandomInt(100, 2000));
-};
-
 $(function() {
     google.charts.load('current', {'packages':['line', 'corechart']});
     // updateLoadingInfo();
     setupDateRangePicker();
     setupDateRangePickerEndDate();
     refreshSchoolsDropdown();
-    // updatePageContent();
+    updatePageContent();
 });
