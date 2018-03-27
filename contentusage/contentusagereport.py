@@ -70,20 +70,28 @@ class BaseRoleAccess(object):
 		schools = list(userMapping.values_list('institute_id_id', flat=True))
 		classes = None
 		channels = list(MasteryLevelSchool.objects.filter(school_id__in = schools).values_list('channel_id', flat = True).annotate(dcount=Count('channel_id')))[:-1]
-		print("schools:", schools)
 		return schools, classes, channels
 
 class ContentUsageMeta(BaseRoleAccess): 
-	def __init__(self, user, parentLevel):
+	def __init__(self, user, parentLevel, contentId, channelId, previousContentID, previousChannelID):
 		super(self.__class__, self).__init__(user, parentLevel)
-		print ("self.channels:", self.channels)
+		self.contentId = contentId
+		self.channelId = channelId
+		self.parentLevelMethods = [self.getChannelMeta, self.getChannelTopicMeta, self.getChannelTopicMeta, self.getChannelTopicMeta, self.getChannelTopicMeta, self.getChannelTopicMeta, self.getChannelTopicMeta]
+		self.previousContentlIDs = previousContentID
+		self.previousChannelIDs = previousChannelID
+		# print ("self.channels:", self.channels)
+		print ("parentLevel:", self.parentLevel)
+		# print ("previousContentlIDs:", self.previousContentlIDs)
+		# print ("previousChannelIDs:", self.previousChannelIDs)
 	# Construct the breadcrumb format
-	def construct_breadcrumb(self, parentName, parentLevel, parentId):
+	def construct_breadcrumb(self, parentName, parentLevel, parentId, channelId):
 		
 		res = {
 		"parentName": parentName,
 		"parentLevel": parentLevel,
-		"parentId": parentId
+		"parentId": parentId,
+		"channelId": channelId
 		}
 		return res
 
@@ -94,7 +102,7 @@ class ContentUsageMeta(BaseRoleAccess):
 		response_object["data"] = data
 		return response_object
 
-	def getInstituteMeta(self,objMetrics):
+	def getChannelMeta(self):
 		""" Used to fetch the institute meta information
 		Args:
 			objBreadcrumb(list) = used to set metadata(parentId, parentLevel, parentName) of institutes
@@ -105,16 +113,62 @@ class ContentUsageMeta(BaseRoleAccess):
 		"""
 		objBreadcrumb = []
 		rows = []
-		objBreadcrumb.append(self.construct_breadcrumb("channels", 0, "-1"))
+		objBreadcrumb.append(self.construct_breadcrumb("channels", 0, "-1", "-1"))
+		objBreadcrumb = self.setBreadcrumbData(objBreadcrumb)
 		objcontent = Content.objects.filter(topic_id__in=self.channels).values('topic_name','content_id','channel_id')
 		for content in objcontent:
-			print (content)
 			channel_info = {
 				"id": str(content['content_id']),
 				"name": content['topic_name'],
-				"channelid":str(content['channel_id'])
+				"channelid":str(content['channel_id']),
+				"maxval":False
 			}
 			rows.append(channel_info)
+		return rows, objBreadcrumb
+
+	def getChannelTopicMeta(self):
+		objBreadcrumb = []
+		rows = []
+		objBreadcrumb.append(self.construct_breadcrumb("channels", 0, "-1", self.channelId))
+		objBreadcrumb = self.setBreadcrumbData(objBreadcrumb)
+		objsubtopics = list(Content.objects.filter(content_id=self.contentId, channel_id=self.channelId).values_list('sub_topics', flat = True))
+		for obj in objsubtopics:
+			result = json.loads(obj)
+			print ("Children present:", len(result['children']))
+			if (result['children']):
+				subtopics = result['children']
+				# print("subtopics:", subtopics)
+				rows = self.getSubopicDetails(subtopics, rows)
+		return rows, objBreadcrumb
+
+	def getSubopicDetails(self, subtopics, rows):
+		maxval = False;
+		for subtopic in subtopics:
+			if len(subtopic['children']) == 0:
+				maxval = True;
+				print ("Maxval:", maxval)
+			else:
+				maxval = False
+			topic_info = {
+				"id": str(subtopic['contentId']),
+				"name": subtopic['name'],
+				"channelid":str(subtopic['channelId']),
+				"maxval":maxval
+			}
+			rows.append(topic_info)
+		# rows.append({'maxval':maxval})
+		return rows
+
+	def setBreadcrumbData(self, objBreadcrumb):
+		for content in zip(self.previousChannelIDs, self.previousContentlIDs):
+			print ("Content:", content)
+			if content[1] != '-1':
+				topic = Content.objects.filter(content_id = content[1], channel_id = content[0]).values('topic_name','content_id').first()
+				objBreadcrumb.append(self.construct_breadcrumb(topic['topic_name'], self.parentLevel, topic['content_id'], content[0]))
+		return objBreadcrumb
+
+	def pageMeta(self, objMetrics):
+		rows, objBreadcrumb = self.parentLevelMethods[self.parentLevel]()
 		data = { 'breadcrumb': objBreadcrumb, 'metrics': objMetrics, 'rows': rows }
 		response_object = self.construct_response(0, "", "", data)
 		return response_object 
@@ -185,7 +239,6 @@ class SchoolDetails(BaseRoleAccess):
 		return self.totalschools
 
 	def getPageData(self):
-		print("Here")
 		result = self.parentLevelMethods[self.role]()
 		return result
 
