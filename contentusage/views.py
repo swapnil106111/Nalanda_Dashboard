@@ -34,10 +34,15 @@ def get_contentusage_page_meta(request):
 	user = request.user
 	body_unicode = request.body.decode('utf-8')
 	data = json.loads(body_unicode)
+	print ("Data:", data)
 	parent_level = data.get('parentLevel', -2)
+	content_id = data.get('contentId','')
+	channel_id = data.get('channelId','')
+	previouscontent_id = data.get('previousContentID','')
+	previouschannel_id = data.get('previousChannelID','')
 	# parent_id = int(data.get('parentId', '').strip())
-	objContentUsage= ContentUsageMeta(user, parent_level)
-	objContentUsageData = objContentUsage.getInstituteMeta(METRICS)
+	objContentUsage= ContentUsageMeta(user, parent_level, content_id, channel_id, previouscontent_id, previouschannel_id)
+	objContentUsageData = objContentUsage.pageMeta(METRICS)
 	response_text = json.dumps(objContentUsageData,ensure_ascii=False)
 	return HttpResponse(response_text,content_type='application/json')
 
