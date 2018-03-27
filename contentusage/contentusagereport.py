@@ -129,6 +129,7 @@ class ContentUsageMeta(BaseRoleAccess):
 	def getChannelTopicMeta(self):
 		objBreadcrumb = []
 		rows = []
+		self.parentLevel = 0
 		objBreadcrumb.append(self.construct_breadcrumb("channels", 0, "-1", self.channelId))
 		objBreadcrumb = self.setBreadcrumbData(objBreadcrumb)
 		objsubtopics = list(Content.objects.filter(content_id=self.contentId, channel_id=self.channelId).values_list('sub_topics', flat = True))
@@ -146,7 +147,7 @@ class ContentUsageMeta(BaseRoleAccess):
 		for subtopic in subtopics:
 			if len(subtopic['children']) == 0:
 				maxval = True;
-				print ("Maxval:", maxval)
+				# print ("Maxval:", maxval)
 			else:
 				maxval = False
 			topic_info = {
@@ -163,8 +164,10 @@ class ContentUsageMeta(BaseRoleAccess):
 		for content in zip(self.previousChannelIDs, self.previousContentlIDs):
 			print ("Content:", content)
 			if content[1] != '-1':
+				self.parentLevel += 1
 				topic = Content.objects.filter(content_id = content[1], channel_id = content[0]).values('topic_name','content_id').first()
 				objBreadcrumb.append(self.construct_breadcrumb(topic['topic_name'], self.parentLevel, topic['content_id'], content[0]))
+		print ("breadcrumb:", objBreadcrumb)
 		return objBreadcrumb
 
 	def pageMeta(self, objMetrics):

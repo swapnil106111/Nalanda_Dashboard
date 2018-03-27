@@ -783,9 +783,10 @@ var performDrilldown = function(itemId, channelid) {
 var clickBreadcrumbLink = function(level, id, channelid) {
     contentID = id;
     channelID = channelid;
-    parentLevel = level;
-    objpreviouscontentlID.pop(level);
-    objpreviouschannelID.pop(level);
+    parentLevel = level;    
+    objpreviouscontentlID.length = level + 1;
+    objpreviouschannelID.length = level + 1;
+    // parentLevel--;
     updatePageContent();
 };
 
