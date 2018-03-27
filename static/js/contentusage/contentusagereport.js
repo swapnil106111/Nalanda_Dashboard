@@ -454,7 +454,7 @@ var setTableMeta = function(data) {
         $(rowNode).attr('id', rowId);
         
         // compare table
-        var compareArray = [drilldownColumnHTML(data.rows[idx].name, data.rows[idx].id)];
+        var compareArray = [drilldownColumnHTML(data.rows[idx].name, data.rows[idx].id, data.rows[idx].channelid, data.rows[idx].maxval)];
         compareArray.push('');
         compareArray.push('');
         var compareRowNode = compareTable.row.add(compareArray).draw(false).node();
@@ -462,7 +462,7 @@ var setTableMeta = function(data) {
         $(compareRowNode).attr('id', rowId);
         
         // performance table
-        var performanceArray = [drilldownColumnHTML(data.rows[idx].name, data.rows[idx].id)];
+        var performanceArray = [drilldownColumnHTML(data.rows[idx].name, data.rows[idx].id, data.rows[idx].channelid, data.rows[idx].maxval)];
         performanceArray.push('');
         performanceArray.push('');
         var performanceRowNode = performanceTable.row.add(performanceArray).draw(false).node();
