@@ -20,12 +20,17 @@ var performanceCompareToValueName = 'average'; // name of the type of currently 
 var performanceCompareToValues = []; // compared values, for all types, of the performance table
 var compareMaxValues = [];
 var pendingRequests = 0; // number of requests that are sent but not received yet
-var maxItemLevel = 3; // students (read-only)
+var maxItemLevel = false; // students (read-only)
 var debug = true; // whether to print debug outputs to console
 var selfServe = false;
 var count = 0;
 var std = false;
+// var maxval = false;
 var setParenrtLevel = false
+var contentID = '-1' // Defined for content usage metrics
+var channelID = '-1'
+var objpreviouscontentlID= ['-1']
+var objpreviouschannelID = ['-1']
 
 /** Pragma Mark - Starting Points **/
 
@@ -42,28 +47,31 @@ var updatePageContent = function() {
     sendPOSTRequest('/contentusage/api/contentusage/get-page-meta', {
         startTimestamp: startTimestamp,
         endTimestamp: endTimestamp,
-        // contentId: contentId,
+        contentId: contentID,
+        channelId:channelID,
         filetrcontetusage: filetrcontetusage,
         parentLevel: parentLevel,
-        parentId: parentId
+        previousContentID: objpreviouscontentlID,
+        previousChannelID: objpreviouschannelID,
+        // parentId: parentId
     }, function(response) {
         setBreadcrumb(response.data);
         setTableMeta(response.data);
         data1 = response.data;
-	    sendPOSTRequest('/contentusage/api/contentusage/get-page-data', {
-	        startTimestamp: startTimestamp,
-	        endTimestamp: endTimestamp,
-	        contentId: contentId,
-	        channelId: channelId,
-            std:std,
-            // filetrcontetusage:filetrcontetusage
-	        parentLevel: parentLevel,
-	        parentId: parentId
-	    }, function(response) {
-		    data2 = response.data;
-		    checkTableDataConsistancy(data1, data2);
-            setTableData(response.data);
-	    });
+	    // sendPOSTRequest('/contentusage/api/contentusage/get-page-data', {
+	    //     startTimestamp: startTimestamp,
+	    //     endTimestamp: endTimestamp,
+	    //     contentId: contentId,
+	    //     channelId: channelId,
+     //        std:std,
+     //        // filetrcontetusage:filetrcontetusage
+	    //     parentLevel: parentLevel,
+	    //     parentId: parentId
+	    // }, function(response) {
+		   //  data2 = response.data;
+		   //  checkTableDataConsistancy(data1, data2);
+     //        setTableData(response.data);
+	    // });
     });
     
     dismissTrendChart();
@@ -240,7 +248,7 @@ var setBreadcrumb = function(data) {
     for (idx in data.breadcrumb) {
         var o = data.breadcrumb[idx];
         var lastItem = idx == len - 1;
-        appendBreadcrumbItem(o.parentName, o.parentLevel, o.parentId, lastItem);
+        appendBreadcrumbItem(o.parentName, o.parentLevel, o.parentId, o.channelId, lastItem);
     }
 };
 
@@ -434,7 +442,8 @@ var setTableMeta = function(data) {
     var idx;
     for (idx in data.rows) {
         // data table
-        var array = [drilldownColumnHTML(data.rows[idx].name, data.rows[idx].id)];
+        
+        var array = [drilldownColumnHTML(data.rows[idx].name, data.rows[idx].id, data.rows[idx].channelid, data.rows[idx].maxval)];
         var nItems = data.metrics.length;
         while (nItems--) {
             array.push('');
@@ -760,17 +769,23 @@ var applyAndDismissTopicDropdown = function() {
 
 // Handle click event of a drilldown link
 // UIAction
-var performDrilldown = function(itemId) {
-    parentId = itemId;
+var performDrilldown = function(itemId, channelid) {
+    objpreviouschannelID.push(channelid);
+    objpreviouscontentlID.push(itemId);
+    contentID = itemId;
+    channelID = channelid;
     parentLevel++;
     updatePageContent();
 };
 
 // Handle click event of a breadcrumb link
 // UIAction
-var clickBreadcrumbLink = function(level, id) {
-    parentId = id;
+var clickBreadcrumbLink = function(level, id, channelid) {
+    contentID = id;
+    channelID = channelid;
     parentLevel = level;
+    objpreviouscontentlID.pop(level);
+    objpreviouschannelID.pop(level);
     updatePageContent();
 };
 
@@ -784,12 +799,12 @@ var dismissTrendChart = function() {
 /** Pragma Mark - Utilities **/
 
 // Append a new breadcrumb item to the current list
-var appendBreadcrumbItem = function(name, level, id, isLast) {
+var appendBreadcrumbItem = function(name, level, id, channelid, isLast) {
     var html;
     if (isLast) {
         html = '<span class="breadcrumb-text">' + name + '</span>';
     } else {
-        html = '<a class="breadcrumb-link" href="#" onclick="clickBreadcrumbLink(' + level + ', \'' + id + '\')">' + name + '</a>';
+        html = '<a class="breadcrumb-link" href="#" onclick="clickBreadcrumbLink(' + level + ', \'' + id + '\', \'' +channelid+ '\')">' + name + '</a>';
         if (!isLast) {
             html += ' > ';
         }
@@ -834,11 +849,14 @@ var drawTrendButtonHTML = function(itemId, itemName) {
 };
         
 // HTML code of drilldown column in data table
-var drilldownColumnHTML = function(name, id) {
-    if (parentLevel + 1 === maxItemLevel) {
+var drilldownColumnHTML = function(name, id, channelid, maxval) {
+    // alert(channelid);
+    maxval = maxval;
+    // alert(maxval);
+    if (maxval) {
         return '<span>' + name + '</span>';
     } else {
-        return '<a href="#" class="drilldown-link" onclick="performDrilldown(\'' + id + '\')">' + name + '</a>';
+        return '<a href="#" class="drilldown-link" onclick="performDrilldown(\'' + id + '\', \''+ channelid +'\')">' + name + '</a>';
     }
 };
 
