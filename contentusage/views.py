@@ -34,20 +34,18 @@ def get_contentusage_page_meta(request):
 	user = request.user
 	body_unicode = request.body.decode('utf-8')
 	data = json.loads(body_unicode)
-	print ("Data:", data)
+	# print ("Data:", data)
 	parent_level = data.get('parentLevel', -2)
 	content_id = data.get('contentId','')
 	channel_id = data.get('channelId','')
 	previouscontent_id = data.get('previousContentID','')
 	previouschannel_id = data.get('previousChannelID','')
-	# parent_id = int(data.get('parentId', '').strip())
 	objContentUsage= ContentUsageMeta(user, parent_level, content_id, channel_id, previouscontent_id, previouschannel_id)
 	objContentUsageData = objContentUsage.pageMeta(METRICS)
 	response_text = json.dumps(objContentUsageData,ensure_ascii=False)
 	return HttpResponse(response_text,content_type='application/json')
 
 def get_contentusage_page_data(request):
-
 	user = request.user
 	body_unicode = request.body.decode('utf-8')
 	data = json.loads(body_unicode)
@@ -55,13 +53,12 @@ def get_contentusage_page_data(request):
 	startTimestamp = data.get('startTimestamp', 0)
 	endTimestamp = data.get('endTimestamp', 0)
 	topicID = data.get('contentId', '')
-	parentLevel = data.get('parentLevel', -1)
+	parentLevel = data.get('parentLevel', '')
 	parentID = int(data.get('parentId', '').strip())
 	channelID = data.get('channelId', '')
 	filtercriteria = data.get('std', '')
-
-	objContentUsage = ContentUsageData(user, parentID, parentLevel, topicID, channelID, startTimestamp, endTimestamp)
-	objContentUsageData = objContentUsage.getInstituteData(filtercriteria)
+	objContentUsage = ContentUsageData(user, parentLevel, topicID, channelID, startTimestamp, endTimestamp)
+	objContentUsageData = objContentUsage.pageData()
 	response_object = construct_response(0, "", "", objContentUsageData)
 	response_text = json.dumps(response_object,ensure_ascii=False)
 	return HttpResponse(response_text, content_type='application/json')
