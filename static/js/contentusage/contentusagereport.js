@@ -58,20 +58,19 @@ var updatePageContent = function() {
         setBreadcrumb(response.data);
         setTableMeta(response.data);
         data1 = response.data;
-	    // sendPOSTRequest('/contentusage/api/contentusage/get-page-data', {
-	    //     startTimestamp: startTimestamp,
-	    //     endTimestamp: endTimestamp,
-	    //     contentId: contentId,
-	    //     channelId: channelId,
-     //        std:std,
-     //        // filetrcontetusage:filetrcontetusage
-	    //     parentLevel: parentLevel,
-	    //     parentId: parentId
-	    // }, function(response) {
-		   //  data2 = response.data;
-		   //  checkTableDataConsistancy(data1, data2);
-     //        setTableData(response.data);
-	    // });
+	    sendPOSTRequest('/contentusage/api/contentusage/get-page-data', {
+	        startTimestamp: startTimestamp,
+	        endTimestamp: endTimestamp,
+	        contentId: contentID,
+	        channelId: channelID,
+            filetrcontetusage:filetrcontetusage,
+	        parentLevel: parentLevel,
+	        parentId: parentId
+	    }, function(response) {
+		    data2 = response.data;
+		    checkTableDataConsistancy(data1, data2);
+            setTableData(response.data);
+	    });
     });
     
     dismissTrendChart();
@@ -249,6 +248,8 @@ var setBreadcrumb = function(data) {
         var o = data.breadcrumb[idx];
         var lastItem = idx == len - 1;
         appendBreadcrumbItem(o.parentName, o.parentLevel, o.parentId, o.channelId, lastItem);
+        // contentID = o.parentId // Defined for content usage metrics
+        // channelID = o.channelId
     }
 };
 
@@ -482,12 +483,12 @@ var setTableData = function(data) {
     // update data rows
     for (idx in data.rows) {
         var array = JSON.parse(JSON.stringify(data.rows[idx].values)); // deep copy an array
-        array.unshift(drilldownColumnHTML(data.rows[idx].name, data.rows[idx].id));
+        array.unshift(drilldownColumnHTML(data.rows[idx].name, data.rows[idx].id, data.rows[idx].channelid, data.rows[idx].maxval));
         array.push(drawTrendButtonHTML(data.rows[idx].id, data.rows[idx].name));
         table.row('#row-' + data.rows[idx].id).data(array).draw(false);
         
         // compare table
-        var compareArray = [drilldownColumnHTML(data.rows[idx].name, data.rows[idx].id), '', ''];
+        var compareArray = [drilldownColumnHTML(data.rows[idx].name, data.rows[idx].id, data.rows[idx].channelid, data.rows[idx].maxval), '', ''];
         compareTable.row('#row-' + data.rows[idx].id).data(compareArray).draw(false);
     }
     
@@ -500,7 +501,7 @@ var setTableData = function(data) {
     }
     tq = data.rows[0]['total_questions']
     te = data.rows[0]['total_subtopics']
-    showTotalQuestions(tq, te);
+    // showTotalQuestions(tq, te);
     precalculate();
     setCompareMetricIndex(compareMetricIndex);
     setPerformanceMetricIndex(performanceMetricIndex);
@@ -593,7 +594,7 @@ var setCompareMetricIndex = function(metricIndex) {
                         '" aria-valuemin="0" aria-valuemax="100" style="width: ' + percentage + '%;">'+
                         '</div></div>';
         var compareArray = [
-            drilldownColumnHTML(tableData.rows[idx].name, tableData.rows[idx].id), 
+            drilldownColumnHTML(tableData.rows[idx].name, tableData.rows[idx].id, tableData.rows[idx].channelid, tableData.rows[idx].maxval), 
             tableData.rows[idx].values[metricIndex], 
             barHTML
         ];
@@ -740,8 +741,8 @@ var toggleTopicDropdownExpandAll = function() {
 var applyAndDismissTopicDropdown = function() {
     // var node = $('#topics-tree').fancytree('getTree').getActiveNode();
     var nodes = $('#topics-tree').fancytree('getTree').getSelectedNodes();
-    channelId =[];
-    contentId =[];
+    // channelId =[];
+    // contentId =[];
     var node = 0;
     if (nodes.length != 0) {
         for(node in nodes){
@@ -753,10 +754,10 @@ var applyAndDismissTopicDropdown = function() {
             }
             $('.topic-dropdown-text').html(nodes[node].parent.title); 
         } 
-        if(channelId.length == 0 && contentId.length == 0){
-            channelId = ['-1'];
-            contentId = ['-1'];
-        }
+        // if(channelId.length == 0 && contentId.length == 0){
+        //     channelId = ['-1'];
+        //     contentId = ['-1'];
+        // }
         updatePageContent();
         toggleTopicDropdown();
     }
@@ -964,7 +965,7 @@ var updatePerformanceView = function() {
                         '" aria-valuemin="0" aria-valuemax="100" style="width: ' + positiveValue + '%;">' + positiveLabel +
                         '</div></div>';
                         
-        var array = [drilldownColumnHTML(tableData.rows[idx].name, tableData.rows[idx].id), tableData.rows[idx].values[performanceMetricIndex], barHTML];
+        var array = [drilldownColumnHTML(tableData.rows[idx].name, tableData.rows[idx].id, tableData.rows[idx].channelid, tableData.rows[idx].maxval), tableData.rows[idx].values[performanceMetricIndex], barHTML];
         
         performanceTable.row('#row-' + tableData.rows[idx].id).data(array).draw(false);
     }
