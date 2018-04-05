@@ -58,14 +58,18 @@ var updatePageContent = function() {
         setBreadcrumb(response.data);
         setTableMeta(response.data);
         data1 = response.data;
+        var currentdate = new Date(); 
+        var current = currentdate.getTime()
 	    sendPOSTRequest('/contentusage/api/contentusage/get-page-data', {
 	        startTimestamp: startTimestamp,
 	        endTimestamp: endTimestamp,
 	        contentId: contentID,
 	        channelId: channelID,
             filetrcontetusage:filetrcontetusage,
+            std:std,
 	        parentLevel: parentLevel,
-	        parentId: parentId
+	        parentId: parentId,
+            current:current
 	    }, function(response) {
 		    data2 = response.data;
 		    checkTableDataConsistancy(data1, data2);
@@ -500,20 +504,20 @@ var setTableData = function(data) {
         aggregationTable.row.add(array).draw(false);
     }
     tq = data.rows[0]['total_questions']
-    te = data.rows[0]['total_subtopics']
-    // showTotalQuestions(tq, te);
+    // te = data.rows[0]['total_subtopics']
+    showTotalQuestions(tq);
     precalculate();
     setCompareMetricIndex(compareMetricIndex);
     setPerformanceMetricIndex(performanceMetricIndex);
 };
 
-var showTotalQuestions = function(qCount, eCount){
+var showTotalQuestions = function(qCount){
     var strQCount ;
-    var strExerciseCount;
+    // var strExerciseCount;
     strQCount = qCount.toString();
-    strExerciseCount = eCount.toString();
+    // strExerciseCount = eCount.toString();
     $('#totalQ').text(strQCount);
-    $('#totalExercise').text(strExerciseCount);
+    // $('#totalExercise').text(strExerciseCount);
 }
 // Calculate statistical values
 var precalculate = function() {
@@ -741,7 +745,7 @@ var toggleTopicDropdownExpandAll = function() {
 var applyAndDismissTopicDropdown = function() {
     // var node = $('#topics-tree').fancytree('getTree').getActiveNode();
     var nodes = $('#topics-tree').fancytree('getTree').getSelectedNodes();
-    // channelId =[];
+    filetrcontetusage = []
     // contentId =[];
     var node = 0;
     if (nodes.length != 0) {
