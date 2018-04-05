@@ -7,6 +7,7 @@ from django.db.models import Count
 from contentusage.constants import *
 from account.usermastery import BaseRoleAccess
 
+
 class BaseRoleAccess(object):
 	def __init__(self, user, parentLevel):
 		parentLevelMethods = {1:self.boardMember, 2:self.schoolLeader, 3:self.teacher}	
@@ -81,10 +82,6 @@ class ContentUsageMeta(BaseRoleAccess):
 		self.parentLevelMethods = [self.getChannelMeta, self.getChannelTopicMeta, self.getChannelTopicMeta, self.getChannelTopicMeta, self.getChannelTopicMeta, self.getChannelTopicMeta, self.getChannelTopicMeta]
 		self.previousContentlIDs = previousContentID
 		self.previousChannelIDs = previousChannelID
-		# print ("self.channels:", self.channels)
-		# print ("parentLevel:", self.parentLevel)
-		# print ("previousContentlIDs:", self.previousContentlIDs)
-		# print ("previousChannelIDs:", self.previousChannelIDs)
 	# Construct the breadcrumb format
 	def construct_breadcrumb(self, parentName, parentLevel, parentId, channelId):
 		
@@ -136,10 +133,8 @@ class ContentUsageMeta(BaseRoleAccess):
 		objsubtopics = list(Content.objects.filter(content_id=self.contentId, channel_id=self.channelId).values_list('sub_topics', flat = True))
 		for obj in objsubtopics:
 			result = json.loads(obj)
-			# print ("Children present:", len(result['children']))
 			if (result['children']):
 				subtopics = result['children']
-				# print("subtopics:", subtopics)
 				rows = self.getSubtopicDetails(subtopics, rows)
 		return rows, objBreadcrumb
 
@@ -148,7 +143,6 @@ class ContentUsageMeta(BaseRoleAccess):
 		for subtopic in subtopics:
 			if len(subtopic['children']) == 0:
 				maxval = True;
-				# print ("Maxval:", maxval)
 			else:
 				maxval = False
 			topic_info = {
@@ -162,12 +156,10 @@ class ContentUsageMeta(BaseRoleAccess):
 
 	def setBreadcrumbData(self, objBreadcrumb):
 		for content in zip(self.previousChannelIDs, self.previousContentlIDs):
-			# print ("Content:", content)
 			if content[1] != '-1':
 				self.parentLevel += 1
 				topic = Content.objects.filter(content_id = content[1], channel_id = content[0]).values('topic_name','content_id').first()
 				objBreadcrumb.append(self.construct_breadcrumb(topic['topic_name'], self.parentLevel, topic['content_id'], content[0]))
-		# print ("breadcrumb:", objBreadcrumb)
 		return objBreadcrumb
 
 	def pageMeta(self, objMetrics):
@@ -177,16 +169,18 @@ class ContentUsageMeta(BaseRoleAccess):
 		return response_object 
 
 class ContentUsageData(BaseRoleAccess):
-	def __init__(self, user, parentLevel, topicID, channelID, startTimestamp, endTimestamp):
+	def __init__(self, user, parentLevel, topicID, channelID, startTimestamp, endTimestamp, filterCriteria, filtetContentUsage, current_time1):
 		super(self.__class__, self).__init__(user, parentLevel)
 		self.topicID = topicID if topicID != '-1' else ''
 		self.channelID = channelID if channelID != '-1' else ''
 		endTimestamp = str(int(endTimestamp) + 86400)
 		self.startTimestamp = datetime.date.fromtimestamp(int(startTimestamp)).strftime('%Y-%m-%d')
 		self.endTimestamp = datetime.date.fromtimestamp(int(endTimestamp)).strftime('%Y-%m-%d')
-		self.parentLevelMethods = [self.getInstitutesData]
-		# self.parentLevels = { 'institutes':0, 'school':1, 'class':2, 'students': 3 }
-		# print ("institutes:", self.institutes)
+		self.parentLevelMethods = [self.getInstitutesData, self.getInstitutesData, self.getInstitutesData, self.getInstitutesData]
+		self.filterCriteria = filterCriteria
+		self.filtetContentUsage = filtetContentUsage
+		self.current_time = datetime.date.fromtimestamp(current_time1/1e3).strftime('%Y-%m-%d %H:%S')
+		self.current_time1 = current_time1
 
 	def getInstitutesData(self):
 		if self.parentLevel == 0:
@@ -198,32 +192,32 @@ class ContentUsageData(BaseRoleAccess):
 			channelIDs = []
 			maxValues = []
 			res = self.getContentData(self.topicID, self.channelID)
-			# print ("Content List:", res)
 			for obj in res:
 				topicID = Content.objects.filter(content_id = obj['id'], channel_id = obj['channelid']).values_list('topic_id',flat=True).first()
 				channelID = Content.objects.filter(content_id = obj['id'], channel_id = obj['channelid']).values_list('channel_id', flat = True).first()
-				# print(topicID)
-				# print(channelID)
 				maxValues.append(obj['maxval'])
 				topicIDs.append(topicID)
 				channelIDs.append(channelID)
-			# print ("Result:", res)
-			# print ("Topics ID:", topicIDs)
-			# print ("Channel ID:", channelIDs)
 			res = list(map(self.getContentUsageDrillDownDetails, topicIDs, channelIDs, maxValues))
-			# print ("ResData:", res)
 			aggregationResult = [res['aggregation'] for res in res]
 			data = self.getContentUsageAggregationData(aggregationResult, res)
 		return data
 
 	def getContentUsageData(self, channel):
-		filterTopics = {'school_id__in':self.institutes}
+		filterTopics = {}
 		filterTopics['date__range'] = (self.startTimestamp, self.endTimestamp)
 		filterTopics['channel_id'] = channel
 		filterTopics['content_id'] = channel
-		channeldata = MasteryLevelSchool.objects.filter(**filterTopics)
-		# print ("filterTopics:", filterTopics)
-		# print("channeldata:", channeldata)
+
+		if not self.filterCriteria and self.role != 3:
+			filterTopics['school_id__in'] = self.institutes
+			channeldata = MasteryLevelSchool.objects.filter(**filterTopics)
+		elif self.role == 3:
+			filterTopics['class_id__in'] = self.classes
+			channeldata = MasteryLevelClass.objects.filter(**filterTopics)
+		else:
+			filterTopics['student_id_id__in'] = self.filtetContentUsage
+			channeldata = MasteryLevelStudent.objects.filter(**filterTopics)
 		return channeldata
 
 	def getContentData(self, content_id, channel_id):
@@ -231,11 +225,8 @@ class ContentUsageData(BaseRoleAccess):
 		objsubtopics = list(Content.objects.filter(content_id=content_id, channel_id=channel_id).values_list('sub_topics', flat = True))
 		for obj in objsubtopics:
 			result = json.loads(obj)
-			# print ("Children present:", len(result['children']))
 			if (result['children']):
 				subtopics = result['children']
-				# print("subtopics:", subtopics)
-
 				rows = self.getSubtopicDetails(subtopics, rows)
 		return rows
 
@@ -244,7 +235,6 @@ class ContentUsageData(BaseRoleAccess):
 		for subtopic in subtopics:
 			if len(subtopic['children']) == 0:
 				maxval = True;
-				# print ("Maxval:", maxval)
 			else:
 				maxval = False
 			topic_info = {
@@ -256,28 +246,38 @@ class ContentUsageData(BaseRoleAccess):
 			rows.append(topic_info)
 		return rows
 
+	def getChannelDataforsubtopics(self, content_id, channel_id):
+		filterTopics = {}
+		filterTopics['date__range'] = (self.startTimestamp, self.endTimestamp)
+		filterTopics['channel_id'] = channel_id
+		filterTopics['content_id'] = content_id
+
+		if not self.filterCriteria and self.role != 3:
+			filterTopics['school_id__in'] = self.institutes
+			channel_content_usage = MasteryLevelSchool.objects.filter(**filterTopics)
+		elif self.role == 3:
+			filterTopics['class_id__in'] = self.classes
+			channel_content_usage = MasteryLevelClass.objects.filter(**filterTopics)
+		else:
+			filterTopics['student_id_id__in'] = self.filtetContentUsage
+			channel_content_usage = MasteryLevelStudent.objects.filter(**filterTopics)
+
+		return channel_content_usage
 	def getContentUsageDrillDownDetails(self, content_id, channel_id, maxval):
-		print ("ContentID:", content_id)
-		print ("ChannelID:", channel_id)
 		aggregation = []
 		rows = []
 		values = []
 		completed_questions = 0
 		number_of_attempts = 0
-		filterTopics = {'school_id__in':self.institutes}
-		filterTopics['date__range'] = (self.startTimestamp, self.endTimestamp)
-		filterTopics['channel_id'] = channel_id
-		filterTopics['content_id'] = content_id
-		channel_content_usage = MasteryLevelSchool.objects.filter(**filterTopics)
+
+		total_questions = self.getTopicsData()
+		channel_content_usage = self.getChannelDataforsubtopics(content_id, channel_id)
 		if  len(channel_content_usage) == 0:
 			values = [0, "0.00%"]
-			aggregation = [0, 0.00] 
-			# if self.parentLevel == 0:
-			# 	row = {'id': str(masteryElement.school_id), 'name': masteryElement.school_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation': aggregation}
-			# else:
+			aggregation = [0, 0.00]
 			objcontent = Content.objects.filter(channel_id=channel_id,topic_id = content_id).values('topic_name','content_id','channel_id').first()
 			# row = {'id': str(masteryElement.class_id), 'name': masteryElement.class_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation': aggregation}
-			row = {'id': str(objcontent['content_id']), 'name': objcontent['topic_name'],'channelid':channel_id ,'values': values, 'aggregation':aggregation,'maxval':maxval}	
+			row = {'id': str(objcontent['content_id']), 'name': objcontent['topic_name'],'channelid':channel_id ,'values': values, 'aggregation':aggregation,'maxval':maxval, 'total_questions':total_questions}	
 			# return row
 		else:
 			for objContent in channel_content_usage:
@@ -287,7 +287,7 @@ class ContentUsageData(BaseRoleAccess):
 				number_of_attempts += objContent.attempt_questions
 				# number_of_exercise_attempts += objContent.attempt_exercise
 			#Calculate the percentage of completed questions 
-			percent_complete_float = float(completed_questions)/(92950)
+			percent_complete_float = float(completed_questions)/(total_questions)
 			percent_complete = "{0:.2%}".format(percent_complete_float)
 
 			# Calculate the percentage of correct questions
@@ -303,14 +303,9 @@ class ContentUsageData(BaseRoleAccess):
 			values = [number_of_attempts, percent_complete]
 			aggregation = [number_of_attempts, percent_complete_float]
 
-			# print ("values:", values)
-			# print ("Channel:", channel)
 			objcontent = Content.objects.filter(channel_id=channel_id, topic_id = content_id).values('topic_name','content_id','channel_id').first()
-			print ("objcontent*****", objcontent)
-			row = {'id': str(objcontent['content_id']), 'name': objcontent['topic_name'], 'channelid': str(objcontent['channel_id']),'values': values, 'aggregation':aggregation,'maxval':maxval}
-			# print ("Row:", row
+			row = {'id': str(objcontent['content_id']), 'name': objcontent['topic_name'], 'channelid': str(objcontent['channel_id']),'values': values, 'aggregation':aggregation,'maxval':maxval, 'total_questions':total_questions}
 		return row
-		# print ("channel_content_usage:", channel_content_usage)
 	def getTopicsData(self):
 		""" Used to calculate the total_questions based on the selected topicID and channelID
 		Args:
@@ -319,14 +314,12 @@ class ContentUsageData(BaseRoleAccess):
 			total_questions(int) : Count of total_questions
 		"""
 		total_questions = 0
-		# topic_id = self.topicID
-		filterTopics = {'topic_id__in':['-1']}
-		# if self.topicID:
-		filterTopics['channel_id__in']=['-1']
-		topic = Content.objects.filter(**filterTopics)
-		for t in topic:
-		# topic = Content.objects.filter(topic_id__in=topic_ids).filter(channel_id__in=channel_ids).first()
-			total_questions += t.total_questions
+
+		filterTopics = {'content_id':self.topicID}
+		if self.topicID:
+			filterTopics['channel_id'] = self.channelID
+		topic = Content.objects.filter(**filterTopics).first()
+		total_questions = topic.total_questions
 		return total_questions
 
 	def getContentUsageAggregationData(self, aggregationResult,contentUsageData):
@@ -386,7 +379,7 @@ class ContentUsageData(BaseRoleAccess):
 		number_of_exercise_attempts = 0
 		percent_mastered_topics = 0
 
-		# total_questions = self.getTopicsData() 
+		total_questions = self.getTopicsData()
 		# total_subtopics = self.getSubTopicsData()
 
 		objChannelContentUsage = self.getContentUsageData(channel)
@@ -401,7 +394,7 @@ class ContentUsageData(BaseRoleAccess):
 			# else:
 			objcontent = Content.objects.filter(topic_id=channel).values('topic_name','content_id','channel_id').first()
 			# row = {'id': str(masteryElement.class_id), 'name': masteryElement.class_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation': aggregation}
-			row = {'id': str(objcontent['content_id']), 'name': objcontent['topic_name'], 'channelid': objcontent['channel_id'],'values': values, 'aggregation':aggregation, 'maxval':False}	
+			row = {'id': str(objcontent['content_id']), 'name': objcontent['topic_name'], 'channelid': objcontent['channel_id'],'values': values, 'aggregation':aggregation, 'maxval':False, 'total_questions':total_questions}	
 			# return row
 		else:
 			for objContent in objChannelContentUsage:
@@ -409,6 +402,7 @@ class ContentUsageData(BaseRoleAccess):
 				completed_questions += objContent.completed_questions
 				# correct_questions += objContent.correct_questions
 				number_of_attempts += objContent.attempt_questions
+
 				# number_of_exercise_attempts += objContent.attempt_exercise
 			#Calculate the percentage of completed questions 
 			percent_complete_float = float(completed_questions)/(92950)
@@ -426,16 +420,11 @@ class ContentUsageData(BaseRoleAccess):
 			# aggregation = [mastered_topics, number_of_exercise_attempts,percent_mastered_topics_float, correct_questions, number_of_attempts,percent_correct_float]
 			values = [number_of_attempts, percent_complete]
 			aggregation = [number_of_attempts, percent_complete_float]
-
-			# print ("values:", values)
-			# print ("Channel:", channel)
 			objcontent = Content.objects.filter(topic_id=channel).values('topic_name','content_id','channel_id').first()
-			# print ("objcontent:", objcontent)
-			row = {'id': str(objcontent['content_id']), 'name': objcontent['topic_name'], 'channelid': str(objcontent['channel_id']),'values': values, 'aggregation':aggregation,'maxval':False}	
+			row = {'id': str(objcontent['content_id']), 'name': objcontent['topic_name'], 'channelid': str(objcontent['channel_id']),'values': values, 'aggregation':aggregation,'maxval':False, 'total_questions':total_questions}	
 			# if self.parentLevel == 0:
 			# 	row = {'id': str(masteryElement.school_id), 'name': masteryElement.school_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation':aggregation}	
 			# else:
-			# print ("Row:", row)
 			# 	row = {'id': str(masteryElement.class_id), 'name': masteryElement.class_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation': aggregation}
 		return row
 
@@ -461,7 +450,6 @@ class ContentUsageData(BaseRoleAccess):
 		avg_percent_mastered_topics = 0
 		avg_number_of_exercise_attempts = 0
 		# Calculate the average for these four metrics
-		# print("percentCompleteList:", percentCompleteList)
 		length = len(percentCompleteList)
 		if length != 0:
 		    for i in range(length):
@@ -518,6 +506,8 @@ class SchoolDetails(BaseRoleAccess):
 			classes_in_school = list(UserInfoClass.objects.filter(parent=school.school_id).extra(select={'id':'class_id','name':'class_name'}).values('id','name'))
 			for classid in classes_in_school:
 				students_in_class = list(UserInfoStudent.objects.filter(parent=classid['id']).extra(select={'id':'student_id','name':'student_name'}).values('id','name'))
+				for std in students_in_class:
+					std['id'] = str(std['id'])
 				classid['children'] = students_in_class
 			school_info['id'] = str(school.school_id)
 			school_info['name'] = school.school_name
@@ -533,8 +523,10 @@ class SchoolDetails(BaseRoleAccess):
 		for classid in classes:
 			class_info = {}
 			students_in_class = list(UserInfoStudent.objects.filter(parent=classid['id']).extra(select={'id':'student_id','name':'student_name'}).values('id','name'))
+			for std in students_in_class:
+					std['id'] = str(std['id'])
 			class_info['children'] = students_in_class
-			class_info['id'] = classid['id']
+			class_info['id'] = str(classid['id'])
 			class_info['name'] = classid['name']
 			class_list.append(class_info)
 		self.totalschools["schools"] = class_list
