@@ -2,7 +2,7 @@ from account.models import *
 from django.contrib.auth.models import User, Group
 from account.constants import *
 import datetime
-import json
+import json, time
 from django.db.models import Count
 from contentusage.constants import *
 from account.usermastery import BaseRoleAccess
@@ -314,12 +314,21 @@ class ContentUsageData(BaseRoleAccess):
 			total_questions(int) : Count of total_questions
 		"""
 		total_questions = 0
-
-		filterTopics = {'content_id':self.topicID}
-		if self.topicID:
-			filterTopics['channel_id'] = self.channelID
-		topic = Content.objects.filter(**filterTopics).first()
-		total_questions = topic.total_questions
+		if self.role == 3 and self.parentLevel == 0:
+			topic = Content.objects.filter(channel_id__in = self.channels, content_id__in = self.channels).first()
+			total_questions = topic.total_questions
+		elif self.role == 2 and self.parentLevel == 0:
+			topic = Content.objects.filter(channel_id__in = self.channels, content_id__in = self.channels).first()
+			total_questions = topic.total_questions
+		elif self.role == 1 and self.parentLevel == 0:
+			topic = Content.objects.filter(channel_id__in = self.channels, content_id__in = self.channels).first()
+			total_questions = topic.total_questions
+		else:
+			filterTopics = {'content_id':self.topicID}
+			if self.topicID:
+				filterTopics['channel_id'] = self.channelID
+			topic = Content.objects.filter(**filterTopics).first()
+			total_questions = topic.total_questions
 		return total_questions
 
 	def getContentUsageAggregationData(self, aggregationResult,contentUsageData):
@@ -405,7 +414,7 @@ class ContentUsageData(BaseRoleAccess):
 
 				# number_of_exercise_attempts += objContent.attempt_exercise
 			#Calculate the percentage of completed questions 
-			percent_complete_float = float(completed_questions)/(92950)
+			percent_complete_float = float(completed_questions)/(total_questions)
 			percent_complete = "{0:.2%}".format(percent_complete_float)
 
 			# Calculate the percentage of correct questions
@@ -535,6 +544,107 @@ class SchoolDetails(BaseRoleAccess):
 	def getPageData(self):
 		result = self.parentLevelMethods[self.role]()
 		return result
+
+class TrendDetails(BaseRoleAccess):
+	def __init__(self, user, startTimestamp,endTimestamp, parentLevel, itemId, itemchannelid, std, topicid, channelid, filetrcontetusage):
+		super(self.__class__, self).__init__(user, parentLevel)
+		self.topicID = topicid if topicid != '-1' else ''
+		self.channelID = channelid if channelid != '-1' else ''
+		self.start = datetime.datetime.fromtimestamp(startTimestamp)
+		self.end = datetime.datetime.fromtimestamp(endTimestamp)
+		self.itemID = itemId
+		self.itemchannelID = itemchannelid
+		self.filterCriteria = std
+		self.level = parentLevel
+		self.filtetContentUsage = filetrcontetusage
+		# print ("Topic_id:", self.topicID)
+		# print ("Channel_id:", self.channelID)
+	def get_trend(self):
+		total_questions = 0
+		sub_topics_total = 0
+		data = None
+		content = None
+		if self.parentLevel == 0:
+			content = Content.objects.filter(topic_id='',content_id = '')
+		else:
+			content = Content.objects.filter(content_id=self.itemID,channel_id=self.itemchannelID)
+
+		for i in content:
+			total_questions += i.total_questions
+			# sub_topics_total += i.sub_topics_total
+		print ("total_questions:", total_questions)
+		total_students = 1.0
+		# if level == -1 or level == 0:
+		# 	pass
+		print ("Role:", self.role)
+		print ("Level:", self.level)
+		if self.role == 0 or self.role == 1 or self.role == 2 and self.level >= 0:
+			# school = UserInfoSchool.objects.filter(school_id=item_id).first()
+			# total_students = school.total_students
+			content = Content.objects.filter(content_id = self.itemID, channel_id = self.itemchannelID).values('topic_id','channel_id').first()
+			if not self.filterCriteria:
+				data = MasteryLevelSchool.objects.filter(school_id__in=self.institutes, content_id=content['topic_id'], channel_id = content['channel_id'], date__gte=self.start,date__lte=self.end).order_by('date')
+			else:
+				data = MasteryLevelStudent.objects.filter(student_id__in=self.filtetContentUsage, content_id=content['topic_id'], channel_id = content['channel_id'],\
+				date__gte=self.start,date__lte=self.end).order_by('date')
+		elif self.role == 3 and self.level >= 0:
+			# classroom = UserInfoClass.objects.filter(class_id=item_id).first()
+			# total_students = classroom.total_students
+			content = Content.objects.filter(content_id = self.itemID, channel_id = self.itemchannelID).values('topic_id','channel_id').first()
+			# print ("Classes:", self.classes)
+			# print ("Content ID:", contentID)
+			# print ("channel ID:", self.itemchannelID)
+			if not self.filterCriteria:
+				data = MasteryLevelClass.objects.filter(class_id__in=self.classes,content_id=content['topic_id'],channel_id=content['channel_id'],date__gte=self.start,date__lte=self.end).order_by('date')
+			else:
+				data = MasteryLevelStudent.objects.filter(student_id__in=self.filtetContentUsage, content_id=content['topic_id'], channel_id=content['channel_id'],\
+				date__gte=start,date__lte=end).order_by('date')
+		# elif self.level == 3:
+		# 	if topic_id[0] == "-1":
+		# 		data = MasteryLevelStudent.objects.filter(student_id=item_id,content_id="",date__gte=start,date__lte=end).order_by('date')
+		# 	else:
+		# 		data = MasteryLevelStudent.objects.filter(student_id=item_id, content_id__in=topic_id, channel_id__in=channel_id,\
+		# 		date__gte=start,date__lte=end).order_by('date')
+		res = {}
+		series = []
+		print ("Data:", data)
+		# series.append({'name':'# Exercsie mastered','isPercentage':False})
+		# series.append({'name':'# Exercsie attempts','isPercentage':False})
+		# series.append({'name':'% Exercsie mastered','isPercentage':True})
+		# series.append({'name':'# Question correct','isPercentage':False})
+		series.append({'name':'# Question attempts','isPercentage':False})
+		# series.append({'name':'% Question Correct','isPercentage':True})
+		series.append({'name':'# Question completed','isPercentage':False})
+
+		points = []
+		completed_questions_sum = 0
+		correct_questions_sum = 0
+		attempt_questions_sum = 0
+		attempts_exercise_sum = 0
+		completed_sum = 0
+		mastered_topics = 0
+		percent_mastered_topics = 0
+		for ele in data:
+			temp = []
+			completed_questions_sum += ele.completed_questions
+			# mastered_topics += ele.mastered # future change
+			# correct_questions_sum += ele.correct_questions
+			attempt_questions_sum += ele.attempt_questions
+			# attempts_exercise_sum += ele.attempt_exercise
+			temp.append(time.mktime(ele.date.timetuple()))
+			# temp.append(mastered_topics)
+			# temp.append(attempts_exercise_sum)
+			temp.append(attempt_questions_sum)
+			# temp.append(100.0*mastered_topics/(sub_topics_total))
+			# temp.append(correct_questions_sum)
+			# temp.append(100.0*correct_questions_sum/(attempt_questions_sum))
+			temp.append(completed_questions_sum)
+			# temp.append(100.0*completed_questions_sum/(total_questions))
+			points.append(temp)
+		res['series'] = series
+		res['points'] = points
+		print("Points:", res['points'])
+		return res
 
 
 
