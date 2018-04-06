@@ -2,7 +2,7 @@ from django.shortcuts import render, HttpResponse
 from account.views import construct_response
 from account.models import UserInfoClass, UserInfoSchool, UserInfoStudent
 import json 
-from .contentusagereport import ContentUsageMeta, ContentUsageData, SchoolDetails
+from .contentusagereport import ContentUsageMeta, ContentUsageData, SchoolDetails, TrendDetails
 from contentusage.constants import *
 
 # Create your views here.
@@ -62,6 +62,32 @@ def get_contentusage_page_data(request):
 	response_object = construct_response(0, "", "", objContentUsageData)
 	response_text = json.dumps(response_object,ensure_ascii=False)
 	return HttpResponse(response_text, content_type='application/json')
+
+def get_trend_data(request):
+	if request.method == 'POST':
+		user = request.user
+		body_unicode = request.body.decode('utf-8')
+		params = json.loads(body_unicode)
+		print ("Data:", params)
+		start_timestamp = params.get('startTimestamp','')
+		# start = datetime.datetime.fromtimestamp(start_timestamp)
+		end_timestamp = params.get('endTimestamp', '')
+		# end = datetime.datetime.fromtimestamp(end_timestamp)
+		topic_id = params.get('contentId')
+		channel_id = params.get('channelId')
+		level = params.get('level')
+		item_id = params.get('itemId')
+		item_channel_id = params.get('itemChannelId')
+		std = params.get('std')
+		filetr_contetusage = params.get('filetrcontetusage')
+		objTrendDetails = TrendDetails(user, start_timestamp, end_timestamp,level,item_id,item_channel_id, std, topic_id, channel_id, filetr_contetusage)
+		res = objTrendDetails.get_trend()
+		response = construct_response(0,'','',res)
+		response_text = json.dumps(response,ensure_ascii=False)
+	else:
+		response = construct_response(1111,'wrong request','wrong request','')
+		response_text = json.dumps(response,ensure_ascii=False)
+	return HttpResponse(response_text,content_type='application/json')
 
 def get_contentusage(request):
     if request.method == 'GET':
