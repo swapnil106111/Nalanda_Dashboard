@@ -130,14 +130,17 @@ var refreshSchoolsDropdown = function() {
 
 // Get trend data with specific item id from server (via POST) and sanitize it 
 // Used by `drawTrendChart`
-var getTrendData = function(itemId, callback) {    
-    sendPOSTRequest('/account/api/mastery/trend', {
+var getTrendData = function(itemId,channelid, callback) {    
+    sendPOSTRequest('/contentusage/api/contentusage/trend', {
         startTimestamp: startTimestamp,
         endTimestamp: endTimestamp,
-        contentId: contentId,
-        channelId: channelId,
-        level: parentLevel + 1,
-        itemId: itemId
+        contentId: contentID,
+        channelId: channelID,
+        level: parentLevel ,
+        itemId: itemId,
+        itemChannelId : channelid,
+        filetrcontetusage: filetrcontetusage,
+        std:std,
     }, function(response) {
 	    verifyTrendResponse(response);
         callback(processTrendData(response.data));
@@ -453,7 +456,7 @@ var setTableMeta = function(data) {
         while (nItems--) {
             array.push('');
         }
-        array.push(drawTrendButtonHTML(data.rows[idx].id, data.rows[idx].name));
+        array.push(drawTrendButtonHTML(data.rows[idx].id, data.rows[idx].name, data.rows[idx].channelid));
         var rowNode = table.row.add(array).draw(false).node();
         var rowId = 'row-' + data.rows[idx].id;
         $(rowNode).attr('id', rowId);
@@ -488,7 +491,7 @@ var setTableData = function(data) {
     for (idx in data.rows) {
         var array = JSON.parse(JSON.stringify(data.rows[idx].values)); // deep copy an array
         array.unshift(drilldownColumnHTML(data.rows[idx].name, data.rows[idx].id, data.rows[idx].channelid, data.rows[idx].maxval));
-        array.push(drawTrendButtonHTML(data.rows[idx].id, data.rows[idx].name));
+        array.push(drawTrendButtonHTML(data.rows[idx].id, data.rows[idx].name, data.rows[idx].channelid));
         table.row('#row-' + data.rows[idx].id).data(array).draw(false);
         
         // compare table
@@ -637,9 +640,9 @@ var setPerformanceCompareToValue = function(valueName) {
 
 // Get data remotely via `getTrendData` (async) and draw the chart (after removing previous chart -- if any)
 // UIAction
-var drawTrendChart = function(itemId, itemName) {
+var drawTrendChart = function(itemId, itemName, channelid) {
     dismissTrendChart();
-    getTrendData(itemId, function(trendData) {
+    getTrendData(itemId, channelid, function(trendData) {
         var chartData = new google.visualization.DataTable();
         
         if (trendData.points.length == 0) {
@@ -849,9 +852,9 @@ var _setSchools = function(toArray, dataArray) {
 };
 
 // Returns the HTML code for draw trend button
-var drawTrendButtonHTML = function(itemId, itemName) {
+var drawTrendButtonHTML = function(itemId, itemName, channelid) {
     return '<button class="btn btn-default draw-trend-button" onclick="drawTrendChart(\'' 
-           + itemId + '\', \'' + itemName + '\')"><i class="fa fa-line-chart" aria-hidden="true"></i> Show Trend</button>';
+           + itemId + '\', \'' + itemName + '\', \''+ channelid +'\')"><i class="fa fa-line-chart" aria-hidden="true"></i> Show Trend</button>';
 };
         
 // HTML code of drilldown column in data table
