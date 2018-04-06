@@ -532,6 +532,7 @@ def get_trend(request):
             total_questions += i.total_questions
             sub_topics_total += i.sub_topics_total
 
+        print ("sub_topics_total:", sub_topics_total)
         total_students = 1.0
         if level == -1 or level == 0:
             pass
@@ -585,7 +586,7 @@ def get_trend(request):
             temp.append(time.mktime(ele.date.timetuple()))
             temp.append(mastered_topics)
             temp.append(attempts_exercise_sum)
-            temp.append(100.0*mastered_topics/(sub_topics_total))
+            temp.append(100.0*mastered_topics/(attempts_exercise_sum))
             temp.append(correct_questions_sum)
             temp.append(attempt_questions_sum)
             temp.append(100.0*correct_questions_sum/(attempt_questions_sum))
