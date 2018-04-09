@@ -532,7 +532,7 @@ def get_trend(request):
             total_questions += i.total_questions
             sub_topics_total += i.sub_topics_total
 
-        print ("sub_topics_total:", sub_topics_total)
+        # print ("sub_topics_total:", sub_topics_total)
         total_students = 1.0
         if level == -1 or level == 0:
             pass
