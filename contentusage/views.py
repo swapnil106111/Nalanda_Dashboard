@@ -68,7 +68,7 @@ def get_trend_data(request):
 		user = request.user
 		body_unicode = request.body.decode('utf-8')
 		params = json.loads(body_unicode)
-		print ("Data:", params)
+		# print ("Data:", params)
 		start_timestamp = params.get('startTimestamp','')
 		# start = datetime.datetime.fromtimestamp(start_timestamp)
 		end_timestamp = params.get('endTimestamp', '')

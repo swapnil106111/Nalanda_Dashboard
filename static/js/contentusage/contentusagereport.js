@@ -654,7 +654,7 @@ var drawTrendChart = function(itemId, itemName, channelid) {
         var lateDate = trendData.points[trendData.points.length - 1][0];
         var options = {
             chart: {
-                title: itemName + ' Mastery Trend',
+                title: itemName + ' Content Usage Trend',
                 subtitle: 'Data from ' + moment(earlyDate).format('MM/DD/YYYY') + ' to ' + moment(lateDate).format('MM/DD/YYYY')
             },
             legend: { position: 'bottom' },
