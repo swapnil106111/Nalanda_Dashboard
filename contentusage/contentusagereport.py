@@ -7,9 +7,13 @@ from django.db.models import Count
 from contentusage.constants import *
 from account.usermastery import BaseRoleAccess
 
-
 class BaseRoleAccess(object):
 	def __init__(self, user, parentLevel):
+		""" Used to set meta data of content usage metrics 
+		Args:
+			user(object) : login user
+			parentLevel(int) : Used to maintain hierarchy of channe data 
+		"""
 		parentLevelMethods = {1:self.boardMember, 2:self.schoolLeader, 3:self.teacher}	
 		self.user = user
 		self.role = 0
@@ -48,7 +52,7 @@ class BaseRoleAccess(object):
 
 	def teacher(self):
 		"""
-		This function is used to fetch the mapping of classes and schools based on the user role 
+		This function is used to fetch the mapping of classes and schools,channels based on the user role 
 		"""
 		userMapping = UserRoleCollectionMapping.objects.filter(user_id = self.user)
 		schools = list(userMapping.values_list('institute_id_id', flat = True))
@@ -58,7 +62,7 @@ class BaseRoleAccess(object):
 
 	def schoolLeader(self):
 		"""
-		This function is used to fetch the mapping of classes and schools based on the user role 
+		This function is used to fetch the mapping of classes and schools,channels based on the user role 
 		"""
 		userMapping = UserRoleCollectionMapping.objects.filter(user_id= self.user)
 		schools = list(userMapping.values_list('institute_id_id', flat=True))
@@ -67,6 +71,9 @@ class BaseRoleAccess(object):
 		return schools, classes, channels
 
 	def boardMember(self):
+		"""
+		This function is used to fetch the mapping of classes and schools,channels based on the user role 
+		"""
 		userMapping = UserRoleCollectionMapping.objects.filter(user_id=self.user)
 		schools = list(userMapping.values_list('institute_id_id', flat=True))
 		classes = None
@@ -75,6 +82,15 @@ class BaseRoleAccess(object):
 
 class ContentUsageMeta(BaseRoleAccess): 
 	def __init__(self, user, parentLevel, contentId, channelId, previousContentID, previousChannelID):
+		""" Used to set the meta related information of channel based on the user role 
+		Args:
+			user(object) : login user
+			parentLevel(int) : It's used to retrieve channels specific data
+			contentId(str) : It's indicate content id of topic from channelID
+			channelid(str) : ChannelId 
+			previousContentID(list) : It's list of content id to set breadcrumb data for selected topic/content from channel(We don't have the parent child relations of content in current strucure)
+			previousChannelID(list) : It's list of channel id's
+		"""
 		super(self.__class__, self).__init__(user, parentLevel)
 		self.contentId = contentId
 		self.channelId = channelId
@@ -84,7 +100,15 @@ class ContentUsageMeta(BaseRoleAccess):
 		self.previousChannelIDs = previousChannelID
 	# Construct the breadcrumb format
 	def construct_breadcrumb(self, parentName, parentLevel, parentId, channelId):
-		
+		""" It's used to bulid the breadcrumb data for selected topic
+		Args:
+			parentName(str) : Name of topic
+			parentLevel(int) : It's used to maintain the hierarchy of topics while showing the breadcrumb data
+			parentId(str) : Used to maintain parent - child relations 
+			channelId(str) : It's contains channel id
+		Return:
+			res(dict) : It returns topic breadcrumb data
+		"""
 		res = {
 		"parentName": parentName,
 		"parentLevel": parentLevel,
@@ -101,13 +125,12 @@ class ContentUsageMeta(BaseRoleAccess):
 		return response_object
 
 	def getChannelMeta(self):
-		""" Used to fetch the institute meta information
+		""" Used to fetch the channel meta information
 		Args:
-			objBreadcrumb(list) = used to set metadata(parentId, parentLevel, parentName) of institutes
-			rows(list) = []
+			None
 		Returns:
-			objBreadcrumb(list) = it returns metadata(parentId, parentLevel, parentName) of institutes
-			rows(list) = it returns institutes information
+			objBreadcrumb(list) : it returns metadata(parentId, parentLevel, parentName, channelId) of topic
+			rows(list) : it returns channel information
 		"""
 		objBreadcrumb = []
 		rows = []
@@ -125,6 +148,13 @@ class ContentUsageMeta(BaseRoleAccess):
 		return rows, objBreadcrumb
 
 	def getChannelTopicMeta(self):
+		""" It's used to fetch the channel subtopics meta upto the N level
+		Args:
+			None
+		Returns:
+			objBreadcrumb(list) : it returns metadata(parentId, parentLevel, parentName, channelId) of topic
+			rows(list) : it returns channel information
+		"""
 		objBreadcrumb = []
 		rows = []
 		self.parentLevel = 0
@@ -139,6 +169,13 @@ class ContentUsageMeta(BaseRoleAccess):
 		return rows, objBreadcrumb
 
 	def getSubtopicDetails(self, subtopics, rows):
+		""" It's used to get the subtopic details(i.e contet_id,channel_id of that topic)
+		Args:
+			subtopics(dict) : It's dict of childrens of selected topic
+			rows(list) : It's an empty list to store the results
+		Returns:
+			rows(list) : It's contains the subtopic details
+		"""
 		maxval = False;
 		for subtopic in subtopics:
 			if len(subtopic['children']) == 0:
@@ -155,6 +192,12 @@ class ContentUsageMeta(BaseRoleAccess):
 		return rows
 
 	def setBreadcrumbData(self, objBreadcrumb):
+		""" It's used to set breadcrumb data of topic
+		Args:
+			objBreadcrumb(list) : It's list of dict of content parent-child hierarchy
+		Returns : 
+			objBreadcrumb(list) : It's return the result of breadcrumb data
+		"""
 		for content in zip(self.previousChannelIDs, self.previousContentlIDs):
 			if content[1] != '-1':
 				self.parentLevel += 1
@@ -170,19 +213,36 @@ class ContentUsageMeta(BaseRoleAccess):
 
 class ContentUsageData(BaseRoleAccess):
 	def __init__(self, user, parentLevel, topicID, channelID, startTimestamp, endTimestamp, filterCriteria, filtetContentUsage, current_time1):
+		""" It's used to set the conte usage data based on channel selection
+		Args:
+			user(object) : logined user
+			parentLevel(int) : Used to call the channeldata methods
+			topicID(str) : It's unique topc id
+			channelID(str) : channel id 
+			startTimestamp(datetime) : start time from where you want see the content usage data
+			endTimestamp(datetime) : end time to view the data upto that datetime
+			filterCriteria(bool) : its boolean value. True if user used school/class/student filter
+			filtetContentUsage(list) : It's list of classes/schools or studnets based on selection
+		"""
 		super(self.__class__, self).__init__(user, parentLevel)
 		self.topicID = topicID if topicID != '-1' else ''
 		self.channelID = channelID if channelID != '-1' else ''
 		endTimestamp = str(int(endTimestamp) + 86400)
 		self.startTimestamp = datetime.date.fromtimestamp(int(startTimestamp)).strftime('%Y-%m-%d')
 		self.endTimestamp = datetime.date.fromtimestamp(int(endTimestamp)).strftime('%Y-%m-%d')
-		self.parentLevelMethods = [self.getInstitutesData, self.getInstitutesData, self.getInstitutesData, self.getInstitutesData]
+		self.parentLevelMethods = [self.getChannelData, self.getChannelData, self.getChannelData, self.getChannelData]
 		self.filterCriteria = filterCriteria
 		self.filtetContentUsage = filtetContentUsage
-		self.current_time = datetime.date.fromtimestamp(current_time1/1e3).strftime('%Y-%m-%d %H:%S')
-		self.current_time1 = current_time1
+		# self.current_time = datetime.date.fromtimestamp(current_time1/1e3).strftime('%Y-%m-%d %H:%S')
+		# self.current_time1 = current_time1
 
-	def getInstitutesData(self):
+	def getChannelData(self):
+		""" Used to get the content usage data 
+		Args:
+			None
+		Returns:
+			data(list) : It stores the content usage of details with metrics values(i.e attempt_questions, completed_questions). Also metrics aggregation result
+		"""
 		if self.parentLevel == 0:
 			res = list(map(self.getContentUsageDetails, self.channels))
 			aggregationResult = [res['aggregation'] for res in res]
@@ -204,6 +264,12 @@ class ContentUsageData(BaseRoleAccess):
 		return data
 
 	def getContentUsageData(self, channel):
+		""" Used to get content usage data based on user role and filterCriteria of channel level
+		Args:
+			channel(str) : chnnel id (Get the metrics values of that channel)
+		Returns:
+			channeldata(queryset): It returns the queryset based on filters. i.e content used in class/schools/student
+		"""
 		filterTopics = {}
 		filterTopics['date__range'] = (self.startTimestamp, self.endTimestamp)
 		filterTopics['channel_id'] = channel
@@ -221,6 +287,13 @@ class ContentUsageData(BaseRoleAccess):
 		return channeldata
 
 	def getContentData(self, content_id, channel_id):
+		""" Used to get content details to show the data for respective content usage meta ids
+		Args:
+			content_id(str) : content id who's content data and meta would be shown in table
+			channel_id(str) : channel id 
+		Returns:
+			rows(list) : it contains list of dict from content details(i.e id, topic name, channelid etc...)
+		"""
 		rows = []
 		objsubtopics = list(Content.objects.filter(content_id=content_id, channel_id=channel_id).values_list('sub_topics', flat = True))
 		for obj in objsubtopics:
@@ -231,6 +304,14 @@ class ContentUsageData(BaseRoleAccess):
 		return rows
 
 	def getSubtopicDetails(self, subtopics, rows):
+		""" Used to get the subtopic(content) details
+		Args:
+			subtopics(dict) : subtopics data of content(i.e childrens of any content)
+			rows (list) : It's an empty list to store the result
+		Returns:
+			rows(list) : It returns the content meta details
+
+		"""
 		maxval = False;
 		for subtopic in subtopics:
 			if len(subtopic['children']) == 0:
@@ -247,6 +328,13 @@ class ContentUsageData(BaseRoleAccess):
 		return rows
 
 	def getChannelDataforsubtopics(self, content_id, channel_id):
+		""" Used to get the topic usage at different level i.e school/class/students based on the user role and filterCriteria
+		Args:
+			channel_id (str) : content_id  belongs to this channel
+			content_id (str) : content id
+		Returns:
+			channel_content_usage(queryset) : It returns the content usage of that topic with respective filter(class, school or class)
+		"""
 		filterTopics = {}
 		filterTopics['date__range'] = (self.startTimestamp, self.endTimestamp)
 		filterTopics['channel_id'] = channel_id
@@ -263,7 +351,16 @@ class ContentUsageData(BaseRoleAccess):
 			channel_content_usage = MasteryLevelStudent.objects.filter(**filterTopics)
 
 		return channel_content_usage
+
 	def getContentUsageDrillDownDetails(self, content_id, channel_id, maxval):
+		""" Used to get the topic details upto N level
+		Args:
+			content_id(str) : content id from channel who's metrics data will shown in table
+			channel_id(str) : channel_id
+			maxval(bool) : True/False. Used to identify should provide link in table or nor for content
+		Returns:
+			row(dict) : It stores the values and aggregation result of that content with it's detail to show on UI
+		"""
 		aggregation = []
 		rows = []
 		values = []
@@ -272,6 +369,7 @@ class ContentUsageData(BaseRoleAccess):
 
 		total_questions = self.getTopicsData()
 		channel_content_usage = self.getChannelDataforsubtopics(content_id, channel_id)
+
 		if  len(channel_content_usage) == 0:
 			values = [0, "0.00%"]
 			aggregation = [0, 0.00]
@@ -306,6 +404,7 @@ class ContentUsageData(BaseRoleAccess):
 			objcontent = Content.objects.filter(channel_id=channel_id, topic_id = content_id).values('topic_name','content_id','channel_id').first()
 			row = {'id': str(objcontent['content_id']), 'name': objcontent['topic_name'], 'channelid': str(objcontent['channel_id']),'values': values, 'aggregation':aggregation,'maxval':maxval, 'total_questions':total_questions}
 		return row
+
 	def getTopicsData(self):
 		""" Used to calculate the total_questions based on the selected topicID and channelID
 		Args:
@@ -332,12 +431,12 @@ class ContentUsageData(BaseRoleAccess):
 		return total_questions
 
 	def getContentUsageAggregationData(self, aggregationResult,contentUsageData):
-		""" Used to Calculate the aggregation of each masteryElements
+		""" Used to Calculate the aggregation of each Content Usage Elements
 		Args:
 			aggregationResult(list) : list of percentage vaue of four metrics
-			contentUsageData(dict) = mastry data of masteryElements
+			contentUsageData(dict) = mastry data of Content Usage Elements
 		Returns:
-			data(dict) = it contains aggregation result and mastery data of class, school
+			data(dict) = it contains aggregation result and content usage  data of channels with it's filters i.e school, class, students
 		"""
 		data = {}	
 		percent_complete_array = []
@@ -370,11 +469,11 @@ class ContentUsageData(BaseRoleAccess):
 		return data
 
 	def getContentUsageDetails(self, channel):
-		""" Used to fetch mastery details of any masteryElement(i.e class, school and student)
+		""" Used to fetch the content usage deails of only channel
 		Args:
-			masteryElement(obj): fetched the school and class mastery
+			channel(str): channel id 
 		Returns:
-			row(dict) : It contains the mastery data of school or class
+			row(dict) : it stores the values and aggregation of that channel_id and it's own meta details
 		"""
 		aggregation = []
 		rows = []
@@ -438,11 +537,9 @@ class ContentUsageData(BaseRoleAccess):
 		return row
 
 	def getAggrigation(self, numberOfAttemptsList,percentCompleteList):
-		""" Used to calculate the aggregation for each masteryElement based on metrics data
+		""" Used to calculate the aggregation for content usage metrics
 		Args:
 			percentCompleteList(list) :  List of completed questions(percentage)
-			percentCorrectList(list) : List of correct questions(percentage)
-			percentStudentCompletedList(list) : List of students completed the topic(percentage)
 			numberOfAttemptsList(int) : List of number of attempts 
 
 		Returns:
@@ -497,6 +594,8 @@ class ContentUsageData(BaseRoleAccess):
 		return result
 
 class SchoolDetails(BaseRoleAccess):
+	""" Used to fetch the school/class of users based on role
+	"""
 	def __init__(self, user, parentLevel):
 		super(self.__class__, self).__init__(user, parentLevel)
 		self.parentLevelMethods = [self.getSchoolsData, self.getSchoolsData, self.getSchoolsData, self.getClassData]	
@@ -507,6 +606,12 @@ class SchoolDetails(BaseRoleAccess):
 		return data
 
 	def getSchoolsData(self):
+		""" Used to show schools hierarchy for user
+		Args:
+			None
+		Returns:
+			totalschools(dict) : dict of schools with it's classes and students as a children
+		"""
 		school_list = []
 		schools = UserInfoSchool.objects.filter(school_id__in = self.institutes)
 		# Get all the schools, if schools exist
@@ -526,6 +631,12 @@ class SchoolDetails(BaseRoleAccess):
 		return self.totalschools
 
 	def getClassData(self):
+		""" Used to get class data for user 
+		Args:
+			None
+		Returns:
+			totalschools(dict) : returns class details with it's students
+		"""
 		class_info = {}
 		class_list = []
 		classes = list(UserInfoClass.objects.filter(class_id__in = self.classes).extra(select={'id':'class_id','name':'class_name'}).values('id','name'))
@@ -547,9 +658,19 @@ class SchoolDetails(BaseRoleAccess):
 
 class TrendDetails(BaseRoleAccess):
 	def __init__(self, user, startTimestamp,endTimestamp, parentLevel, itemId, itemchannelid, std, topicid, channelid, filetrcontetusage):
+		""" Used to get the trend details of selected topic
+		Args:
+			user(object) :  Used to get graph detail for that user
+			startTimestamp(datetime) : start date from where metrics data you want in graph 
+			endTimestamp(datetime) : end date 
+			parentLevel(int) : Used to show the data of channel of topic
+			itemID(str) : channel_id or topic id
+			itemchannelid(str) : channel id
+			std(bool) : True/False. True if user select filter from facility dropdown
+		"""
 		super(self.__class__, self).__init__(user, parentLevel)
-		self.topicID = topicid if topicid != '-1' else ''
-		self.channelID = channelid if channelid != '-1' else ''
+		# self.topicID = topicid if topicid != '-1' else ''
+		# self.channelID = channelid if channelid != '-1' else ''
 		self.start = datetime.datetime.fromtimestamp(startTimestamp)
 		self.end = datetime.datetime.fromtimestamp(endTimestamp)
 		self.itemID = itemId
@@ -560,6 +681,12 @@ class TrendDetails(BaseRoleAccess):
 		# print ("Topic_id:", self.topicID)
 		# print ("Channel_id:", self.channelID)
 	def get_trend(self):
+		""" Used to get the trend details of topic based on role and filetrcontetusage selection
+		Args:
+			None
+		Returns:
+			res(list): It contains metrics value and it's series with datetime data
+		"""
 		total_questions = 0
 		sub_topics_total = 0
 		data = None
@@ -569,18 +696,12 @@ class TrendDetails(BaseRoleAccess):
 		else:
 			content = Content.objects.filter(content_id=self.itemID,channel_id=self.itemchannelID)
 
-		for i in content:
-			total_questions += i.total_questions
-			# sub_topics_total += i.sub_topics_total
-		print ("total_questions:", total_questions)
+		for objcontent in content:
+			total_questions += objcontent.total_questions
+
 		total_students = 1.0
-		# if level == -1 or level == 0:
-		# 	pass
-		print ("Role:", self.role)
-		print ("Level:", self.level)
+
 		if self.role == 0 or self.role == 1 or self.role == 2 and self.level >= 0:
-			# school = UserInfoSchool.objects.filter(school_id=item_id).first()
-			# total_students = school.total_students
 			content = Content.objects.filter(content_id = self.itemID, channel_id = self.itemchannelID).values('topic_id','channel_id').first()
 			if not self.filterCriteria:
 				data = MasteryLevelSchool.objects.filter(school_id__in=self.institutes, content_id=content['topic_id'], channel_id = content['channel_id'], date__gte=self.start,date__lte=self.end).order_by('date')
@@ -591,9 +712,6 @@ class TrendDetails(BaseRoleAccess):
 			# classroom = UserInfoClass.objects.filter(class_id=item_id).first()
 			# total_students = classroom.total_students
 			content = Content.objects.filter(content_id = self.itemID, channel_id = self.itemchannelID).values('topic_id','channel_id').first()
-			# print ("Classes:", self.classes)
-			# print ("Content ID:", contentID)
-			# print ("channel ID:", self.itemchannelID)
 			if not self.filterCriteria:
 				data = MasteryLevelClass.objects.filter(class_id__in=self.classes,content_id=content['topic_id'],channel_id=content['channel_id'],date__gte=self.start,date__lte=self.end).order_by('date')
 			else:
@@ -607,7 +725,7 @@ class TrendDetails(BaseRoleAccess):
 		# 		date__gte=start,date__lte=end).order_by('date')
 		res = {}
 		series = []
-		print ("Data:", data)
+		# print ("Data:", data)
 		# series.append({'name':'# Exercsie mastered','isPercentage':False})
 		# series.append({'name':'# Exercsie attempts','isPercentage':False})
 		# series.append({'name':'% Exercsie mastered','isPercentage':True})
@@ -643,7 +761,6 @@ class TrendDetails(BaseRoleAccess):
 			points.append(temp)
 		res['series'] = series
 		res['points'] = points
-		print("Points:", res['points'])
 		return res
 
 
