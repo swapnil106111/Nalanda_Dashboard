@@ -667,10 +667,13 @@ class TrendDetails(BaseRoleAccess):
 			itemID(str) : channel_id or topic id
 			itemchannelid(str) : channel id
 			std(bool) : True/False. True if user select filter from facility dropdown
+			topicid(str) : topic id to fetch total questions for that topic
+			channelid(str) : channel_id
+			filtetContentUsage(list) : It contains list of schools/class/students based on selection from Facility dropdown
 		"""
 		super(self.__class__, self).__init__(user, parentLevel)
-		# self.topicID = topicid if topicid != '-1' else ''
-		# self.channelID = channelid if channelid != '-1' else ''
+		self.topicID = topicid if topicid != '-1' else ''
+		self.channelID = channelid if channelid != '-1' else ''
 		self.start = datetime.datetime.fromtimestamp(startTimestamp)
 		self.end = datetime.datetime.fromtimestamp(endTimestamp)
 		self.itemID = itemId
@@ -694,7 +697,7 @@ class TrendDetails(BaseRoleAccess):
 		if self.parentLevel == 0:
 			content = Content.objects.filter(topic_id='',content_id = '')
 		else:
-			content = Content.objects.filter(content_id=self.itemID,channel_id=self.itemchannelID)
+			content = Content.objects.filter(content_id=self.topicID,channel_id=self.channelID)
 
 		for objcontent in content:
 			total_questions += objcontent.total_questions
@@ -732,7 +735,7 @@ class TrendDetails(BaseRoleAccess):
 		# series.append({'name':'# Question correct','isPercentage':False})
 		series.append({'name':'# Question attempts','isPercentage':False})
 		# series.append({'name':'% Question Correct','isPercentage':True})
-		series.append({'name':'# Question completed','isPercentage':False})
+		series.append({'name':'% Question completed','isPercentage':True})
 
 		points = []
 		completed_questions_sum = 0
@@ -756,8 +759,8 @@ class TrendDetails(BaseRoleAccess):
 			# temp.append(100.0*mastered_topics/(sub_topics_total))
 			# temp.append(correct_questions_sum)
 			# temp.append(100.0*correct_questions_sum/(attempt_questions_sum))
-			temp.append(completed_questions_sum)
-			# temp.append(100.0*completed_questions_sum/(total_questions))
+			# temp.append(completed_questions_sum)
+			temp.append(100.0*completed_questions_sum/(total_questions))
 			points.append(temp)
 		res['series'] = series
 		res['points'] = points
