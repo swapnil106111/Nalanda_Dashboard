@@ -96,7 +96,7 @@ def register_view(request):
         if form.is_valid():
             institutes =  form.cleaned_data['institutes']
 
-            if not institutes and form.cleaned_data['role'].id == 2 or form.cleaned_data['role'].id == 1:
+            if not institutes and form.cleaned_data['role'].id == 2 :
                 institutes = None
                 response = construct_response(0,"","User need to select atleast one institute", data)
                 form = UserProfileForm()
@@ -115,6 +115,11 @@ def register_view(request):
                 response['form'] = form
                 return render(request,'register.html', response)
 
+            if len(institutesList) == 0 and form.cleaned_data['role'].id == 1:
+                response = construct_response(0,"","User need to select atleast one institute!", data)
+                form = UserProfileForm()
+                response['form'] = form
+                return render(request,'register.html', response)
             user = form.save()
             if classes:
                 for curClass in classes:
