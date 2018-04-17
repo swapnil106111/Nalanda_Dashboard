@@ -96,7 +96,7 @@ def register_view(request):
         if form.is_valid():
             institutes =  form.cleaned_data['institutes']
 
-            if not institutes and form.cleaned_data['role'].id == 2:
+            if not institutes and form.cleaned_data['role'].id == 2 or form.cleaned_data['role'].id == 1:
                 institutes = None
                 response = construct_response(0,"","User need to select atleast one institute", data)
                 form = UserProfileForm()
