@@ -2,6 +2,7 @@ from account.models import *
 from django.contrib.auth.models import User, Group
 from .constants import *
 import datetime
+from itertools import chain
 
 class BaseRoleAccess(object):
 	def __init__(self, user, parentID, parentLevel):
@@ -245,7 +246,7 @@ class UserMasteryData(BaseRoleAccess):
 	"""
 	This function is used to fetch the mastery data of the user
 	"""
-	def __init__(self, user, parentID, parentLevel, topicID, channelID, startTimestamp, endTimestamp):
+	def __init__(self, user, parentID, parentLevel, topicID, channelID, startTimestamp, endTimestamp, channelContetID):
 		super(self.__class__, self).__init__(user, parentID, parentLevel)
 		self.topicID = topicID if topicID[0] != '-1' else ['']
 		self.channelID = channelID if channelID[0] != '-1' else ['']
@@ -254,7 +255,7 @@ class UserMasteryData(BaseRoleAccess):
 		self.endTimestamp = datetime.date.fromtimestamp(int(endTimestamp)).strftime('%Y-%m-%d')
 		self.parentLevelMethods = [self.getInstitutesData, self.getClassData, self.getStudentData]
 		self.parentLevels = { 'institutes':0, 'school':1, 'class':2, 'students': 3 }
-
+		self.channelContetID = channelContetID
 	def getTopicsData(self):
 		""" Used to calculate the total_questions based on the selected topicID and channelID
 		Args:
@@ -298,23 +299,60 @@ class UserMasteryData(BaseRoleAccess):
 		Returns:
 			masteryData(Queryset): It contains mastry logs of each masteryElement
 		"""
+		# print ("channelContetID:", self.channelContetID)
+		if not (self.channelContetID):
+			filterTopics = {'content_id__in':self.topicID}
+			filterTopics['date__range'] = (self.startTimestamp, self.endTimestamp)
 
-		filterTopics = {'content_id__in':self.topicID}
-		filterTopics['date__range'] = (self.startTimestamp, self.endTimestamp)
+			if self.topicID:
+				filterTopics['channel_id__in']=self.channelID
 
-		if self.topicID:
-			filterTopics['channel_id__in']=self.channelID
+			if self.parentLevel == 0:
+				filterTopics['school_id'] = masteryElement
+				masteryData = MasteryLevelSchool.objects.filter(**filterTopics)
+				# result_list = list(chain(masteryData))
+			elif self.parentLevel == 1:
+				filterTopics['class_id'] = masteryElement
+				masteryData = MasteryLevelClass.objects.filter(**filterTopics)
+				# result_list = list(chain(masteryData))
+			elif self.parentLevel == 2:
+				filterTopics['student_id'] = masteryElement
+				masteryData = MasteryLevelStudent.objects.filter(**filterTopics)
+				# result_list = list(chain(masteryData))
+			return masteryData
+		else:
+			result_list = []
+			for (k,v) in  self.channelContetID.items():
+				# print ("Key:", k)
 
-		if self.parentLevel == 0:
-			filterTopics['school_id'] = masteryElement
-			masteryData = MasteryLevelSchool.objects.filter(**filterTopics)
-		elif self.parentLevel == 1:
-			filterTopics['class_id'] = masteryElement
-			masteryData = MasteryLevelClass.objects.filter(**filterTopics)
-		elif self.parentLevel == 2:
-			filterTopics['student_id'] = masteryElement
-			masteryData = MasteryLevelStudent.objects.filter(**filterTopics)
-		return masteryData
+				filterTopics = {'content_id__in':v}
+				filterTopics['date__range'] = (self.startTimestamp, self.endTimestamp)
+
+				# if self.topicID:
+				filterTopics['channel_id']=k
+
+				if self.parentLevel == 0:
+					filterTopics['school_id'] = masteryElement
+					# print ("filterTopics:", filterTopics)
+					masteryData = MasteryLevelSchool.objects.filter(**filterTopics)
+					# print ("masteryData:", masteryData)
+					if masteryData:
+						result_list = (list(chain(masteryData)))
+					# print ("type:", type(result_list))
+				elif self.parentLevel == 1:
+					filterTopics['class_id'] = masteryElement
+					masteryData = MasteryLevelClass.objects.filter(**filterTopics)
+					if masteryData:
+						result_list = list(chain(masteryData))
+				elif self.parentLevel == 2:
+					filterTopics['student_id'] = masteryElement
+					masteryData = MasteryLevelStudent.objects.filter(**filterTopics)
+					if masteryData:
+						result_list = list(chain(masteryData))
+				# print ("filterTopics:", filterTopics)
+			# print ("Mastery Data:", result_list)
+			print ("Result_list:", result_list)
+			return result_list
 
 	def getInstitutesData(self):
 		""" Used to fetch the institutes mastery details
@@ -323,6 +361,7 @@ class UserMasteryData(BaseRoleAccess):
 		Returns:
 			data(dict): It contains rows of mastry data and it's aggregation
 		"""
+		print ("here")
 		res = list(map(self.getMastryLogDetails, self.institutes))
 		aggregationResult = [res['aggregation'] for res in res]
 		data = self.getMasteryAggregationData(aggregationResult, res)
@@ -477,7 +516,7 @@ class UserMasteryData(BaseRoleAccess):
 
 		# Filter mastery level belongs to a certain class with certain topic id, and within certain time range
 		total_students = masteryElement.total_students
-		if total_questions == 0 or total_students == 0 or completed_questions ==0 or correct_questions == 0:
+		if total_questions == 0 or total_students == 0 or completed_questions ==0 or correct_questions == 0 or number_of_exercise_attempts == 0: 
 			values = [0,0,"0.00%",0,0,"0.00%"]
 			aggregation = [0,0,0.00, 0, 0,0.00] 
 			if self.parentLevel == 0:
