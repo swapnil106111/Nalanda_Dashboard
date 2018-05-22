@@ -57,7 +57,13 @@ def get_contentusage_page_data(request):
 	filtercriteriaflag = data.get('std', '')
 	filetrcontetusage = data.get('filetrcontetusage','')
 	current_time = data.get('current','')
-	objContentUsage = ContentUsageData(user, parentLevel, topicID, channelID, startTimestamp, endTimestamp, filtercriteriaflag, filetrcontetusage, current_time)
+	level = data.get('level','')
+	filterdict = data.get('levelDict','')
+	print ("Data:", data)
+	if level==3 or level==2:
+		filetrcontetusage = filterdict[str(level)]
+	print ("filetrcontetusage:", filetrcontetusage)
+	objContentUsage = ContentUsageData(user, parentLevel, topicID, channelID, startTimestamp, endTimestamp, filtercriteriaflag, filetrcontetusage, current_time, level)
 	objContentUsageData = objContentUsage.pageData()
 	response_object = construct_response(0, "", "", objContentUsageData)
 	response_text = json.dumps(response_object,ensure_ascii=False)
