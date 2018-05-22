@@ -24,7 +24,8 @@ var debug = true; // whether to print debug outputs to console
 var selfServe = false;
 var count = 0;
 var setParenrtLevel = false
-
+var channelContentids = {'9e5305326ed742d0892479dea825a514':[], '8fc515793aad4e52b490b03c48ad21de':[], 'c55ea9d8afc7493caacfa8f23b7d385e':[],'e890b1acbcad44939688dbb1b7dde2e5':[],'eb99f209f9c34ba192f6e695aeb37e4f':[],'5e3cea43f5e1411599132065b56f8934':[]};
+// var channeidslist = ['9e5305326ed742d0892479dea825a514','8fc515793aad4e52b490b03c48ad21de','c55ea9d8afc7493caacfa8f23b7d385e','e890b1acbcad44939688dbb1b7dde2e5','eb99f209f9c34ba192f6e695aeb37e4f','5e3cea43f5e1411599132065b56f8934'];
 /** Pragma Mark - Starting Points **/
 
 // Update page (incl. new breadcrumb and all table/diagrams)
@@ -54,11 +55,13 @@ var updatePageContent = function() {
 	        contentId: contentId,
 	        channelId: channelId,
 	        parentLevel: parentLevel,
-	        parentId: parentId
+	        parentId: parentId,
+            channelContentids: channelContentids
 	    }, function(response) {
 		    data2 = response.data;
 		    checkTableDataConsistancy(data1, data2);
             setTableData(response.data);
+            // channelContentids = {};
 	    });
     });
     
@@ -727,24 +730,43 @@ var toggleTopicDropdownExpandAll = function() {
 var applyAndDismissTopicDropdown = function() {
     // var node = $('#topics-tree').fancytree('getTree').getActiveNode();
     var nodes = $('#topics-tree').fancytree('getTree').getSelectedNodes();
-    channelId =[];
-    contentId =[];
+    channelId = [];
+    contentId = [];
+    channelContentids = {'9e5305326ed742d0892479dea825a514':[], '8fc515793aad4e52b490b03c48ad21de':[], 'c55ea9d8afc7493caacfa8f23b7d385e':[],'e890b1acbcad44939688dbb1b7dde2e5':[],'eb99f209f9c34ba192f6e695aeb37e4f':[],'5e3cea43f5e1411599132065b56f8934':[]};
+    var contetlist1 = [];
+    var contetlist2 = [];
     var node = 0;
     if (nodes.length != 0) {
         for(node in nodes){
             if(nodes[node].children == null){
                 var topicIdentifiers = nodes[node].key.split(','); // update global state
-                channelId.push(topicIdentifiers[0]);
+                if (channelId.includes(topicIdentifiers[0]) == false){
+                    channelId.push(topicIdentifiers[0]);
+                }
+
+                // channelId.push(topicIdentifiers[0]);
                 contentId.push(topicIdentifiers[1]);
+                // if (channelContentids.includes(topicIdentifiers[0]) == true){
+                //     contentId.push(topicIdentifiers[1]);
+                //     channelContentids[topicIdentifiers[0]] = contentId   
+                // }  
+                channelAndContent(topicIdentifiers);
             }
-            $('.topic-dropdown-text').html(nodes[node].parent.title); 
+            if (nodes.length == 1){
+                $('.topic-dropdown-text').html(nodes[node].title); 
+            }
+            else{
+                $('.topic-dropdown-text').html("MULTISELECT");
+            }
         } 
+        console.log('result:' +channelContentids);
         if(channelId.length == 0 && contentId.length == 0){
             channelId = ['-1'];
             contentId = ['-1'];
         }
         updatePageContent();
         toggleTopicDropdown();
+
     }
 
     else
@@ -753,6 +775,11 @@ var applyAndDismissTopicDropdown = function() {
     }
 };
 
+var channelAndContent = function(topicidwithchannel){
+    if (topicidwithchannel[0] in channelContentids){
+        channelContentids[topicidwithchannel[0]].push(topicidwithchannel[1]);
+    }
+};
 // Handle click event of a drilldown link
 // UIAction
 var performDrilldown = function(itemId) {
