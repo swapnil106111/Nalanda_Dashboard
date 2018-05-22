@@ -2,19 +2,35 @@ from account.usermastery import BaseRoleAccess
 from usersession.models import * 
 from django.contrib.auth.models import User, Group
 import datetime
-
+from dateutil import parser
 
 class userSessionPageData(BaseRoleAccess):
 	"""
 	This function is used to fetch the user session data of the user
 	"""
-	def __init__(self, user, parentID, parentLevel, startTimestamp, endTimestamp):
+	def __init__(self, user, parentID, parentLevel, startTimestamp, endTimestamp, flag):
 		super(self.__class__, self).__init__(user, parentID, parentLevel)
 		# self.topicID = topicID if topicID != '-1' else ''
 		# self.channelID = channelID
-		endTimestamp = str(int(endTimestamp) + 86400)
-		self.startTimestamp = datetime.date.fromtimestamp(int(startTimestamp)).strftime('%Y-%m-%d')
-		self.endTimestamp = datetime.date.fromtimestamp(int(endTimestamp)).strftime('%Y-%m-%d')
+		# 
+		self.flag = flag
+		if self.flag == 0:
+			print ("inside if")
+			start_date = Student.objects.all().order_by('-date').first()
+			endTimestamp = int(start_date.date.timestamp())
+			self.end = endTimestamp
+			end_date = start_date.date + datetime.timedelta(-7)
+			startTimestamp = int(end_date.timestamp())
+			self.start = startTimestamp 
+			self.startTimestamp = datetime.date.fromtimestamp(int(startTimestamp)).strftime('%Y-%m-%d')
+			self.endTimestamp = datetime.date.fromtimestamp(int(endTimestamp)).strftime('%Y-%m-%d')
+		else:
+			print ("inside else ")
+			# endTimestamp = str(int(endTimestamp) + 86400)
+			self.start = startTimestamp
+			self.end = endTimestamp
+			self.startTimestamp = datetime.date.fromtimestamp(int(startTimestamp)).strftime('%Y-%m-%d')
+			self.endTimestamp = datetime.date.fromtimestamp(int(endTimestamp)).strftime('%Y-%m-%d')
 		self.parentLevelMethods = [self.getInstitutesData, self.getClassData, self.getStudentData]
 		self.parentLevels = { 'institutes':0, 'school':1, 'class':2, 'students': 3 }
 
@@ -27,6 +43,9 @@ class userSessionPageData(BaseRoleAccess):
 		"""
 
 		filterTopics = {}
+		print ("self.startTimestamp:", self.startTimestamp)
+		print ("self.endTimestamp:", self.endTimestamp)
+
 		filterTopics['date__range'] = (self.startTimestamp, self.endTimestamp)
 
 		if self.parentLevel == 0:
@@ -126,7 +145,7 @@ class userSessionPageData(BaseRoleAccess):
 		if len(usersession_students) == 0:
 			values = [0]
 			aggregation = [0] 
-			row = {'id': str(student.student_id), 'name': student.student_name, 'values': values, 'aggregation': aggregation}
+			row = {'id': str(student.student_id), 'name': student.student_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag}
 		else:
 			m, s = divmod(total_usage, 60)
 			h, m = divmod(m, 60)
@@ -134,7 +153,7 @@ class userSessionPageData(BaseRoleAccess):
 			values = [total_active_usage]
 			
 			aggregation = [total_active_usage]
-			row = {'id': str(student.student_id), 'name': student.student_name, 'values': values, 'aggregation': aggregation}
+			row = {'id': str(student.student_id), 'name': student.student_name, 'values': values, 'aggregation': aggregation, 'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag}
 		return row
 
 	def getUserSessionLogDetails(self, usersessionElement):
@@ -160,9 +179,9 @@ class userSessionPageData(BaseRoleAccess):
 			values = [0]
 			aggregation = [0] 
 			if self.parentLevel == 0:
-				row = {'id': str(usersessionElement.school_id), 'name': usersessionElement.school_name, 'values': values, 'aggregation': aggregation}
+				row = {'id': str(usersessionElement.school_id), 'name': usersessionElement.school_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag}
 			else:
-				row = {'id': str(usersessionElement.class_id), 'name': usersessionElement.class_name, 'values': values, 'aggregation': aggregation}
+				row = {'id': str(usersessionElement.class_id), 'name': usersessionElement.class_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag}
 		else:
 			# Calculate the percentage of completed questions
 			total_usersession_usage = float(total_usage) / total_students
@@ -173,9 +192,9 @@ class userSessionPageData(BaseRoleAccess):
 			values = [total_active_usage]
 			aggregation = [total_active_usage]
 			if self.parentLevel == 0:
-				row = {'id': str(usersessionElement.school_id), 'name': usersessionElement.school_name, 'values': values, 'aggregation':aggregation}	
+				row = {'id': str(usersessionElement.school_id), 'name': usersessionElement.school_name, 'values': values, 'aggregation':aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag}	
 			else:
-				row = {'id': str(usersessionElement.class_id), 'name': usersessionElement.class_name, 'values': values, 'aggregation': aggregation}
+				row = {'id': str(usersessionElement.class_id), 'name': usersessionElement.class_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag}
 		return row
 
 

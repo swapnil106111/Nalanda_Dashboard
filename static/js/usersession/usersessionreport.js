@@ -1,14 +1,17 @@
 "use strict";
 
 // globals
+var d = new Date();
 var table = null; // main data table
 var aggregationTable = null; // aggregation rows table
 var compareTable = null; // // datatables object
 var performanceTable = null; // datatables object
 var tableData; // see API specs
 var tableMeta; // see API specs
-var startTimestamp = 1496948693; // default: from server
-var endTimestamp = 1596948693; // default: from server
+var startTimestamp = 0; // default: from server
+// var startTimestamp = Math.round(d.getTime() / 1000); // It will always current day
+// var endTimestamp =  Math.round(d.setDate(d.getDate() - 7)/1000); //it always 7 days before
+var endTimestamp = 0; // default: from server
 var contentId = '-1'; // default: everything
 var channelId = '-1'; // default: everything
 var parentLevel = 0; // default: parent-of-root-level
@@ -24,6 +27,7 @@ var debug = true; // whether to print debug outputs to console
 var selfServe = false;
 var count = 0;
 var setParenrtLevel = false
+var flag = 0;
 
 /** Pragma Mark - Starting Points **/
 
@@ -51,14 +55,16 @@ var updatePageContent = function() {
 	        // contentId: contentId,
 	        // channelId: channelId,
 	        parentLevel: parentLevel,
-	        parentId: parentId
+	        parentId: parentId,
+            flag:flag
 	    }, function(response) {
 		    data2 = response.data;
 		    checkTableDataConsistancy(data1, data2);
             setTableData(response.data);
+            flag = 1;
+            setupDateRangePickerAfterdatareceived(response.data);
 	    });
     });
-    
     dismissTrendChart();
 };
 
@@ -163,10 +169,8 @@ var setupDateRangePicker = function() {
         singleDatePicker: true,
         showDropdowns: true,
         startDate: new Date(startTimestamp * 1000),
-        // endDate: new Date(endTimestamp * 1000)
     }, function(start, end, label) {
     startTimestamp = new Date(start.format('YYYY-MM-DD')).getTime() / 1000;
-    // endTimestamp = new Date(end.format('YYYY-MM-DD')).getTime() / 1000;
     updatePageContent();
     });
 };
@@ -1170,15 +1174,20 @@ var convertTimetoMin = function(totaltime){
     if (totaltime){
     var res = totaltime.split(":"); 
     var totaltimeMin = parseFloat(res[0])*3600 + parseFloat(res[1])*60 + parseFloat(res[2]);
-    return totaltimeMin
+    return totaltimeMin;
     }
 }
+var setupDateRangePickerAfterdatareceived = function(data){
+    startTimestamp= data.rows[0].startTimestamp;
+    endTimestamp  = data.rows[0].endTimestamp;
+    setupDateRangePicker();
+    setupDateRangePickerEndDate();
+};
+
 $(function() {
     google.charts.load('current', {'packages':['line', 'corechart']});
     updateLoadingInfo();
     setupDateRangePicker();
     setupDateRangePickerEndDate();
-    // refreshTopicsDropdown();
     updatePageContent();
-
 });

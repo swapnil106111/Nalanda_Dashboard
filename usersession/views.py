@@ -38,8 +38,9 @@ def get_page_data_view(request):
     # topicID = data.get('contentId', '').strip()
     parentLevel = data.get('parentLevel', -1)
     parentID = int(data.get('parentId', '').strip())
+    flag = data.get('flag', -1)
     # channelID = data.get('channelId', '').strip()
-    objUserSession = userSessionPageData(user, parentID, parentLevel, startTimestamp, endTimestamp)
+    objUserSession = userSessionPageData(user, parentID, parentLevel, startTimestamp, endTimestamp,flag)
     objUserSessionData = objUserSession.getPageData()
     response_object = construct_response(0, "", "", objUserSessionData)
     response_text = json.dumps(response_object,ensure_ascii=False)
@@ -59,7 +60,6 @@ def get_trend_data_view(request):
         end = datetime.datetime.fromtimestamp(end_timestamp)
         level =params.get('level')
         item_id = params.get('itemId')
-        
         data = None
         content = None
         # if topic_id == "-1":
@@ -100,6 +100,7 @@ def get_trend_data_view(request):
             temp = []
             # print("ele.total_usage:", ele.total_usage)
             total_usersession_usage += ele.total_usage
+            k = time.mktime(ele.date.timetuple())
             temp.append(time.mktime(ele.date.timetuple()))
             # temp.append(mastered_topics)
             # print("total_usersession_usage:", total_usersession_usage)
@@ -107,9 +108,8 @@ def get_trend_data_view(request):
             # print ("k:", k)
             m, s = divmod(k, 60)
             temp.append(m)
-            
             points.append(temp)
-        # print ("points:", points)
+        # print ("temp:", temp)
         res['series'] = series
         res['points'] = points
         #data_str = serializers.serialize('json', data)
