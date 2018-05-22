@@ -25,12 +25,18 @@ var debug = true; // whether to print debug outputs to console
 var selfServe = false;
 var count = 0;
 var std = false;
+var flag = 0;
 // var maxval = false;
-var setParenrtLevel = false
-var contentID = '-1' // Defined for content usage metrics
-var channelID = '-1'
-var objpreviouscontentlID= ['-1']
-var objpreviouschannelID = ['-1']
+var setParenrtLevel = false;
+var contentID = '-1';// Defined for content usage metrics
+var channelID = '-1';
+var objpreviouscontentlID= ['-1'];
+var objpreviouschannelID = ['-1'];
+var test = []; 
+var level = 0;
+var levelDict = {};
+var count1 = [];
+var count2 = [];
 
 /** Pragma Mark - Starting Points **/
 
@@ -69,14 +75,19 @@ var updatePageContent = function() {
             std:std,
 	        parentLevel: parentLevel,
 	        parentId: parentId,
-            current:current
+            current:current,
+            level : level,
+            levelDict : levelDict,
+            flag: flag
 	    }, function(response) {
 		    data2 = response.data;
 		    checkTableDataConsistancy(data1, data2);
             setTableData(response.data);
+            // levelDict={};
+            count1 = [];
+            count2 = [];
 	    });
     });
-    
     dismissTrendChart();
 };
 
@@ -749,16 +760,39 @@ var applyAndDismissTopicDropdown = function() {
     // var node = $('#topics-tree').fancytree('getTree').getActiveNode();
     var nodes = $('#topics-tree').fancytree('getTree').getSelectedNodes();
     filetrcontetusage = []
+    test = []
+    var count = 0
+    var role = document.getElementById("userid").value;
+    if (role != ""){
+        role = parseInt(document.getElementById("userid").value);
+    }
+    // alert(role);
     // contentId =[];
     var node = 0;
     if (nodes.length != 0) {
         for(node in nodes){
-            if(nodes[node].children == null){
+            if(nodes[node].children == null && nodes[node].getLevel() == 4 && role != 3){
                 var selectionIdentifiers = nodes[node].key; // update global state
                 filetrcontetusage.push(selectionIdentifiers);
                 std = true;
-                // contentId.push(topicIdentifiers[1]);
+                level = nodes[0].getLevel()
             }
+            else if (nodes[node].children == null && nodes[node].getLevel() == 3 && role == 3) {
+                level = nodes[0].getLevel()
+                std = true;
+            }
+            else if (nodes[node].children == null && nodes[node].getLevel() == 2 && role == 3) {
+                level = nodes[0].getLevel()
+                std = true;
+            }
+            else if(nodes[node].children.length > 0 && nodes[node].getLevel() == 3 && role != 3){
+                level = nodes[0].getLevel()
+            }
+            else if(nodes[node].children.length > 0 && nodes[node].getLevel() == 2 && role != 3){
+                level = nodes[0].getLevel()
+            }
+            
+            getTotalCount(nodes[node]);
             $('.topic-dropdown-text').html(nodes[node].parent.title); 
         } 
         // if(channelId.length == 0 && contentId.length == 0){
@@ -774,6 +808,17 @@ var applyAndDismissTopicDropdown = function() {
         toastr.warning('You must select a topic to apply the filter.');
     }
 };
+
+var getTotalCount = function(node){
+    if (node.getLevel() == 3){
+        count1.push(node.key);
+        levelDict[node.getLevel()] = count1
+    }
+    else if (node.getLevel() == 2){
+        count2.push(node.key);
+        levelDict[node.getLevel()] = count2
+    } 
+}
 
 // Handle click event of a drilldown link
 // UIAction
