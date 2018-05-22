@@ -212,7 +212,7 @@ class ContentUsageMeta(BaseRoleAccess):
 		return response_object 
 
 class ContentUsageData(BaseRoleAccess):
-	def __init__(self, user, parentLevel, topicID, channelID, startTimestamp, endTimestamp, filterCriteria, filtetContentUsage, current_time1):
+	def __init__(self, user, parentLevel, topicID, channelID, startTimestamp, endTimestamp, filterCriteria, filtetContentUsage, current_time1, level):
 		""" It's used to set the conte usage data based on channel selection
 		Args:
 			user(object) : logined user
@@ -233,6 +233,7 @@ class ContentUsageData(BaseRoleAccess):
 		self.parentLevelMethods = [self.getChannelData, self.getChannelData, self.getChannelData, self.getChannelData]
 		self.filterCriteria = filterCriteria
 		self.filtetContentUsage = filtetContentUsage
+		self.level = level
 		# self.current_time = datetime.date.fromtimestamp(current_time1/1e3).strftime('%Y-%m-%d %H:%S')
 		# self.current_time1 = current_time1
 
@@ -275,15 +276,34 @@ class ContentUsageData(BaseRoleAccess):
 		filterTopics['channel_id'] = channel
 		filterTopics['content_id'] = channel
 
-		if not self.filterCriteria and self.role != 3:
+		print ("self.filterCriteria:", self.filterCriteria)
+		if not self.filterCriteria and self.role != 3 and self.level == 0:
 			filterTopics['school_id__in'] = self.institutes
 			channeldata = MasteryLevelSchool.objects.filter(**filterTopics)
-		elif self.role == 3:
+		elif self.filterCriteria and self.role != 3 and self.level == 2:
+			filterTopics['school_id__in'] = self.filtetContentUsage
+			channeldata = MasteryLevelSchool.objects.filter(**filterTopics)
+		elif self.filterCriteria and self.role != 3 and self.level == 3:
+			filterTopics['class_id__in'] = self.filtetContentUsage
+			channeldata = MasteryLevelClass.objects.filter(**filterTopics)
+		elif self.filterCriteria and self.role != 3 and self.level == 4:
+			filterTopics['student_id_id__in'] = self.filtetContentUsage
+			channeldata = MasteryLevelStudent.objects.filter(**filterTopics)
+		elif not self.filterCriteria  and self.role == 3 and  self.level == 0:
+			filterTopics['class_id__in'] = self.classes
+			channeldata = MasteryLevelClass.objects.filter(**filterTopics)
+		elif self.filterCriteria  and self.role == 3 and  self.level == 2:
+			filterTopics['class_id__in'] = self.filtetContentUsage
+			channeldata = MasteryLevelClass.objects.filter(**filterTopics)
+		elif self.filterCriteria  and self.role == 3 and  self.level == 1:
 			filterTopics['class_id__in'] = self.classes
 			channeldata = MasteryLevelClass.objects.filter(**filterTopics)
 		else:
 			filterTopics['student_id_id__in'] = self.filtetContentUsage
 			channeldata = MasteryLevelStudent.objects.filter(**filterTopics)
+		# else:
+		# 	filterTopics['student_id_id__in'] = self.filtetContentUsage
+		# 	channeldata = MasteryLevelStudent.objects.filter(**filterTopics)
 		return channeldata
 
 	def getContentData(self, content_id, channel_id):
@@ -340,15 +360,33 @@ class ContentUsageData(BaseRoleAccess):
 		filterTopics['channel_id'] = channel_id
 		filterTopics['content_id'] = content_id
 
-		if not self.filterCriteria and self.role != 3:
+		if not self.filterCriteria and self.role != 3 and self.level == 0:
 			filterTopics['school_id__in'] = self.institutes
 			channel_content_usage = MasteryLevelSchool.objects.filter(**filterTopics)
-		elif self.role == 3:
+
+		elif self.filterCriteria and self.role != 3 and self.level == 2:
+			filterTopics['school_id__in'] = self.filtetContentUsage
+			channel_content_usage = MasteryLevelSchool.objects.filter(**filterTopics)
+		elif self.filterCriteria and self.role != 3 and self.level == 3:
+			filterTopics['class_id__in'] = self.filtetContentUsage
+			channel_content_usage = MasteryLevelClass.objects.filter(**filterTopics)
+		elif self.filterCriteria and self.role != 3 and self.level == 4:
+			filterTopics['student_id_id__in'] = self.filtetContentUsage
+			channel_content_usage = MasteryLevelStudent.objects.filter(**filterTopics)
+		elif not self.filterCriteria  and self.role == 3 and  self.level == 0:
+			filterTopics['class_id__in'] = self.classes
+			channel_content_usage = MasteryLevelClass.objects.filter(**filterTopics)
+		elif self.filterCriteria  and self.role == 3 and  self.level == 2:
+			filterTopics['class_id__in'] = self.filtetContentUsage
+			channeldata = MasteryLevelClass.objects.filter(**filterTopics)
+		elif self.filterCriteria  and self.role == 3 and  self.level == 1:
 			filterTopics['class_id__in'] = self.classes
 			channel_content_usage = MasteryLevelClass.objects.filter(**filterTopics)
 		else:
 			filterTopics['student_id_id__in'] = self.filtetContentUsage
 			channel_content_usage = MasteryLevelStudent.objects.filter(**filterTopics)
+		# 	filterTopics['student_id_id__in'] = self.filtetContentUsage
+		# 	channel_content_usage = MasteryLevelStudent.objects.filter(**filterTopics)
 
 		return channel_content_usage
 
