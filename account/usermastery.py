@@ -299,7 +299,6 @@ class UserMasteryData(BaseRoleAccess):
 		Returns:
 			masteryData(Queryset): It contains mastry logs of each masteryElement
 		"""
-		# print ("channelContetID:", self.channelContetID)
 		if not (self.channelContetID):
 			filterTopics = {'content_id__in':self.topicID}
 			filterTopics['date__range'] = (self.startTimestamp, self.endTimestamp)
@@ -310,21 +309,16 @@ class UserMasteryData(BaseRoleAccess):
 			if self.parentLevel == 0:
 				filterTopics['school_id'] = masteryElement
 				masteryData = MasteryLevelSchool.objects.filter(**filterTopics)
-				# result_list = list(chain(masteryData))
 			elif self.parentLevel == 1:
 				filterTopics['class_id'] = masteryElement
 				masteryData = MasteryLevelClass.objects.filter(**filterTopics)
-				# result_list = list(chain(masteryData))
 			elif self.parentLevel == 2:
 				filterTopics['student_id'] = masteryElement
 				masteryData = MasteryLevelStudent.objects.filter(**filterTopics)
-				# result_list = list(chain(masteryData))
 			return masteryData
 		else:
 			result_list = []
 			for (k,v) in  self.channelContetID.items():
-				# print ("Key:", k)
-
 				filterTopics = {'content_id__in':v}
 				filterTopics['date__range'] = (self.startTimestamp, self.endTimestamp)
 
@@ -333,25 +327,19 @@ class UserMasteryData(BaseRoleAccess):
 
 				if self.parentLevel == 0:
 					filterTopics['school_id'] = masteryElement
-					# print ("filterTopics:", filterTopics)
 					masteryData = MasteryLevelSchool.objects.filter(**filterTopics)
-					# print ("masteryData:", masteryData)
 					if masteryData:
-						result_list = (list(chain(masteryData)))
-					# print ("type:", type(result_list))
+						result_list.extend(list(chain(masteryData)))
 				elif self.parentLevel == 1:
 					filterTopics['class_id'] = masteryElement
 					masteryData = MasteryLevelClass.objects.filter(**filterTopics)
 					if masteryData:
-						result_list = list(chain(masteryData))
+						result_list.extend(list(chain(masteryData)))
 				elif self.parentLevel == 2:
 					filterTopics['student_id'] = masteryElement
 					masteryData = MasteryLevelStudent.objects.filter(**filterTopics)
 					if masteryData:
-						result_list = list(chain(masteryData))
-				# print ("filterTopics:", filterTopics)
-			# print ("Mastery Data:", result_list)
-			print ("Result_list:", result_list)
+						result_list.extend(list(chain(masteryData)))
 			return result_list
 
 	def getInstitutesData(self):
@@ -361,7 +349,6 @@ class UserMasteryData(BaseRoleAccess):
 		Returns:
 			data(dict): It contains rows of mastry data and it's aggregation
 		"""
-		print ("here")
 		res = list(map(self.getMastryLogDetails, self.institutes))
 		aggregationResult = [res['aggregation'] for res in res]
 		data = self.getMasteryAggregationData(aggregationResult, res)
