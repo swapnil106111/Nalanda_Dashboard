@@ -25,7 +25,6 @@ var debug = true; // whether to print debug outputs to console
 var selfServe = false;
 var count = 0;
 var std = false;
-var flag = 0;
 // var maxval = false;
 var setParenrtLevel = false;
 var contentID = '-1';// Defined for content usage metrics
@@ -77,8 +76,7 @@ var updatePageContent = function() {
 	        parentId: parentId,
             current:current,
             level : level,
-            levelDict : levelDict,
-            flag: flag
+            levelDict : levelDict
 	    }, function(response) {
 		    data2 = response.data;
 		    checkTableDataConsistancy(data1, data2);
@@ -793,7 +791,13 @@ var applyAndDismissTopicDropdown = function() {
             }
             
             getTotalCount(nodes[node]);
-            $('.topic-dropdown-text').html(nodes[node].parent.title); 
+            if (nodes.length == 1){
+                $('.topic-dropdown-text').html(nodes[node].title); 
+            }
+            else{
+                $('.topic-dropdown-text').html("MULTISELECT"); 
+            }
+            
         } 
         // if(channelId.length == 0 && contentId.length == 0){
         //     channelId = ['-1'];

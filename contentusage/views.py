@@ -45,6 +45,7 @@ def get_contentusage_page_meta(request):
 	return HttpResponse(response_text,content_type='application/json')
 
 def get_contentusage_page_data(request):
+	print ("dsdws")
 	user = request.user
 	body_unicode = request.body.decode('utf-8')
 	data = json.loads(body_unicode)
@@ -59,10 +60,8 @@ def get_contentusage_page_data(request):
 	current_time = data.get('current','')
 	level = data.get('level','')
 	filterdict = data.get('levelDict','')
-	print ("Data:", data)
 	if level==3 or level==2:
 		filetrcontetusage = filterdict[str(level)]
-	print ("filetrcontetusage:", filetrcontetusage)
 	objContentUsage = ContentUsageData(user, parentLevel, topicID, channelID, startTimestamp, endTimestamp, filtercriteriaflag, filetrcontetusage, current_time, level)
 	objContentUsageData = objContentUsage.pageData()
 	response_object = construct_response(0, "", "", objContentUsageData)

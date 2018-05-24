@@ -276,7 +276,6 @@ class ContentUsageData(BaseRoleAccess):
 		filterTopics['channel_id'] = channel
 		filterTopics['content_id'] = channel
 
-		print ("self.filterCriteria:", self.filterCriteria)
 		if not self.filterCriteria and self.role != 3 and self.level == 0:
 			filterTopics['school_id__in'] = self.institutes
 			channeldata = MasteryLevelSchool.objects.filter(**filterTopics)
@@ -387,7 +386,6 @@ class ContentUsageData(BaseRoleAccess):
 			channel_content_usage = MasteryLevelStudent.objects.filter(**filterTopics)
 		# 	filterTopics['student_id_id__in'] = self.filtetContentUsage
 		# 	channel_content_usage = MasteryLevelStudent.objects.filter(**filterTopics)
-
 		return channel_content_usage
 
 	def getContentUsageDrillDownDetails(self, content_id, channel_id, maxval):
@@ -719,8 +717,7 @@ class TrendDetails(BaseRoleAccess):
 		self.filterCriteria = std
 		self.level = parentLevel
 		self.filtetContentUsage = filetrcontetusage
-		# print ("Topic_id:", self.topicID)
-		# print ("Channel_id:", self.channelID)
+
 	def get_trend(self):
 		""" Used to get the trend details of topic based on role and filetrcontetusage selection
 		Args:
