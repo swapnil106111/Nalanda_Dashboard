@@ -15,7 +15,6 @@ class userSessionPageData(BaseRoleAccess):
 		# 
 		self.flag = flag
 		if self.flag == 0:
-			print ("inside if")
 			start_date = Student.objects.all().order_by('-date').first()
 			endTimestamp = int(start_date.date.timestamp())
 			self.end = endTimestamp
@@ -25,7 +24,6 @@ class userSessionPageData(BaseRoleAccess):
 			self.startTimestamp = datetime.date.fromtimestamp(int(startTimestamp)).strftime('%Y-%m-%d')
 			self.endTimestamp = datetime.date.fromtimestamp(int(endTimestamp)).strftime('%Y-%m-%d')
 		else:
-			print ("inside else ")
 			# endTimestamp = str(int(endTimestamp) + 86400)
 			self.start = startTimestamp
 			self.end = endTimestamp
@@ -43,8 +41,6 @@ class userSessionPageData(BaseRoleAccess):
 		"""
 
 		filterTopics = {}
-		print ("self.startTimestamp:", self.startTimestamp)
-		print ("self.endTimestamp:", self.endTimestamp)
 
 		filterTopics['date__range'] = (self.startTimestamp, self.endTimestamp)
 
@@ -145,7 +141,7 @@ class userSessionPageData(BaseRoleAccess):
 		if len(usersession_students) == 0:
 			values = [0]
 			aggregation = [0] 
-			row = {'id': str(student.student_id), 'name': student.student_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag}
+			row = {'id': str(student.student_id), 'name': student.student_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage}
 		else:
 			m, s = divmod(total_usage, 60)
 			h, m = divmod(m, 60)
@@ -153,7 +149,7 @@ class userSessionPageData(BaseRoleAccess):
 			values = [total_active_usage]
 			
 			aggregation = [total_active_usage]
-			row = {'id': str(student.student_id), 'name': student.student_name, 'values': values, 'aggregation': aggregation, 'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag}
+			row = {'id': str(student.student_id), 'name': student.student_name, 'values': values, 'aggregation': aggregation, 'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage}
 		return row
 
 	def getUserSessionLogDetails(self, usersessionElement):
@@ -179,9 +175,9 @@ class userSessionPageData(BaseRoleAccess):
 			values = [0]
 			aggregation = [0] 
 			if self.parentLevel == 0:
-				row = {'id': str(usersessionElement.school_id), 'name': usersessionElement.school_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag}
+				row = {'id': str(usersessionElement.school_id), 'name': usersessionElement.school_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage}
 			else:
-				row = {'id': str(usersessionElement.class_id), 'name': usersessionElement.class_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag}
+				row = {'id': str(usersessionElement.class_id), 'name': usersessionElement.class_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage}
 		else:
 			# Calculate the percentage of completed questions
 			total_usersession_usage = float(total_usage) / total_students
@@ -192,9 +188,9 @@ class userSessionPageData(BaseRoleAccess):
 			values = [total_active_usage]
 			aggregation = [total_active_usage]
 			if self.parentLevel == 0:
-				row = {'id': str(usersessionElement.school_id), 'name': usersessionElement.school_name, 'values': values, 'aggregation':aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag}	
+				row = {'id': str(usersessionElement.school_id), 'name': usersessionElement.school_name, 'values': values, 'aggregation':aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage}	
 			else:
-				row = {'id': str(usersessionElement.class_id), 'name': usersessionElement.class_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag}
+				row = {'id': str(usersessionElement.class_id), 'name': usersessionElement.class_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage}
 		return row
 
 
@@ -233,9 +229,37 @@ class userSessionPageData(BaseRoleAccess):
 		    average = {'name': 'Average', 'values': values}
 		    aggregation.append(average)
 		return aggregation
-	
+
+	def getAggrigation_citywise(self, schools):
+		school_aggr_city = []
+		l = {'R':([], 'Rajsthan'), 'P':([],'Pune'), 'D':([],'Delhi'), 'M':([],'Mumbai')}
+
+		for school in schools:
+			if school['name'][0] in l.keys():
+				l[school['name'][0]][0].append(school['total'])
+		
+		total_active_usage  = 0
+		for k,v in l.items():
+			p = {}
+			total_active_usage  = 0
+			if k in l.keys():
+				if len(v[0]) > 0:
+					result = sum(v[0])/len(v[0])
+					m, s = divmod(result, 60)
+					h, m = divmod(m, 60)
+					total_active_usage = "%d:%02d:%02d" % (h, m, s)
+					p['name'] = l[k][1]
+					p['values'] = total_active_usage
+				else:
+					p['name'] = l[k][1]
+					p['values'] = total_active_usage
+				school_aggr_city.append(p)
+		return school_aggr_city
+
 	def getPageData(self):
 		result = self.parentLevelMethods[self.parentLevel]()
+		school_aggr_city = self.getAggrigation_citywise(result['rows'])
+		result['total'] = school_aggr_city
 		return result
 
 
