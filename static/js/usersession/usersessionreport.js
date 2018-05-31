@@ -2,6 +2,7 @@
 
 // globals
 var d = new Date();
+var citytable = null;
 var table = null; // main data table
 var aggregationTable = null; // aggregation rows table
 var compareTable = null; // // datatables object
@@ -244,7 +245,9 @@ var setTableMeta = function(data) {
         for (idx in data.metrics) {
             $('#data-table .trend-column').before('<th>' + data.metrics[idx].displayName + '</th>');
             // $('#data-table .trend-column').before('<th> ' + data.metrics[idx].displayName+'<span class="tooltip">'+ data.metrics[idx].toolTip +'</span>' +'</th>');
+            
             $('#aggregation-table .trend-column').before('<th>' + data.metrics[idx].displayName + '</th>');
+            $('#data-table-aggregation .trend-column').before('<th>' + data.metrics[idx].displayName + '</th>');
             $('#data-compare-table .dropdown-menu').append('<li><a href="#" onclick="setCompareMetricIndex(' + idx + ')">' + data.metrics[idx].displayName + '</a></li>');
             $('#data-performance-table .dropdown-menu-metric').append('<li><a href="#" onclick="setPerformanceMetricIndex(' + idx + ')">' + data.metrics[idx].displayName + '</a></li>');
         }
@@ -310,6 +313,37 @@ var setTableMeta = function(data) {
             buttons: ['pageLength'],
             lengthMenu: sharedLengthMenu
         });
+
+        citytable = $('#data-table-aggregation').DataTable({
+            columnDefs: [
+                { orderable: false, targets: 1}
+            ],
+            // order: [[0, 'asc']],
+            dom: 'Bfrtip',
+            buttons: ['pageLength',
+                {
+                    extend: 'csv',           
+                    exportOptions: {
+                        columns: [0,1] // indexes of the columns that should be printed,
+                    }                      // Exclude indexes that you don't want to print.
+                },
+                {
+                    extend: 'excel',
+                    exportOptions: {
+                        columns: [0,1] 
+                    }
+
+                },
+                {
+                    extend: 'pdf',
+                    exportOptions: {
+                        columns: [0,1] 
+                    }
+                }
+            ],  
+            //buttons: ['pageLength'/*, 'copy'*/, 'csv', 'excel', 'pdf'/*, 'print'*/],
+            lengthMenu: sharedLengthMenu
+        });
     
         // manually toggle dropdown; stop event propagation to avoid unintentional table reorders
         $('thead .dropdown button').on('click', function(e){
@@ -321,6 +355,7 @@ var setTableMeta = function(data) {
     // remove current rows
     
     table.clear();
+    citytable.clear();
     compareTable.clear();
     performanceTable.clear();
     aggregationTable.clear();
@@ -364,7 +399,7 @@ var setTableData = function(data) {
     var idx;
     var tq;
     var te;
-    
+    var table1;
     // update data rows
     for (idx in data.rows) {
         var array = JSON.parse(JSON.stringify(data.rows[idx].values)); // deep copy an array
@@ -385,6 +420,13 @@ var setTableData = function(data) {
         aggregationTable.row.add(array).draw(false);
     }
 
+    
+    for (idx in data.total){
+        var array = [] ;
+        array.push(data.total[idx].name, data.total[idx].values)
+        array.push('');
+        citytable.row.add(array).draw(false);
+    }
     precalculate();
     setCompareMetricIndex(compareMetricIndex);
     setPerformanceMetricIndex(performanceMetricIndex);
