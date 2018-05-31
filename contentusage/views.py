@@ -45,7 +45,6 @@ def get_contentusage_page_meta(request):
 	return HttpResponse(response_text,content_type='application/json')
 
 def get_contentusage_page_data(request):
-	print ("dsdws")
 	user = request.user
 	body_unicode = request.body.decode('utf-8')
 	data = json.loads(body_unicode)
