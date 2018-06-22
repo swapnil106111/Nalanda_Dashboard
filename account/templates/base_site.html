@@ -20,6 +20,7 @@
             <li class="navigation-item"><a href="{% url 'get_report_mastery' 'mastery' %}">Mastery</a></li>
             <li class="navigation-item"><a href="{% url 'get_report_mastery' 'session' %}">User session</a></li>
             <li class="navigation-item"><a href="{% url 'get_contentusage' %}">Content Usage</a></li>
+            <li class="navigation-item"><a href="{% url 'get_lesson_mastery' %}">Lesson Mastery</a></li>
         {% else %}
 
         <li class="heading">Welcome: {{ user.username }}</li>
@@ -27,6 +28,7 @@
         <li class="navigation-item"><a href="{% url 'get_report_mastery' 'mastery' %}">Mastery</a></li>
         <li class="navigation-item"><a href="{% url 'get_report_mastery' 'session' %}">User session</a></li>
         <li class="navigation-item"><a href="{% url 'get_contentusage' %}">Content Usage</a></li>
+        <li class="navigation-item"><a href="{% url 'get_lesson_mastery' %}">Lesson Mastery</a></li>
         {% endif %}
         
     </ul>
