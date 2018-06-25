@@ -12,14 +12,14 @@ class LessonDetails(BaseRoleAccess):
 	"""
 	def __init__(self, user, parentLevel):
 		super(self.__class__, self).__init__(user, parentLevel)
-		self.parentLevelMethods = [self.getSchoolsData, self.getSchoolsData, self.getSchoolsData, self.getClassData]	
+		self.parentLevelMethods = [self.getLessonsData, self.getLessonsData, self.getLessonsData, self.getClassData]	
 		self.totalschools = {}
 
 	def convert_to_string(self, data):
 		data['id'] = str(data['id'])
 		return data
 
-	def getSchoolsData(self):
+	def getLessonsData(self):
 		""" Used to show schools hierarchy for user
 		Args:
 			None
@@ -69,3 +69,20 @@ class LessonDetails(BaseRoleAccess):
 	def getPageData(self):
 		result = self.parentLevelMethods[self.role]()
 		return result
+
+class LessonMastery(object):
+	def __init__(self, lesson_id):
+		self.lesson_id = lesson_id
+		self.lesson_content = Lesson.objects.filter(lesson_id=self.lesson_id).values('lesson_content')
+		self.res = json.loads(self.lesson_content[0]['lesson_content'])
+		self.content_list = list((map(lambda x: x['content_id'], self.res)))
+		self.class_id = Lesson.objects.filter(lesson_id=self.lesson_id).values('class_id')[0]['class_id']
+		
+	def get_lesson_content(self):
+		topic_list = Content.objects.filter(content_id__in=self.content_list).values_list('topic_name', flat=True)
+
+	def get_lesson_mastery_results(self):
+		pass
+
+
+
