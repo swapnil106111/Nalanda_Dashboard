@@ -75,14 +75,55 @@ class LessonMastery(object):
 		self.lesson_id = lesson_id
 		self.lesson_content = Lesson.objects.filter(lesson_id=self.lesson_id).values('lesson_content')
 		self.res = json.loads(self.lesson_content[0]['lesson_content'])
-		self.content_list = list((map(lambda x: x['content_id'], self.res)))
+		self.content_list = list((map(lambda x: x['contentnode_id'], self.res)))
 		self.class_id = Lesson.objects.filter(lesson_id=self.lesson_id).values('class_id')[0]['class_id']
-		
+		self.metrics_list = ['completed_questions', 'correct_questions', 'mastered']
+	
 	def get_lesson_content(self):
-		topic_list = Content.objects.filter(content_id__in=self.content_list).values_list('topic_name', flat=True)
+		columns = [{'name':'first', 'title':'Student Name'}, {'name': 'second','title': 'Metrics'}]
+		topic_dict = {}
+		topic_list = Content.objects.filter(topic_id__in=self.content_list).values_list('topic_name', flat=True)
+		for topic in topic_list:
+			topic_dict['title'] = topic
+			columns.append(topic_dict)
+			topic_dict = {}
+		return columns
 
 	def get_lesson_mastery_results(self):
-		pass
+		student_res_list = []
+		i_student = []
+		student_list = UserInfoStudent.objects.filter(parent = self.class_id).values('student_id', 'student_name')
+		for student in student_list:
+			for metrics in self.metrics_list:
+				res = list(MasteryLevelStudent.objects.filter(student_id = student['student_id']).filter(content_id__in = self.content_list).values_list(metrics,flat=True))
+				res = self.set_default_metrics_data(res)
+				i_student.append(student['student_name'])
+				i_student.append(metrics)
+				if res:
+					i_student.extend(res)	
+				student_res_list.append(i_student)
+				i_student = []
+		return student_res_list
+
+	def set_default_metrics_data(self, data):
+		metrics_data = []
+		if not data:
+			[metrics_data.append(0) for i in self.content_list]
+		if len(data) != len(self.content_list):
+			[data.append(0) for i in range(len(self.content_list)-len(data))]
+			metrics_data = data
+		else:
+			metrics_data = data
+		return metrics_data
+	def get_lesson_mastery_data(self):
+		data = {}
+		columns = self.get_lesson_content()
+		rows = self.get_lesson_mastery_results()
+		data['columns'] = columns
+		data['rows'] = rows
+		return data
+		
+
 
 
 
