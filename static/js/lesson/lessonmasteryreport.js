@@ -36,7 +36,8 @@ var level = 0;
 var levelDict = {};
 var count1 = [];
 var count2 = [];
-
+var lessonID = '' // Lesson ID 
+var dataTable = null;
 /** Pragma Mark - Starting Points **/
 
 // Update page (incl. new breadcrumb and all table/diagrams)
@@ -49,28 +50,15 @@ var updatePageContent = function() {
     var data1 = null;
     var data2 = null;
     
-    sendPOSTRequest('/contentusage/api/contentusage/get-page-data', {
+    sendPOSTRequest('/lesson/api/lesson/get-page-data', {
         startTimestamp: startTimestamp,
         endTimestamp: endTimestamp,
-        contentId: contentID,
-        channelId: channelID,
-        filetrcontetusage:filetrcontetusage,
-        std:std,
-        parentLevel: parentLevel,
-        parentId: parentId,
-        current:current,
-        level : level,
-        levelDict : levelDict
+        lessonID : lessonID
     }, function(response) {
-	    // data2 = response.data;
-	    // checkTableDataConsistancy(data1, data2);
-        // setTableData(response.data);
-        // levelDict={};
-        console.log("Data:"+ response.data)
+        setDummyData(response.data,response.code);
         count1 = [];
         count2 = [];
     });
-    dismissTrendChart();
 };
 
 // Fetch topics by calling API and update the dropdown menu
@@ -131,27 +119,6 @@ var setLoadingInfo = function(message) {
     
     $('.loading-info').html(message);
     $('.loading-info-container').removeClass('hidden');
-};
-
-// Clears current breadcrumb and sets it to a new one according to given data.
-// Uses `appendBreadcrumbItem`
-// Called every time the page needs update
-var setBreadcrumb = function(data) {
-    $('.report-breadcrumb').html('');
-    var len = data.breadcrumb.length;
-    if (len == 1){
-        parentLevel = data.breadcrumb[0].parentLevel 
-    }
-
-    // alert(parentLevel)
-    var idx;
-    for (idx in data.breadcrumb) {
-        var o = data.breadcrumb[idx];
-        var lastItem = idx == len - 1;
-        appendBreadcrumbItem(o.parentName, o.parentLevel, o.parentId, o.channelId, lastItem);
-        // contentID = o.parentId // Defined for content usage metrics
-        // channelID = o.channelId
-    }
 };
 
 // Initializes the schools dropdown according to given data
@@ -236,39 +203,41 @@ var buildLessonsDropdown = function(data) {
 // Instantiate both tables, insert rows with data partially populated
 // Called every time the page needs update
 var metaSetOnce = false;
-var setDummyData = function() {
-  var data = [
-    ['Sagar','Exercise Mastered',  10, 15],
-    ['Sagar','Questions  Attempts', 50, 90],
-    ['Sagar', 'Questions Correct', 30, 70],
-    ['Mahesh', 'Exercise Mastered', 20, 80],
-    ['Mahesh', 'Questions  Attempts', 50, 70],
-    ['Mahesh', 'Questions Correct', 40, 40],
-  ];
-  var table = $('#data-table').DataTable({
-    columns: [
-        {
-            name: 'first',
-            title: 'Student Name',
-        },
-        {
-            name: 'second',
-            title: 'Metrics',
-        },
-        {
-            title: 'Addition',
-        }, 
-        {
-            title: 'Substraction',
-        },
-    ],
-    data: data,
-    rowsGroup: [
-      'first:name',
-      'second:name'
-    ],
-    // pageLength: '20',
-    });
+var setDummyData = function(lessonData, code) {
+    if (code == 2001){
+        dataTable = $('#data-table').DataTable({
+            columns: [
+            {
+                'name': 'first',
+                'title': 'Student Name',
+            },
+            {
+                'name': 'second',
+                'title': 'Metrics',
+            }
+            ]
+        });   
+    }
+    else{
+        var data = lessonData['rows']
+        var column = lessonData['columns']
+        //alert(column);
+        if (dataTable != null)
+        { 
+            dataTable.destroy();
+            $('#data-table').html('');
+            
+        }
+        dataTable = $('#data-table').DataTable({
+        columns: column,
+        data: data,
+        rowsGroup: [
+          'first:name',
+          'second:name'
+        ],
+        // pageLength: '20',
+        });
+    } 
 }
 
 
@@ -331,62 +300,18 @@ var toggleTopicDropdownExpandAll = function() {
 // Apply currently selected topic, dismiss the dropdown, and update the page (async)
 // UIAction
 var applyAndDismissTopicDropdown = function() {
-    // var node = $('#topics-tree').fancytree('getTree').getActiveNode();
-    var nodes = $('#topics-tree').fancytree('getTree').getSelectedNodes();
-    filetrcontetusage = []
-    test = []
-    var count = 0
-    var role = document.getElementById("userid").value;
-    if (role != ""){
-        role = parseInt(document.getElementById("userid").value);
-    }
-    // alert(role);
-    // contentId =[];
-    var node = 0;
-    if (nodes.length != 0) {
-        for(node in nodes){
-            if(nodes[node].children == null && nodes[node].getLevel() == 4 && role != 3){
-                var selectionIdentifiers = nodes[node].key; // update global state
-                filetrcontetusage.push(selectionIdentifiers);
-                std = true;
-                level = nodes[0].getLevel()
-            }
-            else if (nodes[node].children == null && nodes[node].getLevel() == 3 && role == 3) {
-                level = nodes[0].getLevel()
-                std = true;
-            }
-            else if (nodes[node].children == null && nodes[node].getLevel() == 2 && role == 3) {
-                level = nodes[0].getLevel()
-                std = true;
-            }
-            else if(nodes[node].children.length > 0 && nodes[node].getLevel() == 3 && role != 3){
-                level = nodes[0].getLevel()
-            }
-            else if(nodes[node].children.length > 0 && nodes[node].getLevel() == 2 && role != 3){
-                level = nodes[0].getLevel()
-            }
-            
-            getTotalCount(nodes[node]);
-            if (nodes.length == 1){
-                $('.topic-dropdown-text').html(nodes[node].title); 
-            }
-            else{
-                $('.topic-dropdown-text').html("MULTISELECT"); 
-            }
-            
-        } 
-        // if(channelId.length == 0 && contentId.length == 0){
-        //     channelId = ['-1'];
-        //     contentId = ['-1'];
-        // }
-        updatePageContent();
-        toggleTopicDropdown();
-    }
 
-    else
-    {
+    var node = $('#topics-tree').fancytree('getTree').getActiveNode();
+    if (node !== null && node.children == null) {
+        var lessonId = node.key;// update global state
+        lessonID = lessonId;
+        $('.topic-dropdown-text').html(node.title);
+        updatePageContent();
+    } else {
+        // a node is not selected
         toastr.warning('You must select a topic to apply the filter.');
     }
+    toggleTopicDropdown();
 };
 
 var getTotalCount = function(node){
@@ -487,9 +412,7 @@ var sendPOSTRequest_real = function(url, dataObject, callback) {
             if (debug) {
                 console.log('Response (From `' + url + '`): ' + JSON.stringify(response));
             }
-            if (response.code) {
-                toastr.error(response.info.message, response.info.title);
-            } else if (!response.data) {
+            if (!response.data) {
                 toastr.error('There is an error communicating with the server. Please try again later.');
                 console.error('Invalid response: A valid `data` field is not found.');
             } else {
@@ -521,6 +444,6 @@ $(function() {
     setupDateRangePicker();
     setupDateRangePickerEndDate();
     refreshLessonsDropdown();
-    setDummyData();
-    // updatePageContent();
+    // setDummyData();
+    updatePageContent();
 });
