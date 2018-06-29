@@ -54,9 +54,10 @@ class LessonDetails(BaseRoleAccess):
 		class_info = {}
 		class_list = []
 		classes = list(UserInfoClass.objects.filter(class_id__in = self.classes).extra(select={'id':'class_id','name':'class_name'}).values('id','name'))
+		print ("Classes:", classes)
 		for classid in classes:
 			class_info = {}
-			lessons_in_class = list(UserInfoStudent.objects.filter(class_id=classid['id']).extra(select={'id':'lesson_id','name':'lesson_name'}).values('id','name'))
+			lessons_in_class = list(Lesson.objects.filter(class_id=classid['id']).extra(select={'id':'lesson_id','name':'lesson_name'}).values('id','name'))
 			for lesson in lessons_in_class:
 					lesson['id'] = str(lesson['id'])
 			class_info['children'] = lessons_in_class
