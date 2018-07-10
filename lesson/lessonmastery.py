@@ -8,23 +8,26 @@ import json, time
 from django.db.models import Count
 
 class LessonDetails(BaseRoleAccess):
-	""" Used to fetch the school/class of users based on role
-	"""
 	def __init__(self, user, parentLevel):
+		""" Used to fetch the school/class based on user role
+		Args:
+			user(object): It used to get the school and class details for the respective user
+			parentLevel(int): It used to check the parentLevel of each user i.e 1-BM, 2-SL, 3-Teacher
+		"""
 		super(self.__class__, self).__init__(user, parentLevel)
 		self.parentLevelMethods = [self.getLessonsData, self.getLessonsData, self.getLessonsData, self.getClassData]	
-		self.totalschools = {}
+		self.totallessons = {}
 
 	def convert_to_string(self, data):
 		data['id'] = str(data['id'])
 		return data
 
 	def getLessonsData(self):
-		""" Used to show schools hierarchy for user
+		""" Used to fetch the lessons hierarchy for user
 		Args:
 			None
 		Returns:
-			totalschools(dict) : dict of schools with it's classes and students as a children
+			totalscho(dict) : dict of schools with it's classes and students as a children
 		"""
 		school_list = []
 		schools = UserInfoSchool.objects.filter(school_id__in = self.institutes)
@@ -41,15 +44,15 @@ class LessonDetails(BaseRoleAccess):
 			school_info['name'] = school.school_name
 			school_info['children'] = list(map(self.convert_to_string, classes_in_school))
 			school_list.append(school_info)
-		self.totalschools["schools"] = school_list
-		return self.totalschools
+		self.totallessons["schools"] = school_list
+		return self.totallessons
 
 	def getClassData(self):
 		""" Used to get class data for user 
 		Args:
 			None
 		Returns:
-			totalschools(dict) : returns class details with it's students
+			totallessons(dict) : returns lesson details with class/schools 
 		"""
 		class_info = {}
 		class_list = []
@@ -73,6 +76,12 @@ class LessonDetails(BaseRoleAccess):
 
 class LessonMastery(object):
 	def __init__(self, lesson_id):
+		""" Used to fetch the mastery details of lesson
+		Args:
+			lesson_id(str) : lesson_id selected by user from UI(lessons dropdown)
+		Returns:
+			None 
+		"""
 		self.lesson_id = lesson_id
 		self.lesson_content = Lesson.objects.filter(lesson_id=self.lesson_id).values('lesson_content')
 		self.res = json.loads(self.lesson_content[0]['lesson_content'])
@@ -81,6 +90,12 @@ class LessonMastery(object):
 		self.metrics_list = ['completed_questions', 'correct_questions', 'mastered']
 	
 	def get_lesson_content(self):
+		""" It's used to fetch the topic name used into lesson
+		Args:
+			None
+		Returns:
+			columns(list): It returns list of topic names
+		"""
 		columns = [{'name':'first', 'title':'Student Name'}, {'name': 'second','title': 'Metrics'}]
 		topic_dict = {}
 		topic_list = Content.objects.filter(topic_id__in=self.content_list).values_list('topic_name', flat=True)
@@ -91,6 +106,12 @@ class LessonMastery(object):
 		return columns
 
 	def get_lesson_mastery_results(self):
+		""" It's used to fetch the mastry metrics result of respective content_id used in lesson
+		Args:
+			None
+		Returns:
+			student_res_list(list):It returns student list includingg metrics result
+		"""
 		student_res_list = []
 		i_student = []
 		student_list = UserInfoStudent.objects.filter(parent = self.class_id).values('student_id', 'student_name')
@@ -116,6 +137,7 @@ class LessonMastery(object):
 		else:
 			metrics_data = data
 		return metrics_data
+
 	def get_lesson_mastery_data(self):
 		data = {}
 		columns = self.get_lesson_content()
