@@ -57,7 +57,6 @@ class LessonDetails(BaseRoleAccess):
 		class_info = {}
 		class_list = []
 		classes = list(UserInfoClass.objects.filter(class_id__in = self.classes).extra(select={'id':'class_id','name':'class_name'}).values('id','name'))
-		print ("Classes:", classes)
 		for classid in classes:
 			class_info = {}
 			lessons_in_class = list(Lesson.objects.filter(class_id=classid['id']).extra(select={'id':'lesson_id','name':'lesson_name'}).values('id','name'))
@@ -75,7 +74,7 @@ class LessonDetails(BaseRoleAccess):
 		return result
 
 class LessonMastery(object):
-	def __init__(self, lesson_id):
+	def __init__(self, lesson_id, start_time, end_time):
 		""" Used to fetch the mastery details of lesson
 		Args:
 			lesson_id(str) : lesson_id selected by user from UI(lessons dropdown)
@@ -88,6 +87,8 @@ class LessonMastery(object):
 		self.content_list = list((map(lambda x: x['contentnode_id'], self.res)))
 		self.class_id = Lesson.objects.filter(lesson_id=self.lesson_id).values('class_id')[0]['class_id']
 		self.metrics_list = ['completed_questions', 'correct_questions', 'mastered']
+		self.startTimestamp = datetime.date.fromtimestamp(int(start_time)).strftime('%Y-%m-%d')
+		self.endTimestamp = datetime.date.fromtimestamp(int(end_time)).strftime('%Y-%m-%d')
 	
 	def get_lesson_content(self):
 		""" It's used to fetch the topic name used into lesson
@@ -114,10 +115,13 @@ class LessonMastery(object):
 		"""
 		student_res_list = []
 		i_student = []
+		filter_lessons= {}
+		filter_lessons['date__range'] = (self.startTimestamp, self.endTimestamp)
+		filter_lessons['content_id__in'] = self.content_list
 		student_list = UserInfoStudent.objects.filter(parent = self.class_id).values('student_id', 'student_name')
 		for student in student_list:
 			for metrics in self.metrics_list:
-				res = list(MasteryLevelStudent.objects.filter(student_id = student['student_id']).filter(content_id__in = self.content_list).values_list(metrics,flat=True))
+				res = list(MasteryLevelStudent.objects.filter(student_id = student['student_id']).filter(**filter_lessons).values_list(metrics,flat=True))
 				res = self.set_default_metrics_data(res)
 				i_student.append(student['student_name'])
 				i_student.append(metrics)
