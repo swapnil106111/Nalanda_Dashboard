@@ -9,11 +9,9 @@ def get_lessons(request):
 		user = request.user
 		body_unicode = request.body.decode('utf-8')
 		data = json.loads(body_unicode)
-		print ("Data:", data)
 		parent_level = data.get('parentLevel', -2)
 		objSchoolDetails = LessonDetails(user, parent_level)
 		objSchoolData = objSchoolDetails.getPageData()
-		print ("objSchoolData:", objSchoolData)
 		response = construct_response(0, '', '', objSchoolData);
 		response_text = json.dumps(response,ensure_ascii=False)
 		return HttpResponse(response_text,content_type='application/json')
@@ -27,16 +25,15 @@ def get_lesson_page_data(request):
 		user = request.user
 		body_unicode = request.body.decode('utf-8')
 		data = json.loads(body_unicode)
-		print ("Data:", data)
 		lesson_id = data.get('lessonID')
+		startTimestamp = data.get('startTimestamp', 0)
+		endTimestamp = data.get('endTimestamp', 0)
 		if not lesson_id:
 			response = construct_response(2001, '', '', {});
 			response_text = json.dumps(response,ensure_ascii=False)
 			return HttpResponse(response_text,content_type='application/json')
-		objlesson_mastery = LessonMastery(lesson_id)
-		print ("lesson present")
+		objlesson_mastery = LessonMastery(lesson_id, startTimestamp, endTimestamp)
 		objlesson_mastery_data = objlesson_mastery.get_lesson_mastery_data()
-		print ("objSchoolData:", objlesson_mastery_data)
 		response = construct_response(0, '', '', objlesson_mastery_data);
 		response_text = json.dumps(response,ensure_ascii=False)
 		return HttpResponse(response_text,content_type='application/json')
