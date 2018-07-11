@@ -1,11 +1,12 @@
-/*! RowsGroup for DataTables v1.0.0
- * 2015 Alexey Shildyakov ashl1future@gmail.com
+/*! RowsGroup for DataTables v2.0.0
+ * 2015-2016 Alexey Shildyakov ashl1future@gmail.com
+ * 2016 Tibor Wekerle
  */
 
 /**
  * @summary     RowsGroup
  * @description Group rows by specified columns
- * @version     1.0.0
+ * @version     2.0.0
  * @file        dataTables.rowsGroup.js
  * @author      Alexey Shildyakov (ashl1future@gmail.com)
  * @contact     ashl1future@gmail.com
@@ -37,7 +38,37 @@
  *     
  */
 
-(function($){
+(function( factory ) {
+	"use strict";
+
+	if ( typeof define === 'function' && define.amd ) {
+		// AMD
+		define( ['jquery'], function ( $ ) {
+			return factory( $, window, document );
+		} );
+	}
+	else if ( typeof exports === 'object' ) {
+		// CommonJS
+		module.exports = function (root, $) {
+			if ( ! root ) {
+				root = window;
+			}
+
+			if ( ! $ ) {
+				$ = typeof window !== 'undefined' ?
+					require('jquery') :
+					require('jquery')( root );
+			}
+
+			return factory( $, root, root.document );
+		};
+	}
+	else {
+		// Browser
+		factory( jQuery, window, document );
+	}
+}
+(function($, window, document){
 
 ShowedDataSelectorModifier = {
 	order: 'current',
@@ -57,25 +88,81 @@ var RowsGroup = function ( dt, columnsForGrouping )
 	this.columnsForGrouping = columnsForGrouping;
 	 // set to True when new reorder is applied by RowsGroup to prevent order() looping
 	this.orderOverrideNow = false;
+	this.mergeCellsNeeded = false; // merge after init
 	this.order = []
 	
-	self = this;
-	$(document).on('order.dt', function ( e, settings) {
+	var self = this;
+	dt.on('order.dt.rowsGroup', function ( e, settings) {
 		if (!self.orderOverrideNow) {
+			self.orderOverrideNow = true;
 			self._updateOrderAndDraw()
+		} else {
+			self.orderOverrideNow = false;
 		}
-		self.orderOverrideNow = false;
 	})
 	
-	$(document).on('draw.dt', function ( e, settings) {
-		self._mergeCells()
+	dt.on('preDraw.dt.rowsGroup', function ( e, settings) {
+		if (self.mergeCellsNeeded) {
+			self.mergeCellsNeeded = false;
+			self._mergeCells()
+		}
+	})
+	
+	dt.on('column-visibility.dt.rowsGroup', function ( e, settings) {
+		self.mergeCellsNeeded = true;
+	})
+
+	dt.on('search.dt.rowsGroup', function ( e, settings) {
+		// This might to increase the time to redraw while searching on tables
+		//   with huge shown columns
+		self.mergeCellsNeeded = true;
+	})
+
+	dt.on('page.dt.rowsGroup', function ( e, settings) {
+		self.mergeCellsNeeded = true;
+	})
+
+	dt.on('length.dt.rowsGroup', function ( e, settings) {
+		self.mergeCellsNeeded = true;
+	})
+
+	dt.on('xhr.dt.rowsGroup', function ( e, settings) {
+		self.mergeCellsNeeded = true;
+	})
+
+	dt.on('destroy.dt.rowsGroup', function ( e ) {
+		dt.off('.rowsGroup');
 	})
 
 	this._updateOrderAndDraw();
+	
+/* Events sequence while Add row (also through Editor)
+ * addRow() function
+ *   draw() function
+ *     preDraw() event
+ *       mergeCells() - point 1
+ *     Appended new row breaks visible elements because the mergeCells() on previous step doesn't apllied to already processing data
+ *   order() event
+ *     _updateOrderAndDraw()
+ *       preDraw() event
+ *         mergeCells()
+ *       Appended new row now has properly visibility as on current level it has already applied changes from first mergeCells() call (point 1)
+ *   draw() event
+ */
 };
 
 
 RowsGroup.prototype = {
+	setMergeCells: function(){
+		this.mergeCellsNeeded = true;
+	},
+
+	mergeCells: function()
+	{
+		this.setMergeCells();
+		this.table.draw();
+	},
+
 	_getOrderWithGroupColumns: function (order, groupedColumnsOrderDir)
 	{
 		if (groupedColumnsOrderDir === undefined)
@@ -173,7 +260,7 @@ RowsGroup.prototype = {
  
 	_updateOrderAndDraw: function()
 	{
-		this.orderOverrideNow = true;
+		this.mergeCellsNeeded = true;
 		
 		var currentOrder = this.table.order();
 		currentOrder = this._getInjectedMonoSelectWorkaround(currentOrder);
@@ -188,24 +275,32 @@ $.fn.dataTable.RowsGroup = RowsGroup;
 $.fn.DataTable.RowsGroup = RowsGroup;
 
 // Automatic initialisation listener
-$(document).on( 'init.dt', function ( e, settings ) {
+$(document).on( 'init.dt.rowsGroup', function ( e, settings ) {
 	if ( e.namespace !== 'dt' ) {
 		return;
 	}
 
 	var api = new $.fn.dataTable.Api( settings );
-
+	
 	if ( settings.oInit.rowsGroup ||
 		 $.fn.dataTable.defaults.rowsGroup )
 	{
 		options = settings.oInit.rowsGroup?
 			settings.oInit.rowsGroup:
 			$.fn.dataTable.defaults.rowsGroup;
-		new RowsGroup( api, options );
+		var rowsGroup = new RowsGroup( api, options );
+		$.fn.dataTable.Api.register( 'rowsgroup.update()', function () {
+			rowsGroup.mergeCells();
+			return this;
+		} );
+		$.fn.dataTable.Api.register( 'rowsgroup.updateNextDraw()', function () {
+			rowsGroup.setMergeCells();
+			return this;
+		} );
 	}
 } );
 
-}(jQuery));
+}));
 
 /*
 
