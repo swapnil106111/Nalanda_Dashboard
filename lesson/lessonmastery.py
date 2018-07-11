@@ -66,8 +66,8 @@ class LessonDetails(BaseRoleAccess):
 			class_info['id'] = str(classid['id'])
 			class_info['name'] = classid['name']
 			class_list.append(class_info)
-		self.totalschools["schools"] = class_list
-		return self.totalschools
+		self.totallessons["schools"] = class_list
+		return self.totallessons
 
 	def getPageData(self):
 		result = self.parentLevelMethods[self.role]()
