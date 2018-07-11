@@ -1,41 +1,13 @@
 "use strict";
 
 // globals
-var table = null; // main data table
-var aggregationTable = null; // aggregation rows table
-var compareTable = null; // // datatables object
-var performanceTable = null; // datatables object
-var tableData; // see API specs
-var tableMeta; // see API specs
 var startTimestamp = 1496948693; // default: from server
 var endTimestamp = 1596948693; // default: from server
-var contentId = ['-1']; // default: everything
-var channelId = ['-1']; // default: everything
-var filetrcontetusage = []
 var parentLevel = 0; // default: parent-of-root-level
 var parentId = '-1'; // default: none (at root level already, no parent)
-var compareMetricIndex = 0; // current metric index of the compare table
-var performanceMetricIndex = 0; // current metric index of the performance table
-var performanceCompareToValueName = 'average'; // name of the type of currently used compared values
-var performanceCompareToValues = []; // compared values, for all types, of the performance table
-var compareMaxValues = [];
 var pendingRequests = 0; // number of requests that are sent but not received yet
-var maxItemLevel = false; // students (read-only)
 var debug = true; // whether to print debug outputs to console
 var selfServe = false;
-var count = 0;
-var std = false;
-// var maxval = false;
-var setParenrtLevel = false;
-var contentID = '-1';// Defined for content usage metrics
-var channelID = '-1';
-var objpreviouscontentlID= ['-1'];
-var objpreviouschannelID = ['-1'];
-var test = []; 
-var level = 0;
-var levelDict = {};
-var count1 = [];
-var count2 = [];
 var lessonID = '' // Lesson ID 
 var dataTable = null;
 /** Pragma Mark - Starting Points **/
@@ -55,9 +27,7 @@ var updatePageContent = function() {
         endTimestamp: endTimestamp,
         lessonID : lessonID
     }, function(response) {
-        setDummyData(response.data,response.code);
-        count1 = [];
-        count2 = [];
+    setTableData(response.data,response.code);
     });
 };
 
@@ -82,8 +52,7 @@ var setupDateRangePicker = function() {
         // endDate: new Date(endTimestamp * 1000)
     }, function(start, end, label) {
     startTimestamp = new Date(start.format('YYYY-MM-DD')).getTime() / 1000;
-    // endTimestamp = new Date(end.format('YYYY-MM-DD')).getTime() / 1000;
-    updatePageContent();
+    updatePageContent();   
     });
 };
 
@@ -203,8 +172,12 @@ var buildLessonsDropdown = function(data) {
 // Instantiate both tables, insert rows with data partially populated
 // Called every time the page needs update
 var metaSetOnce = false;
-var setDummyData = function(lessonData, code) {
+var setTableData = function(lessonData, code) {
     if (code == 2001){
+        if (dataTable != null){ 
+            dataTable.destroy();
+            $('#data-table').html('');     
+        }
         dataTable = $('#data-table').DataTable({
             columns: [
             {
@@ -215,28 +188,34 @@ var setDummyData = function(lessonData, code) {
                 'name': 'second',
                 'title': 'Metrics',
             }
-            ]
+            ],
+            // data: lessonData
         });   
+
     }
     else{
-        var data = lessonData['rows']
-        var column = lessonData['columns']
-        //alert(column);
-        if (dataTable != null)
-        { 
-            dataTable.destroy();
-            $('#data-table').html('');
-            
+        try{
+            var data = lessonData['rows']
+            var column = lessonData['columns']
+                //alert(column);
+            if (dataTable != null){
+                dataTable.destroy();
+                // $('#data-table').empty();
+                $('#data-table').html('');
+            }
+            dataTable = $('#data-table').DataTable({
+            columns: column,
+            data: data,
+            rowsGroup: [
+              0,
+              1
+            ],
+            // pageLength: '20',
+            });
         }
-        dataTable = $('#data-table').DataTable({
-        columns: column,
-        data: data,
-        rowsGroup: [
-          'first:name',
-          'second:name'
-        ],
-        // pageLength: '20',
-        });
+        catch(err){
+            console.log(err.stack);
+        }
     } 
 }
 
@@ -309,21 +288,10 @@ var applyAndDismissTopicDropdown = function() {
         updatePageContent();
     } else {
         // a node is not selected
-        toastr.warning('You must select a topic to apply the filter.');
+        toastr.warning('You must select a lesson to apply the filter. Here filter is only lesson not the class/or schools');
     }
     toggleTopicDropdown();
 };
-
-var getTotalCount = function(node){
-    if (node.getLevel() == 3){
-        count1.push(node.key);
-        levelDict[node.getLevel()] = count1
-    }
-    else if (node.getLevel() == 2){
-        count2.push(node.key);
-        levelDict[node.getLevel()] = count2
-    } 
-}
 
 
 // Handle click event of a breadcrumb link
@@ -440,10 +408,8 @@ var sendPOSTRequest_real = function(url, dataObject, callback) {
 
 $(function() {
     google.charts.load('current', {'packages':['line', 'corechart']});
-    // updateLoadingInfo();
     setupDateRangePicker();
     setupDateRangePickerEndDate();
     refreshLessonsDropdown();
-    // setDummyData();
     updatePageContent();
 });
