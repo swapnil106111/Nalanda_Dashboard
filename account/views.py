@@ -29,6 +29,10 @@ from .constants import metrics
 from .forms import UserProfileForm
 from .usermastery import UserMasteryMeta, UserMasteryData
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 # This function contructs the dict for every response
 # code = 0 represents that the processing is sucessful
 def construct_response(code, title, message, data):
@@ -42,28 +46,31 @@ def login_view(request):
     """ 
     This function implements the request receiving and response sending for login
     """
-    response_object ={}
-    form = AuthenticationForm(None, request.POST)
-    #If POST request is received, render the mastery page
-    if request.method == 'POST':
-        if form.is_valid():
-            login(request, form.get_user())
-            if form.get_user().is_superuser:
-                response =  redirect((reverse('admin_get')))
+    try:
+        response_object ={}
+        form = AuthenticationForm(None, request.POST)
+        #If POST request is received, render the mastery page
+        if request.method == 'POST':
+            if form.is_valid():
+                login(request, form.get_user())
+                logger.info("User Login sucessfullly")
+                if form.get_user().is_superuser:
+                    response =  redirect((reverse('admin_get')))
+                    return response
+                response = redirect(reverse('get_report_mastery', kwargs= {"analytics":"mastery"}))
                 return response
-            response = redirect(reverse('get_report_mastery', kwargs= {"analytics":"mastery"}))
-            return response
-        else:
-            response_object['form']=form
-            return render(request, 'login.html', response_object)
-    #If GET request is received, render the login page
-    form = AuthenticationForm()
-    response_object['form']=form
-    return render(request, 'login.html', response_object)
+            else:
+                response_object['form']=form
+                return render(request, 'login.html', response_object)
+        #If GET request is received, render the login page
+        form = AuthenticationForm()
+        response_object['form']=form
+        return render(request, 'login.html', response_object)
+    except Exception as e:
+        logger.error("Error while login attempt: ", e)
 
 def register_view(request):
-    """
-        This function implements the request receiving and response sending for register  
+    """ This View is used to register the new user 
     """
     domain = request.get_host()
     data = get_school_and_classes()
@@ -174,7 +181,7 @@ def sendEmail(user, template, subject, domain):
         msg.content_subtype = 'html'
         msg.send()
     except Exception as e:
-        print (e)
+        logger.error("Error while sending email:", e)
 
 def get_school_and_classes():
     """
@@ -204,25 +211,27 @@ def admin_get_view(request):
     """
         This function implements the request receiving and response sending for admin get the users
     """
+    try:
+        if request.method == 'GET':
+            blockedUsers = {}
+            pendings = User.objects.filter(is_superuser = False).order_by('-id')
+            pendingUsers = list(map(lambda p: getPendingUserDetails(p), pendings))
+            pendingUsers = sum(pendingUsers, [])
 
-    if request.method == 'GET':
-        blockedUsers = {}
-        pendings = User.objects.filter(is_superuser = False).order_by('-id')
-        pendingUsers = list(map(lambda p: getPendingUserDetails(p), pendings))
-        pendingUsers = sum(pendingUsers, [])
-
-        for user in pendingUsers:
-            if user['isActive']:
-                user['isActive'] = 1
-            else:
-                user['isActive'] = 0
-        objPendingUsers = getMultipleClassCombine(pendingUsers)
-       
-        data = {'pendingUsers': objPendingUsers }
-        response_object = construct_response(0, "", "", data)
-        if len(objPendingUsers) == 0:
-            response_object = construct_response(2001, "user list empty", "All users are approved by admin and doesn't have ublocked users", {})
-        return render(request, 'admin-users.html', response_object)
+            for user in pendingUsers:
+                if user['isActive']:
+                    user['isActive'] = 1
+                else:
+                    user['isActive'] = 0
+            objPendingUsers = getMultipleClassCombine(pendingUsers)
+           
+            data = {'pendingUsers': objPendingUsers }
+            response_object = construct_response(0, "", "", data)
+            if len(objPendingUsers) == 0:
+                response_object = construct_response(2001, "user list empty", "All users are approved by admin and doesn't have ublocked users", {})
+            return render(request, 'admin-users.html', response_object)
+    except Exception as e:
+        logger.error(e)
 
 def getMultipleClassCombine(userList):
     """
@@ -232,22 +241,25 @@ def getMultipleClassCombine(userList):
     Returns:
         result(List): updared user teacher classes combined as comma separated string 
     """
-    result = []
-    key_data=itemgetter('userid')
-    sorted_data=sorted(userList, key= key_data)
+    try:
+        result = []
+        key_data=itemgetter('userid')
+        sorted_data=sorted(userList, key= key_data)
 
-    for key, grp in groupby(sorted_data , key_data):
-        temp_dict={}
-        cl_st=""
-        for data in grp:
-            for k,v in data.items():
-                if str(k)=='className':
-                    cl_st += ', ' + v
-                else:
-                    temp_dict[k]=v
-            temp_dict['className']=cl_st[1:]
-        result.append(temp_dict)
-    return result
+        for key, grp in groupby(sorted_data , key_data):
+            temp_dict={}
+            cl_st=""
+            for data in grp:
+                for k,v in data.items():
+                    if str(k)=='className':
+                        cl_st += ', ' + v
+                    else:
+                        temp_dict[k]=v
+                temp_dict['className']=cl_st[1:]
+            result.append(temp_dict)
+        return result
+    except Exception as e:
+        logger.error(e)
 
 def getPendingUserDetails(user):
     """
@@ -257,36 +269,39 @@ def getPendingUserDetails(user):
     Returns:
         pending_users(List): It returns the user details
     """
-    instituteName = ''
-    instituteID = -1
-    classID = -1
-    className = ''
-    pending_users = []
+    try:
+        instituteName = ''
+        instituteID = -1
+        classID = -1
+        className = ''
+        pending_users = []
 
-    role = user.groups.values()[0]['name']
-    roleID = user.groups.values()[0]['id']
-    
-    if roleID != 1:
-    #if roleID!:
-        objUserMapping = UserRoleCollectionMapping.objects.filter(user_id = user)
+        role = user.groups.values()[0]['name']
+        roleID = user.groups.values()[0]['id']
+        
+        if roleID != 1:
+        #if roleID!:
+            objUserMapping = UserRoleCollectionMapping.objects.filter(user_id = user)
 
-        if objUserMapping:
-            for usermapped in objUserMapping:
-                instituteName = usermapped.institute_id.school_name
-                instituteID = usermapped.institute_id.school_id
-                if roleID == 3:
-                    classID = usermapped.class_id.class_id
-                    className = usermapped.class_id.class_name
-                pending_user = collections.OrderedDict()
-                pending_user = {'userid':user.id, 'username': user.username, 'email': user.email, 'role': role, 'instituteName': instituteName, 'className': className, 'isActive':user.is_active}
-                pending_users.append(pending_user)
+            if objUserMapping:
+                for usermapped in objUserMapping:
+                    instituteName = usermapped.institute_id.school_name
+                    instituteID = usermapped.institute_id.school_id
+                    if roleID == 3:
+                        classID = usermapped.class_id.class_id
+                        className = usermapped.class_id.class_name
+                    pending_user = collections.OrderedDict()
+                    pending_user = {'userid':user.id, 'username': user.username, 'email': user.email, 'role': role, 'instituteName': instituteName, 'className': className, 'isActive':user.is_active}
+                    pending_users.append(pending_user)
+            else:
+                raise Exception("User is not belongs to any class")
         else:
-            raise Exception("User is not belongs to any class")
-    else:
-         pending_user = collections.OrderedDict()
-         pending_user = {'userid':user.id, 'username': user.username, 'email': user.email, 'role': role, 'instituteName': instituteName, 'className': className, 'isActive':user.is_active}
-         pending_users.append(pending_user)
-    return pending_users
+             pending_user = collections.OrderedDict()
+             pending_user = {'userid':user.id, 'username': user.username, 'email': user.email, 'role': role, 'instituteName': instituteName, 'className': className, 'isActive':user.is_active}
+             pending_users.append(pending_user)
+        return pending_users
+    except Exception as e:
+        logger.error(e)
  
 @login_required(login_url='/account/login/')
 def logout_view(request):
@@ -475,23 +490,25 @@ def get_page_data_view(request):
     This function implements the request receiving and response sending for get page data
 
     """
-    user = request.user
-    body_unicode = request.body.decode('utf-8')
-    data = json.loads(body_unicode)
-    startTimestamp = data.get('startTimestamp', 0)
-    endTimestamp = data.get('endTimestamp', 0)
-    topicID = data.get('contentId', '')
-    parentLevel = data.get('parentLevel', -1)
-    parentID = int(data.get('parentId', '').strip())
-    channelID = data.get('channelId', '')
-    channelContetIDS = data.get('channelContentids','')
-    channelContetID = dict((k, v) for k, v in channelContetIDS.items() if v)
-    print ("channelContetID:", channelContetID)
-    objUserMastery = UserMasteryData(user, parentID, parentLevel, topicID, channelID, startTimestamp, endTimestamp, channelContetID)
-    objUserMasteryData = objUserMastery.getPageData()
-    response_object = construct_response(0, "", "", objUserMasteryData)
-    response_text = json.dumps(response_object,ensure_ascii=False)
-    return HttpResponse(response_text, content_type='application/json')
+    try:
+        user = request.user
+        body_unicode = request.body.decode('utf-8')
+        data = json.loads(body_unicode)
+        startTimestamp = data.get('startTimestamp', 0)
+        endTimestamp = data.get('endTimestamp', 0)
+        topicID = data.get('contentId', '')
+        parentLevel = data.get('parentLevel', -1)
+        parentID = int(data.get('parentId', '').strip())
+        channelID = data.get('channelId', '')
+        channelContetIDS = data.get('channelContentids','')
+        channelContetID = dict((k, v) for k, v in channelContetIDS.items() if v)
+        objUserMastery = UserMasteryData(user, parentID, parentLevel, topicID, channelID, startTimestamp, endTimestamp, channelContetID)
+        objUserMasteryData = objUserMastery.getPageData()
+        response_object = construct_response(0, "Mastery data", "successfully get the mastery details", objUserMasteryData)
+        response_text = json.dumps(response_object,ensure_ascii=False)
+        return HttpResponse(response_text, content_type='application/json')
+    except Exception as e:
+        logger.error("Error in get page data of mastery:", e)
 
 @login_required(login_url='/account/login/')
 def get_topics(request):
