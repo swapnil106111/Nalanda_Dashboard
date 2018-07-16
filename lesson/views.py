@@ -44,7 +44,6 @@ def get_lesson_page_data(request):
 
 def get_lesson_mastery(request):
 	if request.method == 'GET':
-		# lesson_details = LessonDetails()
 		return render(request,'lessonmasteryreport.html',{})
 	else:
 		return HttpResponse()

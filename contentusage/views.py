@@ -22,7 +22,7 @@ def get_schools(request):
 		parent_level = data.get('parentLevel', -2)
 		objSchoolDetails = SchoolDetails(user, parent_level)
 		objSchoolData = objSchoolDetails.getPageData()
-		response = construct_response(0, '', '', objSchoolData);
+		response = construct_response(0, 'Schools details', 'School details fetched successfully', objSchoolData)
 		response_text = json.dumps(response,ensure_ascii=False)
 		return HttpResponse(response_text,content_type='application/json')
 	else:
