@@ -4,6 +4,11 @@ from .constants import *
 import datetime
 from itertools import chain
 
+# import the logging library
+import logging
+
+logger = logging.getLogger(__name__)
+
 class BaseRoleAccess(object):
 	def __init__(self, user, parentID, parentLevel):
 		""" Used to set meta data of mastery 
@@ -67,25 +72,34 @@ class BaseRoleAccess(object):
 		"""
 		This function is used to fetch the mapping of classes and schools based on the user role 
 		"""
-		userMapping = UserRoleCollectionMapping.objects.filter(user_id = self.user)
-		schools = list(userMapping.values_list('institute_id_id', flat = True))
-		classes = list(userMapping.values_list('class_id_id', flat = True))
-		return schools, classes
+		try:
+			userMapping = UserRoleCollectionMapping.objects.filter(user_id = self.user)
+			schools = list(userMapping.values_list('institute_id_id', flat = True))
+			classes = list(userMapping.values_list('class_id_id', flat = True))
+			return schools, classes
+		except Exception as e:
+			logger.error(e)
 
 	def schoolLeader(self):
 		"""
 		This function is used to fetch the mapping of classes and schools based on the user role 
 		"""
-		userMapping = UserRoleCollectionMapping.objects.filter(user_id= self.user)
-		schools = list(userMapping.values_list('institute_id_id', flat=True))
-		classes = list(UserInfoClass.objects.filter(parent = schools[0]).values_list('class_id', flat = True))
-		return schools, classes
+		try:
+			userMapping = UserRoleCollectionMapping.objects.filter(user_id= self.user)
+			schools = list(userMapping.values_list('institute_id_id', flat=True))
+			classes = list(UserInfoClass.objects.filter(parent = schools[0]).values_list('class_id', flat = True))
+			return schools, classes
+		except Exception as e:
+			logger.error(e)
 
 	def boardMember(self):
-		userMapping = UserRoleCollectionMapping.objects.filter(user_id= self.user)
-		schools = list(userMapping.values_list('institute_id_id', flat=True))
-		classes = None
-		return schools, classes
+		try:
+			userMapping = UserRoleCollectionMapping.objects.filter(user_id= self.user)
+			schools = list(userMapping.values_list('institute_id_id', flat=True))
+			classes = None
+			return schools, classes
+		except Exception as e:
+			logger.error(e)
 
 	# AccessList = [2, 3]
 	# def hasAccessSchool(self, parentID):
@@ -141,29 +155,32 @@ class UserMasteryMeta(BaseRoleAccess):
 			objBreadcrumb(list) = It fetch the hierarchy level of class 
 
 		"""
-		if self.role != 3:
-			objBreadcrumb.append(self.construct_breadcrumb("Institutes", 0, "-1"))
+		try:
+			if self.role != 3:
+				objBreadcrumb.append(self.construct_breadcrumb("Institutes", 0, "-1"))
 
-		school = self.institutes.filter(school_id = self.parentId)
-		school_name = ""
-		if school:
-			school_name = school[0].school_name
+			school = self.institutes.filter(school_id = self.parentId)
+			school_name = ""
+			if school:
+				school_name = school[0].school_name
 
-		root = self.construct_breadcrumb(school_name, self.parentLevel , self.parentId)
-		objBreadcrumb.append(root)
+			root = self.construct_breadcrumb(school_name, self.parentLevel , self.parentId)
+			objBreadcrumb.append(root)
 
-		objClasses = self.classes
-		if self.classes == None:
-			objClasses = UserInfoClass.objects.filter(parent = school[0].pk)
+			objClasses = self.classes
+			if self.classes == None:
+				objClasses = UserInfoClass.objects.filter(parent = school[0].pk)
 
-		for objclass in objClasses:
-			class_info = {
-				"id": str(objclass.class_id),
-				"name": objclass.class_name
-			}
-			rows.append(class_info)
+			for objclass in objClasses:
+				class_info = {
+					"id": str(objclass.class_id),
+					"name": objclass.class_name
+				}
+				rows.append(class_info)
 
-		return rows, objBreadcrumb
+			return rows, objBreadcrumb
+		except Exception as e:
+			logger.error("getting error while accessing class meta:", e)
 
 	def getStudentMeta(self, objBreadcrumb, rows):
 		""" Used to fetch the stident meta inforamtion	
@@ -176,33 +193,36 @@ class UserMasteryMeta(BaseRoleAccess):
 			rows(list) = it reurns student inforamtion respective class
 			objBreadcrumb(list) = it returns metadata(parentId, parentLevel, parentName) of class and school
 		"""
-		if self.classes:
-			curr_class = self.classes.filter(class_id = self.parentId)
-		else:
-			curr_class = UserInfoClass.objects.filter(class_id = self.parentId)
-		class_name = curr_class[0].class_name
+		try:
+			if self.classes:
+				curr_class = self.classes.filter(class_id = self.parentId)
+			else:
+				curr_class = UserInfoClass.objects.filter(class_id = self.parentId)
+			class_name = curr_class[0].class_name
 
-		school = self.institutes.filter(school_id = curr_class[0].parent).first()
+			school = self.institutes.filter(school_id = curr_class[0].parent).first()
 
-		if self.role != 3:
-			objBreadcrumb.append(self.construct_breadcrumb("Institutes", 0, "-1"))
+			if self.role != 3:
+				objBreadcrumb.append(self.construct_breadcrumb("Institutes", 0, "-1"))
 
-		if school:
-			school_id = str(school.school_id)
-			school_name = school.school_name
-			objBreadcrumb.append(self.construct_breadcrumb(school_name, self.parentLevels['school'], school_id))
-			objBreadcrumb.append(self.construct_breadcrumb(class_name, self.parentLevels['class'], self.parentId))
+			if school:
+				school_id = str(school.school_id)
+				school_name = school.school_name
+				objBreadcrumb.append(self.construct_breadcrumb(school_name, self.parentLevels['school'], school_id))
+				objBreadcrumb.append(self.construct_breadcrumb(class_name, self.parentLevels['class'], self.parentId))
 
-		objStudentData = UserInfoStudent.objects.filter(parent = self.parentId)
-		if not objStudentData:
+			objStudentData = UserInfoStudent.objects.filter(parent = self.parentId)
+			if not objStudentData:
+				return rows, objBreadcrumb
+			for student in objStudentData:
+				studentInfo = {
+				'id': str(student.student_id),
+				'name': student.student_name
+				}
+				rows.append(studentInfo)
 			return rows, objBreadcrumb
-		for student in objStudentData:
-			studentInfo = {
-			'id': str(student.student_id),
-			'name': student.student_name
-			}
-			rows.append(studentInfo)
-		return rows, objBreadcrumb
+		except Exception as e:
+			logger.error(e)
 
 	def getInstituteMeta(self, objBreadcrumb, rows):
 		""" Used to fetch the institute meta information
@@ -213,14 +233,17 @@ class UserMasteryMeta(BaseRoleAccess):
 			objBreadcrumb(list) = it returns metadata(parentId, parentLevel, parentName) of institutes
 			rows(list) = it returns institutes information
 		"""
-		objBreadcrumb.append(self.construct_breadcrumb("Institutes", 0, "-1"))	
-		for institute in self.institutes:
-			school_info = {
-			    "id": str(institute.school_id),
-			    "name": institute.school_name
-			}
-			rows.append(school_info)
-		return rows, objBreadcrumb
+		try:
+			objBreadcrumb.append(self.construct_breadcrumb("Institutes", 0, "-1"))	
+			for institute in self.institutes:
+				school_info = {
+				    "id": str(institute.school_id),
+				    "name": institute.school_name
+				}
+				rows.append(school_info)
+			return rows, objBreadcrumb
+		except Exception as e:
+			logger.error(e)
 
 	def getPageMeta(self, objMetrics):
 		"""" Used to fetch mastery meta inforamtion
@@ -229,18 +252,21 @@ class UserMasteryMeta(BaseRoleAccess):
 		Returns:
 			response_object(dict) = it returns the code , title , message and meta data 
 		"""
-		code = 0
-		title = ""
-		message = ""
-		rows = []
-		objBreadcrumb = []
-		# objMetrics = self.construct_metrics()
-		# objMetrics = metricsList
-		rows, objBreadcrumb = self.parentLevelMethods[self.parentLevel](objBreadcrumb, rows)
-		
-		data = { 'breadcrumb': objBreadcrumb, 'metrics': objMetrics, 'rows': rows }
-		response_object = self.construct_response(code, title, message, data)
-		return response_object 
+		try:
+			code = 0
+			title = ""
+			message = ""
+			rows = []
+			objBreadcrumb = []
+			# objMetrics = self.construct_metrics()
+			# objMetrics = metricsList
+			rows, objBreadcrumb = self.parentLevelMethods[self.parentLevel](objBreadcrumb, rows)
+			
+			data = { 'breadcrumb': objBreadcrumb, 'metrics': objMetrics, 'rows': rows }
+			response_object = self.construct_response(code, title, message, data)
+			return response_object 
+		except Exception as e:
+			logger.error(e)
 
 class UserMasteryData(BaseRoleAccess):
 	"""
@@ -263,16 +289,19 @@ class UserMasteryData(BaseRoleAccess):
 		Returns:
 			total_questions(int) : Count of total_questions
 		"""
-		total_questions = 0
-		topic_id = self.topicID
-		filterTopics = {'topic_id__in':self.topicID}
-		if self.topicID:
-			filterTopics['channel_id__in']=self.channelID
-		topic = Content.objects.filter(**filterTopics)
-		for t in topic:
-		# topic = Content.objects.filter(topic_id__in=topic_ids).filter(channel_id__in=channel_ids).first()
-			total_questions += t.total_questions
-		return total_questions
+		try:
+			total_questions = 0
+			topic_id = self.topicID
+			filterTopics = {'topic_id__in':self.topicID}
+			if self.topicID:
+				filterTopics['channel_id__in']=self.channelID
+			topic = Content.objects.filter(**filterTopics)
+			for t in topic:
+			# topic = Content.objects.filter(topic_id__in=topic_ids).filter(channel_id__in=channel_ids).first()
+				total_questions += t.total_questions
+			return total_questions
+		except Exception as e:
+			logger.error(e)
 
 	def getSubTopicsData(self):
 		""" Used to calculate the total_subtopics based on the selected topicID and channelID
@@ -281,16 +310,19 @@ class UserMasteryData(BaseRoleAccess):
 		Returns:
 			total_questions(int) : Count of total_subtopics
 		"""
-		total_subtopics = 0
-		topic_id= self.topicID
-		filterTopics = {'topic_id__in':self.topicID}
-		if self.topicID:
-			filterTopics['channel_id__in']=self.channelID
-		topic = Content.objects.filter(**filterTopics)
-		# topic = Content.objects.filter(topic_id__in=topic_ids).filter(channel_id__in=channel_ids).first()
-		for st in topic:
-			total_subtopics += st.sub_topics_total
-		return total_subtopics
+		try:
+			total_subtopics = 0
+			topic_id= self.topicID
+			filterTopics = {'topic_id__in':self.topicID}
+			if self.topicID:
+				filterTopics['channel_id__in']=self.channelID
+			topic = Content.objects.filter(**filterTopics)
+			# topic = Content.objects.filter(topic_id__in=topic_ids).filter(channel_id__in=channel_ids).first()
+			for st in topic:
+				total_subtopics += st.sub_topics_total
+			return total_subtopics
+		except Exception as e:
+			logger.error(e)
 
 	def getLogData(self, masteryElement):
 		""" Used to fetch the log data of each masteryElement(class, school, student)
@@ -299,48 +331,51 @@ class UserMasteryData(BaseRoleAccess):
 		Returns:
 			masteryData(Queryset): It contains mastry logs of each masteryElement
 		"""
-		if not (self.channelContetID):
-			filterTopics = {'content_id__in':self.topicID}
-			filterTopics['date__range'] = (self.startTimestamp, self.endTimestamp)
-
-			if self.topicID:
-				filterTopics['channel_id__in']=self.channelID
-
-			if self.parentLevel == 0:
-				filterTopics['school_id'] = masteryElement
-				masteryData = MasteryLevelSchool.objects.filter(**filterTopics)
-			elif self.parentLevel == 1:
-				filterTopics['class_id'] = masteryElement
-				masteryData = MasteryLevelClass.objects.filter(**filterTopics)
-			elif self.parentLevel == 2:
-				filterTopics['student_id'] = masteryElement
-				masteryData = MasteryLevelStudent.objects.filter(**filterTopics)
-			return masteryData
-		else:
-			result_list = []
-			for (k,v) in  self.channelContetID.items():
-				filterTopics = {'content_id__in':v}
+		try:
+			if not (self.channelContetID):
+				filterTopics = {'content_id__in':self.topicID}
 				filterTopics['date__range'] = (self.startTimestamp, self.endTimestamp)
 
-				# if self.topicID:
-				filterTopics['channel_id']=k
+				if self.topicID:
+					filterTopics['channel_id__in']=self.channelID
 
 				if self.parentLevel == 0:
 					filterTopics['school_id'] = masteryElement
 					masteryData = MasteryLevelSchool.objects.filter(**filterTopics)
-					if masteryData:
-						result_list.extend(list(chain(masteryData)))
 				elif self.parentLevel == 1:
 					filterTopics['class_id'] = masteryElement
 					masteryData = MasteryLevelClass.objects.filter(**filterTopics)
-					if masteryData:
-						result_list.extend(list(chain(masteryData)))
 				elif self.parentLevel == 2:
 					filterTopics['student_id'] = masteryElement
 					masteryData = MasteryLevelStudent.objects.filter(**filterTopics)
-					if masteryData:
-						result_list.extend(list(chain(masteryData)))
-			return result_list
+				return masteryData
+			else:
+				result_list = []
+				for (k,v) in  self.channelContetID.items():
+					filterTopics = {'content_id__in':v}
+					filterTopics['date__range'] = (self.startTimestamp, self.endTimestamp)
+
+					# if self.topicID:
+					filterTopics['channel_id']=k
+
+					if self.parentLevel == 0:
+						filterTopics['school_id'] = masteryElement
+						masteryData = MasteryLevelSchool.objects.filter(**filterTopics)
+						if masteryData:
+							result_list.extend(list(chain(masteryData)))
+					elif self.parentLevel == 1:
+						filterTopics['class_id'] = masteryElement
+						masteryData = MasteryLevelClass.objects.filter(**filterTopics)
+						if masteryData:
+							result_list.extend(list(chain(masteryData)))
+					elif self.parentLevel == 2:
+						filterTopics['student_id'] = masteryElement
+						masteryData = MasteryLevelStudent.objects.filter(**filterTopics)
+						if masteryData:
+							result_list.extend(list(chain(masteryData)))
+				return result_list
+		except Exception as e:
+			logger.error(e)
 
 	def getInstitutesData(self):
 		""" Used to fetch the institutes mastery details
@@ -362,35 +397,38 @@ class UserMasteryData(BaseRoleAccess):
 		Returns:
 			data(dict) = it contains aggregation result and mastery data of class, school
 		"""
-		data = {}	
-		percent_complete_array = []
-		percent_correct_array = []
-		number_of_attempts_array = []
-		percent_student_completed_array = []
-		sample_metrix = []
-		mastered_topics = []
-		percent_mastered_topics = []
-		correct_questionsList = []
-		completed_questionsList =[]
-		number_of_exercise_attempts_list = []
-		for row in aggregationResult:
-			mastered_topics.append(row[0])
-			number_of_exercise_attempts_list.append(row[1])
-			percent_mastered_topics.append(row[2])
-			correct_questionsList.append(row[3])
-			number_of_attempts_array.append(row[4])
-			percent_correct_array.append(row[5])
-			# completed_questionsList.append(row[5])
-			# percent_complete_array.append(row[5])
+		try:
+			data = {}	
+			percent_complete_array = []
+			percent_correct_array = []
+			number_of_attempts_array = []
+			percent_student_completed_array = []
+			sample_metrix = []
+			mastered_topics = []
+			percent_mastered_topics = []
+			correct_questionsList = []
+			completed_questionsList =[]
+			number_of_exercise_attempts_list = []
+			for row in aggregationResult:
+				mastered_topics.append(row[0])
+				number_of_exercise_attempts_list.append(row[1])
+				percent_mastered_topics.append(row[2])
+				correct_questionsList.append(row[3])
+				number_of_attempts_array.append(row[4])
+				percent_correct_array.append(row[5])
+				# completed_questionsList.append(row[5])
+				# percent_complete_array.append(row[5])
 
-		# Removed unwanted data of aggregation
-		for row in masteryData:
-			row.pop('aggregation', None)
+			# Removed unwanted data of aggregation
+			for row in masteryData:
+				row.pop('aggregation', None)
 
-		aggregation = self.getAggrigation(mastered_topics, number_of_exercise_attempts_list,percent_mastered_topics, number_of_attempts_array,correct_questionsList,percent_correct_array)
-		data['rows'] = masteryData
-		data['aggregation'] = aggregation
-		return data
+			aggregation = self.getAggrigation(mastered_topics, number_of_exercise_attempts_list,percent_mastered_topics, number_of_attempts_array,correct_questionsList,percent_correct_array)
+			data['rows'] = masteryData
+			data['aggregation'] = aggregation
+			return data
+		except Exception as e:
+			logger.error(e)
 
 	def getClassData(self):	
 		""" Used to fetch mastery class data
@@ -399,15 +437,18 @@ class UserMasteryData(BaseRoleAccess):
 		Returns:
 			data(dict): It contains rows of mastry data and it's aggregation
 		"""
-		school = self.institutes.filter(school_id = self.parentId)
-		objClasses = self.classes
-		if self.classes == None:
-			objClasses = UserInfoClass.objects.filter(parent = school[0].pk)
+		try:
+			school = self.institutes.filter(school_id = self.parentId)
+			objClasses = self.classes
+			if self.classes == None:
+				objClasses = UserInfoClass.objects.filter(parent = school[0].pk)
 
-		res = list(map(self.getMastryLogDetails, objClasses))
-		aggregationResult = [res['aggregation'] for res in res]
-		data = self.getMasteryAggregationData(aggregationResult, res)
-		return data
+			res = list(map(self.getMastryLogDetails, objClasses))
+			aggregationResult = [res['aggregation'] for res in res]
+			data = self.getMasteryAggregationData(aggregationResult, res)
+			return data
+		except Exception as e:
+			logger.error(e)
 
 	def getStudentData(self):
 		""" Used to fetch mastery student data
@@ -416,14 +457,18 @@ class UserMasteryData(BaseRoleAccess):
 		Returns:
 			data(dict): It contains rows of mastry data and it's aggregation
 		"""
-		students = UserInfoStudent.objects.filter(parent = self.parentId)
-		if not students:
-			return None
-		res = list(map(self.getStudentDetails, students))
-		
-		aggregationResult = [res['aggregation'] for res in res] 
-		data = self.getMasteryAggregationData(aggregationResult, res)
-		return data
+		try:
+			students = UserInfoStudent.objects.filter(parent = self.parentId)
+			if not students:
+				return None
+			res = list(map(self.getStudentDetails, students))
+			
+			aggregationResult = [res['aggregation'] for res in res] 
+			data = self.getMasteryAggregationData(aggregationResult, res)
+			return data
+		except Exception as e:
+			logger.error(e)
+
 
 	def getStudentDetails(self, student):
 		""" Used to fetch the stduent mastery details
@@ -431,46 +476,50 @@ class UserMasteryData(BaseRoleAccess):
 			studnt(obj): passed each student as args
 			row(dict) : list of mastery data
 		"""
-		completed_questions = 0
-		correct_questions = 0
-		number_of_attempts = 0
-		number_of_content = 0
-		mastered_topics = 0
-		percent_mastered_topics = 0
-		number_of_exercise_attempts = 0
-		total_questions = self.getTopicsData() 
-		total_subtopics = self.getSubTopicsData()
-		mastery_students = self.getLogData(student)
-		for mastery_student in mastery_students:
-			mastered_topics += mastery_student.mastered
-			completed_questions += mastery_student.completed_questions
-			correct_questions += mastery_student.correct_questions
-			number_of_attempts += mastery_student.attempt_questions
-			number_of_exercise_attempts += mastery_student.attempt_exercise
+		try:
 
-		if len(mastery_students) == 0 or number_of_exercise_attempts == 0 or mastered_topics==0:
-			completed = "0.00%"
-			values = [0,0,"0.00%", 0, 0, "0.00%"]
-			aggregation = [0,0,0.00, 0, 0, 0.00] 
+			completed_questions = 0
+			correct_questions = 0
+			number_of_attempts = 0
+			number_of_content = 0
+			mastered_topics = 0
+			percent_mastered_topics = 0
+			number_of_exercise_attempts = 0
+			total_questions = self.getTopicsData() 
+			total_subtopics = self.getSubTopicsData()
+			mastery_students = self.getLogData(student)
+			for mastery_student in mastery_students:
+				mastered_topics += mastery_student.mastered
+				completed_questions += mastery_student.completed_questions
+				correct_questions += mastery_student.correct_questions
+				number_of_attempts += mastery_student.attempt_questions
+				number_of_exercise_attempts += mastery_student.attempt_exercise
 
-			row = {'id': str(student.student_id), 'name': student.student_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation': aggregation}
-		else:
-			# percent_complete_float = float(completed_questions) / total_questions # Hide the %questions_completed as per enhancment and defeat sheet changes
-			# percent_complete = "{0:.2%}".format(percent_complete_float)
+			if len(mastery_students) == 0 or number_of_exercise_attempts == 0 or mastered_topics==0:
+				completed = "0.00%"
+				values = [0,0,"0.00%", 0, 0, "0.00%"]
+				aggregation = [0,0,0.00, 0, 0, 0.00] 
 
-			# Calculate the percentage of correct questions
-			percent_correct_float = float(correct_questions) / number_of_attempts # changed the formula to calculate the % correct based on total_attempts instead of total_questions of respective content. As discussed with Harish
-			percent_correct = "{0:.2%}".format(percent_correct_float)
+				row = {'id': str(student.student_id), 'name': student.student_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation': aggregation}
+			else:
+				# percent_complete_float = float(completed_questions) / total_questions # Hide the %questions_completed as per enhancment and defeat sheet changes
+				# percent_complete = "{0:.2%}".format(percent_complete_float)
 
-			percent_mastered_topics_float = float(mastered_topics) / number_of_exercise_attempts 
-			percent_mastered_topics = "{0:.2%}".format(percent_mastered_topics_float)
+				# Calculate the percentage of correct questions
+				percent_correct_float = float(correct_questions) / number_of_attempts # changed the formula to calculate the % correct based on total_attempts instead of total_questions of respective content. As discussed with Harish
+				percent_correct = "{0:.2%}".format(percent_correct_float)
 
-			values = [mastered_topics, number_of_exercise_attempts, percent_mastered_topics, correct_questions, number_of_attempts, percent_correct]
-			#aggregation = [percent_complete_float, percent_correct_float, completed, number_of_attempts] # Added for Testing
-			aggregation = [mastered_topics, number_of_exercise_attempts, percent_mastered_topics_float, correct_questions, number_of_attempts,percent_correct_float]
+				percent_mastered_topics_float = float(mastered_topics) / number_of_exercise_attempts 
+				percent_mastered_topics = "{0:.2%}".format(percent_mastered_topics_float)
 
-			row = {'id': str(student.student_id), 'name': student.student_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation': aggregation}
-		return row
+				values = [mastered_topics, number_of_exercise_attempts, percent_mastered_topics, correct_questions, number_of_attempts, percent_correct]
+				#aggregation = [percent_complete_float, percent_correct_float, completed, number_of_attempts] # Added for Testing
+				aggregation = [mastered_topics, number_of_exercise_attempts, percent_mastered_topics_float, correct_questions, number_of_attempts,percent_correct_float]
+
+				row = {'id': str(student.student_id), 'name': student.student_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation': aggregation}
+			return row
+		except Exception as e:
+			logger.error(e)
 
 	def getMastryLogDetails(self, masteryElement):
 		""" Used to fetch mastery details of any masteryElement(i.e class, school and student)
@@ -479,57 +528,60 @@ class UserMasteryData(BaseRoleAccess):
 		Returns:
 			row(dict) : It contains the mastery data of school or class
 		"""
-		aggregation = []
-		rows = []
-		values = []
-		completed_questions = 0
-		correct_questions = 0
-		number_of_attempts = 0
-		students_completed = 0
-		total_students = 0
-		mastered_topics = 0
-		number_of_exercise_attempts = 0
-		percent_mastered_topics = 0
-		total_questions = self.getTopicsData() 
-		total_subtopics = self.getSubTopicsData()
-		objMasteryData = self.getLogData(masteryElement)
+		try:
+			aggregation = []
+			rows = []
+			values = []
+			completed_questions = 0
+			correct_questions = 0
+			number_of_attempts = 0
+			students_completed = 0
+			total_students = 0
+			mastered_topics = 0
+			number_of_exercise_attempts = 0
+			percent_mastered_topics = 0
+			total_questions = self.getTopicsData() 
+			total_subtopics = self.getSubTopicsData()
+			objMasteryData = self.getLogData(masteryElement)
 
-		for objMastery in objMasteryData:
-			mastered_topics += objMastery.mastered
-			completed_questions += objMastery.completed_questions
-			correct_questions += objMastery.correct_questions
-			number_of_attempts += objMastery.attempt_questions
-			number_of_exercise_attempts += objMastery.attempt_exercise
+			for objMastery in objMasteryData:
+				mastered_topics += objMastery.mastered
+				completed_questions += objMastery.completed_questions
+				correct_questions += objMastery.correct_questions
+				number_of_attempts += objMastery.attempt_questions
+				number_of_exercise_attempts += objMastery.attempt_exercise
 
-		# Filter mastery level belongs to a certain class with certain topic id, and within certain time range
-		total_students = masteryElement.total_students
-		if total_questions == 0 or total_students == 0 or completed_questions ==0 or correct_questions == 0 or number_of_exercise_attempts == 0: 
-			values = [0,0,"0.00%",0,0,"0.00%"]
-			aggregation = [0,0,0.00, 0, 0,0.00] 
-			if self.parentLevel == 0:
-				row = {'id': str(masteryElement.school_id), 'name': masteryElement.school_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation': aggregation}
+			# Filter mastery level belongs to a certain class with certain topic id, and within certain time range
+			total_students = masteryElement.total_students
+			if total_questions == 0 or total_students == 0 or completed_questions ==0 or correct_questions == 0 or number_of_exercise_attempts == 0: 
+				values = [0,0,"0.00%",0,0,"0.00%"]
+				aggregation = [0,0,0.00, 0, 0,0.00] 
+				if self.parentLevel == 0:
+					row = {'id': str(masteryElement.school_id), 'name': masteryElement.school_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation': aggregation}
+				else:
+					row = {'id': str(masteryElement.class_id), 'name': masteryElement.class_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation': aggregation}
 			else:
-				row = {'id': str(masteryElement.class_id), 'name': masteryElement.class_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation': aggregation}
-		else:
-			# Calculate the percentage of completed questions 
-			# percent_complete_float = float(completed_questions) / (total_questions * total_students)
-			# percent_complete = "{0:.2%}".format(percent_complete_float)
+				# Calculate the percentage of completed questions 
+				# percent_complete_float = float(completed_questions) / (total_questions * total_students)
+				# percent_complete = "{0:.2%}".format(percent_complete_float)
 
-			# Calculate the percentage of correct questions
-			percent_correct_float = float(correct_questions) / (number_of_attempts) # changed the formula to calculate the % correct based on total_attempts instead of total_questions of respective content. As discussed with Harish
-			percent_correct = "{0:.2%}".format(percent_correct_float)
+				# Calculate the percentage of correct questions
+				percent_correct_float = float(correct_questions) / (number_of_attempts) # changed the formula to calculate the % correct based on total_attempts instead of total_questions of respective content. As discussed with Harish
+				percent_correct = "{0:.2%}".format(percent_correct_float)
 
-			# Calculate the percentage of exercise mastered
-			percent_mastered_topics_float = float(mastered_topics) / (number_of_exercise_attempts) # changed formula to calculate the % exrecise mastered based on total_exercise_attempts instead of total_subtopics of respective content.
-			percent_mastered_topics = "{0:.2%}".format(percent_mastered_topics_float)
+				# Calculate the percentage of exercise mastered
+				percent_mastered_topics_float = float(mastered_topics) / (number_of_exercise_attempts) # changed formula to calculate the % exrecise mastered based on total_exercise_attempts instead of total_subtopics of respective content.
+				percent_mastered_topics = "{0:.2%}".format(percent_mastered_topics_float)
 
-			values = [mastered_topics, number_of_exercise_attempts,percent_mastered_topics, correct_questions,number_of_attempts,percent_correct]
-			aggregation = [mastered_topics, number_of_exercise_attempts,percent_mastered_topics_float, correct_questions, number_of_attempts,percent_correct_float]
-			if self.parentLevel == 0:
-				row = {'id': str(masteryElement.school_id), 'name': masteryElement.school_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation':aggregation}	
-			else:
-				row = {'id': str(masteryElement.class_id), 'name': masteryElement.class_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation': aggregation}
-		return row
+				values = [mastered_topics, number_of_exercise_attempts,percent_mastered_topics, correct_questions,number_of_attempts,percent_correct]
+				aggregation = [mastered_topics, number_of_exercise_attempts,percent_mastered_topics_float, correct_questions, number_of_attempts,percent_correct_float]
+				if self.parentLevel == 0:
+					row = {'id': str(masteryElement.school_id), 'name': masteryElement.school_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation':aggregation}	
+				else:
+					row = {'id': str(masteryElement.class_id), 'name': masteryElement.class_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation': aggregation}
+			return row
+		except Exception as e:
+			logger.error(e)
 
 
 	def getAggrigation(self, mastered_topics, percent_of_exercise_attempts_list, percent_mastered_topics, correctQuestionsList, numberOfAttemptsList,percentCorrectList):
@@ -543,49 +595,52 @@ class UserMasteryData(BaseRoleAccess):
 		Returns:
 			aggregation[list] = returns average of metrics data in list
 		"""
-		aggregation = []
-		avg_complete = 0
-		avg_percent_complete = 0
-		avg_correct = 0
-		avg_percent_correct = 0
-		avg_number_of_attempts = 0
-		avg_percent_student_completed = 0
-		avg_mastered_topics = 0
-		avg_percent_mastered_topics = 0
-		avg_number_of_exercise_attempts = 0
-		# Calculate the average for these four metrics
-		length = len(percentCorrectList)
-		if length != 0:
-		    for i in range(length):
-		    	avg_mastered_topics += mastered_topics[i]
-		    	avg_number_of_exercise_attempts += percent_of_exercise_attempts_list[i]
-		    	avg_percent_mastered_topics += percent_mastered_topics[i]
-		    	avg_correct += correctQuestionsList[i]
-		    	avg_number_of_attempts += numberOfAttemptsList[i]
-		    	avg_percent_correct += percentCorrectList[i]
-		    	# avg_complete += completedQuestionsList[i]
-		    	# avg_percent_complete +=  percentCompleteList[i]
-		   
-		    avg_mastered_topics /= length
-		    avg_number_of_exercise_attempts /= length
-		    avg_percent_mastered_topics /= length
-		    avg_correct /= length
-		    avg_number_of_attempts /= length
-		    avg_percent_correct /= length
-		    # avg_complete /= length
-		    # avg_percent_complete /= length
-		    
-		   
-		    # if self.parentLevel == 2: # Added for Testing
-		    #     avg_percent_student_completed = "" # Added for Testing
-		    # else: # Added for Testing
-		    #      avg_percent_student_completed /= length # Added for Testing
-		    #      avg_percent_student_completed = "{0:.2%}".format(avg_percent_student_completed) # Added for Testing
-		    values = [str(int(avg_mastered_topics)), int(avg_number_of_exercise_attempts) ,"{0:.2%}".format(avg_percent_mastered_topics), str(int(avg_correct)), str(int(avg_number_of_attempts)),"{0:.2%}".format(avg_percent_correct)] #, avg_percent_student_completed, 15] # Added for testing last parameter
+		try:
+			aggregation = []
+			avg_complete = 0
+			avg_percent_complete = 0
+			avg_correct = 0
+			avg_percent_correct = 0
+			avg_number_of_attempts = 0
+			avg_percent_student_completed = 0
+			avg_mastered_topics = 0
+			avg_percent_mastered_topics = 0
+			avg_number_of_exercise_attempts = 0
+			# Calculate the average for these four metrics
+			length = len(percentCorrectList)
+			if length != 0:
+			    for i in range(length):
+			    	avg_mastered_topics += mastered_topics[i]
+			    	avg_number_of_exercise_attempts += percent_of_exercise_attempts_list[i]
+			    	avg_percent_mastered_topics += percent_mastered_topics[i]
+			    	avg_correct += correctQuestionsList[i]
+			    	avg_number_of_attempts += numberOfAttemptsList[i]
+			    	avg_percent_correct += percentCorrectList[i]
+			    	# avg_complete += completedQuestionsList[i]
+			    	# avg_percent_complete +=  percentCompleteList[i]
+			   
+			    avg_mastered_topics /= length
+			    avg_number_of_exercise_attempts /= length
+			    avg_percent_mastered_topics /= length
+			    avg_correct /= length
+			    avg_number_of_attempts /= length
+			    avg_percent_correct /= length
+			    # avg_complete /= length
+			    # avg_percent_complete /= length
+			    
+			   
+			    # if self.parentLevel == 2: # Added for Testing
+			    #     avg_percent_student_completed = "" # Added for Testing
+			    # else: # Added for Testing
+			    #      avg_percent_student_completed /= length # Added for Testing
+			    #      avg_percent_student_completed = "{0:.2%}".format(avg_percent_student_completed) # Added for Testing
+			    values = [str(int(avg_mastered_topics)), int(avg_number_of_exercise_attempts) ,"{0:.2%}".format(avg_percent_mastered_topics), str(int(avg_correct)), str(int(avg_number_of_attempts)),"{0:.2%}".format(avg_percent_correct)] #, avg_percent_student_completed, 15] # Added for testing last parameter
 
-		    average = {'name': 'Average', 'values': values}
-		    aggregation.append(average)
-		return aggregation
+			    average = {'name': 'Average', 'values': values}
+			    aggregation.append(average)
+			return aggregation
+		except Exception as e:
+			logger.error(e)
 	
 	def getPageData(self):
 		result = self.parentLevelMethods[self.parentLevel]()
