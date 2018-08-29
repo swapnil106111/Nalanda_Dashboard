@@ -23,6 +23,7 @@
     
 3. Activate the virtual environment you have created
 4. Install packages using `pip install -r requirement.txt`
+5. Goto Nalanda_Dashboard/static directory and type `npm install` to install frontdend dependancies
 5. Then create a local_setting.py file for your Django application which has the database settings.
     
     Please refer this link to install mysql database for Django application
