@@ -179,44 +179,64 @@ var setTableData = function(lessonData, code) {
             $('#data-table').html('');     
         }
         dataTable = $('#data-table').DataTable({
+
             columns: [
             {
                 'name': 'first',
                 'title': 'Student Name',
             },
-            {
-                'name': 'second',
-                'title': 'Metrics',
-            }
             ],
-            // data: lessonData
         });   
-
     }
     else{
         try{
             var data = lessonData['rows']
             var column = lessonData['columns']
-                //alert(column);
+            var topic = []
+            var len = column.length
+            var i
+            for (i=1 ; i <len; i+=3)
+            {
+                if (column[i]!= undefined)
+                    {
+                        topic.push(column[i])
+                        column.splice(i,1)
+                    }
+            }
             if (dataTable != null){
                 dataTable.destroy();
-                // $('#data-table').empty();
                 $('#data-table').html('');
-            }
-            dataTable = $('#data-table').DataTable({
+            } 
+            dataTable = $('#data-table').DataTable({     
             columns: column,
             data: data,
-            rowsGroup: [
-              0,
-              1
-            ],
-            // pageLength: '20',
             });
+            addHeaderrow(topic);
+           
         }
         catch(err){
             console.log(err.stack);
         }
     } 
+}
+var addHeaderrow = function(topic_list){
+     var table = document.getElementById('data-table');
+            var thead = document.getElementsByTagName('thead')
+            var row = document.createElement("tr")
+            var cell = document.createElement("th")
+            row.append(cell)
+            var len1= topic_list.length
+            var i
+            for (i =0 ;i<len1;i++ )
+            {
+                var td = document.createElement('TH')
+                td.appendChild(document.createTextNode(topic_list[i].title));
+                td.colSpan=3
+                td.style="text-align:center;"
+                td.style.borderLeft="1px solid black";
+                row.appendChild(td) 
+            }
+            $('thead').prepend(row);
 }
 
 
@@ -228,9 +248,6 @@ var showTotalQuestions = function(qCount){
     $('#totalQ').text(strQCount);
     // $('#totalExercise').text(strExerciseCount);
 }
-
-
-
 
 /** Pragma Mark - UIActions **/
 
