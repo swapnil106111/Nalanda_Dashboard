@@ -6,6 +6,7 @@ import json, time
 from django.db.models import Count
 from contentusage.constants import *
 from account.usermastery import BaseRoleAccess
+from django.db.models import Sum
 
 # import the logging library
 import logging
@@ -462,10 +463,15 @@ class ContentUsageData(BaseRoleAccess):
 					# correct_questions += objContent.correct_questions
 					number_of_attempts += objContent.attempt_questions
 					# number_of_exercise_attempts += objContent.attempt_exercise
-				#Calculate the percentage of completed questions 
-				percent_complete_float = float(completed_questions)/(total_questions)
-				percent_complete = "{0:.2%}".format(percent_complete_float)
 
+				#Calculate the percentage of completed questions 
+				if len(self.filtetContentUsage) == 0:
+					total_students = UserInfoSchool.objects.aggregate(Sum('total_students'))['total_students__sum']
+					percent_complete_float = float(completed_questions)/(total_questions *  total_students)
+				else:
+					percent_complete_float = float(completed_questions)/(total_questions *  len(self.filtetContentUsage))
+				percent_complete = "{0:.2%}".format(percent_complete_float)
+				
 				# Calculate the percentage of correct questions
 				# percent_correct_float = float(correct_questions) / (number_of_attempts) # changed the formula to calculate the % correct based on total_attempts instead of total_questions of respective content. As discussed with Harish
 				# percent_correct = "{0:.2%}".format(percent_correct_float)
@@ -600,7 +606,11 @@ class ContentUsageData(BaseRoleAccess):
 
 					# number_of_exercise_attempts += objContent.attempt_exercise
 				#Calculate the percentage of completed questions 
-				percent_complete_float = float(completed_questions)/(total_questions)
+				if len(self.filtetContentUsage) == 0:
+					total_students = UserInfoSchool.objects.aggregate(Sum('total_students'))['total_students__sum']
+					percent_complete_float = float(completed_questions)/(total_questions *  total_students)
+				else:
+					percent_complete_float = float(completed_questions)/(total_questions *  len(self.filtetContentUsage))
 				percent_complete = "{0:.2%}".format(percent_complete_float)
 
 				# Calculate the percentage of correct questions
@@ -858,7 +868,11 @@ class TrendDetails(BaseRoleAccess):
 				# temp.append(correct_questions_sum)
 				# temp.append(100.0*correct_questions_sum/(attempt_questions_sum))
 				# temp.append(completed_questions_sum)
-				temp.append(100.0*completed_questions_sum/(total_questions))
+				if len(self.filtetContentUsage) == 0:
+					total_students = UserInfoSchool.objects.aggregate(Sum('total_students'))['total_students__sum']
+					temp.append(100.0*completed_questions_sum/(total_questions * total_students))
+				else:
+					temp.append(100.0*completed_questions_sum/(total_questions * len(self.filtetContentUsage)))
 				points.append(temp)
 			res['series'] = series
 			res['points'] = points
