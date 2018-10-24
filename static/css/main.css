@@ -311,6 +311,13 @@ body.report.mastery {
     float: left;
     position: relative;
 }
+.report-settings .exam {
+    width: auto;
+    padding-left: 2px;
+    float: left;
+    position: relative;
+    margin-right: 30px;
+}
 
 input.daterangepicker {
     position: relative;
@@ -420,6 +427,75 @@ ul.fancytree-container {
     display: block;
 }
 
+.exam-dropdown-container {
+    position: absolute;
+    z-index: 9999;
+    margin-left: 41px;
+    margin-top: 2px;
+    min-width: 250px;
+    display: none;
+    padding: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 3px 8px #ddd;
+}
+
+.exam-dropdown-container .search {
+    padding: 6px;
+}
+
+.exam-dropdown-container .controls {
+    background: #f6f6f6;
+    margin: 0;
+    padding: 10px;
+    border-radius: 0 0 4px 4px; /* avoid background cutting the container's rounded border */
+    border-top: 1px solid #ddd;
+}
+
+.exam-dropdown-container .expand-button {
+    float: right;
+}
+
+.exam-dropdown-container.shown {
+    display: block;
+}
+
+#exams-tree {
+    max-height: 350px;
+    overflow-y: scroll;
+    margin: 0 0 6px;
+}
+
+#exam-filter-field {
+    outline: none;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    padding: 3px 5px 3px 25px;
+    line-height: 18px;
+    box-shadow: inset 1px 1px 1px #eee;
+}
+
+#exam-dropdown-container .search-icon {
+    position: absolute ;
+    left: 15px;
+    top: 12px;
+    color: #999;
+}
+
+ul.fancytree-container {
+    outline: none;
+    border: none;
+}
+
+.exam-dropdown {
+    display: none;
+}
+
+.exam-dropdown.shown {
+    display: block;
+}
 .report-breadcrumb {
     margin: 15px 0 20px;
     background: #f5f5f5;

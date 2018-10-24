@@ -1,0 +1,104 @@
+<!DOCTYPE HTML>
+{% extends "base_site.html" %}
+    {% block style %}
+        <link rel="stylesheet" type="text/css" href="/static/css/datatables.min.css"/>
+        <link rel="stylesheet" type="text/css" href="/static/node_modules/bootstrap-daterangepicker/daterangepicker.css">
+        <link rel="stylesheet" href="/static/node_modules/toastr/build/toastr.min.css" media="all">
+        <link rel="stylesheet" href="/static/node_modules/font-awesome/css/font-awesome.min.css">
+        <link rel="stylesheet" href="/static/node_modules/jquery.fancytree/dist/skin-lion/ui.fancytree.min.css" media="all">
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet">
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=EDGE">
+    {% endblock style %}
+    
+    {% block script %}
+        <!-- jquery -->
+        <script type="text/javascript" src="/static/node_modules/jquery/dist/jquery.min.js"></script>
+        <!-- bootstrap -->
+        <script type="text/javascript" src="/static/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+        <!-- jquery fancytree -->
+        <script type="text/javascript" src="/static/node_modules/jquery.fancytree/dist/jquery.fancytree-all-deps.min.js"></script>
+        <!-- datatables -->
+        <script type="text/javascript" src="/static/js/datatables.min.js"></script>
+        <!-- bootstrap daterangepicker -->
+        <script type="text/javascript" src="/static/node_modules/moment/min/moment.min.js"></script>
+        <script type="text/javascript" src="/static/node_modules/bootstrap-daterangepicker/daterangepicker.js"></script>
+        <!-- font awesome -->
+        <!-- google charts -->
+        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+        <!-- toastr -->
+        <script type="text/javascript" src="/static/node_modules/toastr/build/toastr.min.js"></script>
+        <!-- google fonts -->
+        <!-- PAGE SPECIFICS -->
+        <script type="text/javascript" src="/static/js/exam/exammetric.js"></script>
+       
+        <script type="text/javascript" src="/static/js/account/common.js"></script> 
+    {% endblock script %}
+   
+    {% block title %}Content Usage Repot{% endblock title %}
+
+{% block content %}
+<div class="report mastery">
+    <div id="main" class="site-main">
+        <div class="content-area">
+            <div id="primary" class="site-content">
+                <div class="report-header">
+                    <h1 class="page-title">Report: Exam Metrics </h1>
+                    <input type="hidden" id="userid" name="role" value={{ user.groups.values.0.id }}>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="report-settings row">
+                    <div class="exam">
+                        Students: 
+                        <button class="btn btn-default toggle-button" type="button">
+                            <span class="exam-dropdown-text">Everything</span>
+                            <span class="caret"></span>
+                        </button>
+                        <div id="exam-dropdown-container" class="exam-dropdown-container">
+                            <div class="search">
+                                <i class="fa fa-search search-icon" aria-hidden="true"></i>
+                                <input type="search" id="exam-filter-field" placeholder="Filter schools...">
+                            </div>
+                            <div id="exams-tree"></div>
+                            <div class="controls">
+                                <button class="btn btn-success btn-xs apply-button" onclick="applyAndDismissLessonDropdown();">Apply</button>
+                                <button class="btn btn-default btn-xs cancel-button" onclick="closeExamDropdown();">Cancel</button>
+                                <button class="btn btn-default btn-xs expand-button" onclick="toggleExamDropdownExpandAll();" data-expand="true">Expand All</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dates">
+                        <div class="datepicker-title">Start Date:</div>
+                        <input class="daterangepicker" name="daterange">
+                        <div class="datepicker-title">End Date:</div>
+                        <input class="daterangepickerenddate" name="daterange">
+                    </div>
+                </div>
+
+                <div class="report-breadcrumb ">
+                </div>
+                <div class=" totalquestions-breadcrumb "> 
+                     <strong>Total Exams:</strong><label id="totalExams"></label> 
+                     <strong>Active Exams:</strong><label id="activeExams"></label> 
+                     <strong>Complete Exams:</strong><label id="completeExams"></label> 
+                </div> 
+                
+                
+
+                <div class="report-content">
+                    <div class="table-view report-view report-view-1 ">
+                        <h2 class="section-title">Table View</h2>
+                        <table id="data-table" class="display" cellspacing="2" width="100%">
+                           
+                        </table>
+                    </div>
+                </div>
+                <div class="loading-info-container hidden">
+                    <div class="loading-info">Loading…</div>
+                </div>
+                <div class="prevents-interaction hidden"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
