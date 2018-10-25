@@ -253,15 +253,15 @@ var setTableData = function(examData, code) {
             },
             {
                 'name':'second', 
-                'title':'Correct_questions'
+                'title':'Correct Questions'
             },
             {
                 'name':'third', 
-                'title':'% Correct_question'
+                'title':'% Correct Questions'
             },
             {
                 'name':'fourth', 
-                'title':'Total_questions'
+                'title':'Total Questions'
             },
             ],
         });   
@@ -280,9 +280,7 @@ var setTableData = function(examData, code) {
             columns: column,
             data: data,
             });
-    
             headerData(examData);
-           
         }
         catch(err){
             console.log(err.stack);
@@ -298,34 +296,22 @@ var headerData = function(data){
         var te = headers['exam_count']
         var ae = headers['active_exam']
         var ce = headers['complete_exam']
-        
         showexamcount(te,ae,ce);
     } 
-    
 };
 var showexamcount = function(eCount, aCount, cCount){
-    // var strECount ;
-    // var strActiveCount;
-    // var strCompleteCount;
     if (eCount != null)
     {
-     $('.totalquestions-breadcrumb').removeClass('hidden')
-     $('.report-breadcrumb').addClass('hidden')
-    // strECount =
-    // strActiveCount = 
-    // strCompleteCount = 
-    
+    $('.totalquestions-breadcrumb').removeClass('hidden')
+    $('.report-breadcrumb').addClass('hidden')
     $('#totalExams').text( eCount.toString());
     $('#activeExams').text(aCount.toString());
     $('#completeExams').text(cCount.toString());
-
     } else {
 
          $('.totalquestions-breadcrumb').addClass('hidden')
          $('.report-breadcrumb').removeClass('hidden')
-    }
-
-   
+     }
 };
 
 

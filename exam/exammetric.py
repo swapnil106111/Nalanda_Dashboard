@@ -83,8 +83,8 @@ class Exammetric(object):
 		Returns:
 			columns(list): It returns list of columns
 		"""
-		columns = [{'name':'first', 'title':'Exam_Title'},{'name':'second', 'title':'Correct_questions'},
-					{'name':'third', 'title':'% Correct_question'},{'name':'fourth', 'title':'Total_question'}]
+		columns = [{'name':'first', 'title':'Exam Title'},{'name':'second', 'title':'Correct Questions'},
+					{'name':'third', 'title':'% Correct Questions'},{'name':'fourth', 'title':'Total Questions'}]
 	
 		return columns
 
