@@ -311,7 +311,7 @@ body.report.mastery {
     float: left;
     position: relative;
 }
-.report-settings .exam {
+.report-settings .school {
     width: auto;
     padding-left: 2px;
     float: left;
@@ -427,7 +427,7 @@ ul.fancytree-container {
     display: block;
 }
 
-.exam-dropdown-container {
+.school-dropdown-container {
     position: absolute;
     z-index: 9999;
     margin-left: 41px;
@@ -441,11 +441,11 @@ ul.fancytree-container {
     box-shadow: 0 3px 8px #ddd;
 }
 
-.exam-dropdown-container .search {
+.school-dropdown-container .search {
     padding: 6px;
 }
 
-.exam-dropdown-container .controls {
+.school-dropdown-container .controls {
     background: #f6f6f6;
     margin: 0;
     padding: 10px;
@@ -453,21 +453,21 @@ ul.fancytree-container {
     border-top: 1px solid #ddd;
 }
 
-.exam-dropdown-container .expand-button {
+.school-dropdown-container .expand-button {
     float: right;
 }
 
-.exam-dropdown-container.shown {
+.school-dropdown-container.shown {
     display: block;
 }
 
-#exams-tree {
+#schools-tree {
     max-height: 350px;
     overflow-y: scroll;
     margin: 0 0 6px;
 }
 
-#exam-filter-field {
+#school-filter-field {
     outline: none;
     width: 100%;
     border: 1px solid #ccc;
@@ -477,7 +477,7 @@ ul.fancytree-container {
     box-shadow: inset 1px 1px 1px #eee;
 }
 
-#exam-dropdown-container .search-icon {
+#school-dropdown-container .search-icon {
     position: absolute ;
     left: 15px;
     top: 12px;
@@ -489,11 +489,11 @@ ul.fancytree-container {
     border: none;
 }
 
-.exam-dropdown {
+.school-dropdown {
     display: none;
 }
 
-.exam-dropdown.shown {
+.school-dropdown.shown {
     display: block;
 }
 .report-breadcrumb {

@@ -25,31 +25,26 @@ var updatePageContent = function() {
     });
     var data1 = null;
     var data2 = null;
-
-    
     sendPOSTRequest('/exam/api/exam/get-page-data', {
         startTimestamp: startTimestamp,
         endTimestamp: endTimestamp,
         userID : userID
     }, function(response) {
-       
-    setTableData(response.data,response.code);
-    
-
+     setTableData(response.data,response.code);
     }
     );
 };
 
 // Fetch topics by calling API and update the dropdown menu
 // Called only once upon page initialization
-var refreshExamsDropdown = function() {
+var refreshSchoolsDropdown = function() {
     sendPOSTRequest('/exam/exams/', {
         startTimestamp: startTimestamp,
         endTimestamp: endTimestamp,
         parentLevel: parentLevel,
         parentId: parentId
     }, function(response) {
-        buildExamDropdown(response.data);
+        buildSchoolDropdown(response.data);
     });
 };
 
@@ -107,11 +102,11 @@ var setLoadingInfo = function(message) {
 // Initializes the schools dropdown according to given data
 // Calls `_setSchools` recursively
 // Called only once upon page initialization
-var buildExamDropdown = function(data) {
+var buildSchoolDropdown = function(data) {
     var content = [];
     _setSchools(content, data.schools);
 
-    // wrap "everything"
+    //wrap "everything"
     content = [{
         title: 'Everything', 
         key: '-1,-1', 
@@ -133,8 +128,8 @@ var buildExamDropdown = function(data) {
         mode: 'hide'                // Grayout unmatched nodes (pass "hide" to remove unmatched node instead)
     };
     
-    $('#exams-tree').html('');
-    $('#exams-tree').fancytree({
+    $('#schools-tree').html('');
+    $('#schools-tree').fancytree({
         // checkbox: true,
         // selectMode: 3,
         extensions: ['filter'],
@@ -144,7 +139,7 @@ var buildExamDropdown = function(data) {
     });
     
     // filter field
-    $('#exam-filter-field').keyup(function(e) {
+    $('#school-filter-field').keyup(function(e) {
         var n; // number of results
         var tree = $.ui.fancytree.getTree();
         var filterFunc = tree.filterBranches;
@@ -152,7 +147,7 @@ var buildExamDropdown = function(data) {
 
         if (e && e.which === $.ui.keyCode.ESCAPE || $.trim(match) === ''){
             // reset search
-            $('#exam-filter-field').val('');
+            $('#school-filter-field').val('');
             var tree = $.ui.fancytree.getTree();
             tree.clearFilter();
             return;
@@ -163,24 +158,81 @@ var buildExamDropdown = function(data) {
     
     // automatic reset
     $('#reset-search').click(function(e){
-        $('#exam-filter-field').val('');
+        $('#school-filter-field').val('');
         var tree = $.ui.fancytree.getTree();
         tree.clearFilter();
     });
     
     // click background to dismiss
     $('html').click(function() {
-        closeExamDropdown();
+        closeSchoolDropdown();
     });
     
-    $('#exam-dropdown-container').click(function(e) {
+    $('#school-dropdown-container').click(function(e) {
         e.stopPropagation();
     });
     
-    $('.exam .toggle-button').click(function(e) {
-        toggleExamDropdown();
+    $('.school .toggle-button').click(function(e) {
+        toggleSchoolDropdown();
         e.stopPropagation();
     });
+};
+
+var switchView = function(viewId) {
+    $('.switch-view-button').removeClass('btn-primary current');
+    $('.switch-view-button').addClass('btn-default');
+    $('.switch-view-button-' + viewId).removeClass('btn-default');
+    $('.switch-view-button-' + viewId).addClass('btn-primary current');
+    
+    $('.report-view').addClass('hidden');
+    $('.report-view-' + viewId).removeClass('hidden');
+};
+
+// Toggle topics dropdown menu
+// UIAction
+var toggleSchoolDropdown = function() {
+    $('#school-dropdown-container').toggleClass('shown');
+};
+
+// UIAction
+var closeSchoolDropdown = function() {
+    $('#school-dropdown-container').removeClass('shown');
+};
+
+// UIAction
+var toggleSchoolDropdownExpandAll = function() {
+    var $button = $('#school-dropdown-container .expand-button');
+    if ($button.data('expand')) {
+        $button.data('expand', false);
+        $button.html('Collapse All');
+        $('#schools-tree').fancytree('getTree').visit(function(node) {
+            node.setExpanded();
+        });
+    } else {
+        $button.data('expand', true);
+        $button.html('Expand All');
+        $('#schools-tree').fancytree('getTree').visit(function(node) {
+            if (node.title !== 'Everything') {
+                node.setExpanded(false); // collapse all except the root node (which there will be only 1)
+            }
+        });
+    }
+};
+// Apply currently selected topic, dismiss the dropdown, and update the page (async)
+// UIAction
+var applyAndDismissSchoolDropdown = function() {
+
+    var node = $('#schools-tree').fancytree('getTree').getActiveNode();
+    if (node !== null && node.children == null) {
+        var userId = node.key;// update global state
+        userID = userId;
+        $('.school-dropdown-text').html(node.title);
+        updatePageContent();
+    } else {
+        // a node is not selected
+        toastr.warning('You must select a student to apply the filter. Here filter is only student not the class/or schools');
+    }
+    toggleSchoolDropdown();
 };
 
 // Instantiate both tables, insert rows with data partially populated
@@ -239,39 +291,33 @@ var setTableData = function(examData, code) {
 }
 
 
-/** Pragma Mark - UIActions **/
-
-// UIAction
 var headerData = function(data){
-    var te;
-    var ae
-    var ce
     if (data['header'] != null)
     {
         var headers = data['header']
-        te = headers['exam_count']
-        ae = headers['active_exam']
-        ce = headers['complete_exam']
+        var te = headers['exam_count']
+        var ae = headers['active_exam']
+        var ce = headers['complete_exam']
         
         showexamcount(te,ae,ce);
     } 
     
 };
 var showexamcount = function(eCount, aCount, cCount){
-    var strECount ;
-    var strActiveCount;
-    var strCompleteCount;
+    // var strECount ;
+    // var strActiveCount;
+    // var strCompleteCount;
     if (eCount != null)
     {
      $('.totalquestions-breadcrumb').removeClass('hidden')
      $('.report-breadcrumb').addClass('hidden')
-    strECount = eCount.toString();
-    strActiveCount = aCount.toString();
-    strCompleteCount = cCount.toString();
+    // strECount =
+    // strActiveCount = 
+    // strCompleteCount = 
     
-    $('#totalExams').text(strECount);
-    $('#activeExams').text(strActiveCount);
-    $('#completeExams').text(strCompleteCount);
+    $('#totalExams').text( eCount.toString());
+    $('#activeExams').text(aCount.toString());
+    $('#completeExams').text(cCount.toString());
 
     } else {
 
@@ -280,63 +326,6 @@ var showexamcount = function(eCount, aCount, cCount){
     }
 
    
-};
-var switchView = function(viewId) {
-    $('.switch-view-button').removeClass('btn-primary current');
-    $('.switch-view-button').addClass('btn-default');
-    $('.switch-view-button-' + viewId).removeClass('btn-default');
-    $('.switch-view-button-' + viewId).addClass('btn-primary current');
-    
-    $('.report-view').addClass('hidden');
-    $('.report-view-' + viewId).removeClass('hidden');
-};
-
-// Toggle topics dropdown menu
-// UIAction
-var toggleExamDropdown = function() {
-    $('#exam-dropdown-container').toggleClass('shown');
-};
-
-// UIAction
-var closeExamDropdown = function() {
-    $('#exam-dropdown-container').removeClass('shown');
-};
-
-// UIAction
-var toggleExamDropdownExpandAll = function() {
-    var $button = $('#exam-dropdown-container .expand-button');
-    if ($button.data('expand')) {
-        $button.data('expand', false);
-        $button.html('Collapse All');
-        $('#exams-tree').fancytree('getTree').visit(function(node) {
-            node.setExpanded();
-        });
-    } else {
-        $button.data('expand', true);
-        $button.html('Expand All');
-        $('#exams-tree').fancytree('getTree').visit(function(node) {
-            if (node.title !== 'Everything') {
-                node.setExpanded(false); // collapse all except the root node (which there will be only 1)
-            }
-        });
-    }
-};
-
-// Apply currently selected topic, dismiss the dropdown, and update the page (async)
-// UIAction
-var applyAndDismissLessonDropdown = function() {
-
-    var node = $('#exams-tree').fancytree('getTree').getActiveNode();
-    if (node !== null && node.children == null) {
-        var userId = node.key;// update global state
-        userID = userId;
-        $('.exam-dropdown-text').html(node.title);
-        updatePageContent();
-    } else {
-        // a node is not selected
-        toastr.warning('You must select a student to apply the filter. Here filter is only student not the class/or schools');
-    }
-    toggleExamDropdown();
 };
 
 
@@ -468,6 +457,6 @@ $(function() {
     google.charts.load('current', {'packages':['line', 'corechart']});
     setupDateRangePicker();
     setupDateRangePickerEndDate();
-    refreshExamsDropdown();
+    refreshSchoolsDropdown();
     updatePageContent();
 });
