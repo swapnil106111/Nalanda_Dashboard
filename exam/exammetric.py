@@ -101,10 +101,8 @@ class Exammetric(object):
 		filter_exams= {}
 		filter_exams['date__range'] = (self.startTimestamp, self.endTimestamp)
 		student_list = Exam.objects.filter(student_id = self.user_id).filter(**filter_exams).values_list('student_id', 'exam_title', 'correct_questions' ,'question_count')
-		print ('student_list',student_list)
 		for student in student_list:
 			i_exam = []
-			print (student)
 			i_exam.append(student[1])
 			i_exam.append(student[2])
 			percent_correct_float = float(student[2]) / student[3] 
@@ -112,19 +110,16 @@ class Exammetric(object):
 			i_exam.append(percent_correct)
 			i_exam.append(student[3])
 			exam_metriclist.append(i_exam)
-		print ("result", exam_metriclist)
 		return exam_metriclist
 
 	def getStudentData(self):
 		student_info = {}
 		student_data = list(creation.objects.filter(student_id = self.user_id).extra(select ={'exam_count':'exam_count', 'active_exam':'active_exam_count', 'complete_exam':'complete_exam_count'}).values('exam_count','active_exam','complete_exam'))
-		print("student",student_data)
 		for student in student_data:
 			student_info = {}
 			student_info['exam_count'] = student['exam_count']
 			student_info['active_exam'] = student['active_exam']
 			student_info['complete_exam'] = student['complete_exam']
-			print("##### STUDENT LIST###", student_info)
 		return student_info
 
 	def get_exam_metric_data(self):
@@ -134,7 +129,6 @@ class Exammetric(object):
 		data['columns'] = columns
 		data['rows'] = rows
 		data['header'] = self.getStudentData()
-		print ("data", data)
 		return data
 	
 
