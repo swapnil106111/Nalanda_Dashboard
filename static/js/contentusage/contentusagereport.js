@@ -2,7 +2,7 @@
 
 // globals
 var table = null; // main data table
-var aggregationTable = null; // aggregation rows table
+var aggregationTable = null; // aggregation table
 var compareTable = null; // // datatables object
 var performanceTable = null; // datatables object
 var tableData; // see API specs

@@ -20,11 +20,13 @@ import account.views
 import usersession.views
 import contentusage.views
 import lesson.views
+import exam.views
 
 urlpatterns = [
     url(r'^account/', include('account.urls')),
     url(r'^usersession/', include('usersession.urls')),
     url(r'^contentusage/', include('contentusage.urls')),
     url(r'^lesson/', include('lesson.urls')),
+    url(r'^exam/', include('exam.urls')),
     url(r'^admin/', admin.site.urls)
 ]

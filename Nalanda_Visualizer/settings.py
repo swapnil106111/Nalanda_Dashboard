@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'account.apps.AccountConfig',
     'usersession',
     'contentusage',
-    'lesson'
+    'lesson',
+    'exam',
 ]   
 
 MIDDLEWARE = [

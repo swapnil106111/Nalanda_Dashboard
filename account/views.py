@@ -213,6 +213,7 @@ def admin_get_view(request):
     """
     try:
         if request.method == 'GET':
+            print ("Inside if")
             blockedUsers = {}
             pendings = User.objects.filter(is_superuser = False).order_by('-id')
             pendingUsers = list(map(lambda p: getPendingUserDetails(p), pendings))
@@ -227,6 +228,7 @@ def admin_get_view(request):
            
             data = {'pendingUsers': objPendingUsers }
             response_object = construct_response(0, "", "", data)
+            print("Response Object:", response_object)
             if len(objPendingUsers) == 0:
                 response_object = construct_response(2001, "user list empty", "All users are approved by admin and doesn't have ublocked users", {})
             return render(request, 'admin-users.html', response_object)
