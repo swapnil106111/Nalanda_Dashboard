@@ -1,14 +1,15 @@
 
 {% extends "base.html" %}
 {% block style %}
-<link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet"> 
+<link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet">
 {% endblock style %}
 {% block title %}Nalanda Visualizer{% endblock %}
 {% block content %}
 <body class ="login">
 
-    <h1 class="site-title">Nalanda Visualizer</h1>  
+
     <div class="content">
+      <div class="site-title">Nalanda Visualizer</div>
         <h2>Login to your account</h2>
         {% if form.non_field_errors %}
             <ul class='error'>
@@ -16,7 +17,7 @@
                    <li>{{ error }}</li>
                 {% endfor %}
             </ul>
-        {% endif %}        
+        {% endif %}
         <form class="login-form" method="POST"  >{% csrf_token %}
             <div class="input">
                 <i class="glyphicon glyphicon-user"></i>
@@ -37,4 +38,3 @@
     </div>
 </body>
 {% endblock %}
-  
