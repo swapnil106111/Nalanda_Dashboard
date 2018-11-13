@@ -2,7 +2,9 @@
 {% block header %}
 	<header id="masthead" class="site-header">
 	    <div class="inner">
-	        <h1 class="site-title"><a class="site-title-link">Nalanda Visualizer</a></h1>
+
+	       <h1 class="site-title"><img src="/static/images/logo.webp" alt="logo" width="40" height="40">
+					 <a class="site-title-link">Nalanda Visualizer</a></h1>
 	        <!--<span style="color:#ffffff">Current User: {{ "current_user" }}</span>-->
 	        <a href="{% url 'logout' %}" class="log-out" title="Log Out"><i class="glyphicon glyphicon-log-out"></i> Log Out</a>
 	    </div>
@@ -12,7 +14,7 @@
 {% block left-menu %}
 <div id="secondary" class="site-sidebar">
     <ul class="site-navigation">
-    	
+
         {% if user.is_superuser %}
             <li class="heading">Admin</li>
             <!-- <li class="heading">Reports</li> -->
@@ -26,15 +28,15 @@
         {% else %}
 
         <li class="heading">Welcome: {{ user.username }}</li>
-        <li class="heading">Role: {{ user.groups.values.0.name }}</li>
+				<!--Modified by Swapnil -->
+        <!--<li class="heading">Role: {{ user.groups.values.0.name }}</li> -->
         <li class="navigation-item"><a href="{% url 'get_report_mastery' 'mastery' %}">Mastery</a></li>
         <li class="navigation-item"><a href="{% url 'get_report_mastery' 'session' %}">User session</a></li>
         <li class="navigation-item"><a href="{% url 'get_contentusage' %}">Content Usage</a></li>
         <li class="navigation-item"><a href="{% url 'get_lesson_mastery' %}">Lesson Mastery</a></li>
         <li class="navigation-item"><a href="{% url 'get_exam_metrics' %}">Exam</a></li>
         {% endif %}
-        
+
     </ul>
 </div>
 {% endblock left-menu %}
-
