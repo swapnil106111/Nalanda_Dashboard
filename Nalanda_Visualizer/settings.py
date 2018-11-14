@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'contentusage',
     'lesson',
     'exam',
-]   
+]
 
 MIDDLEWARE = [
     # 'BruteBuster.middleware.RequestMiddleware',
@@ -53,7 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    
+
 ]
 
 ROOT_URLCONF = 'Nalanda_Visualizer.urls'

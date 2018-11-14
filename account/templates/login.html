@@ -1,14 +1,15 @@
 
 {% extends "base.html" %}
 {% block style %}
-<link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet"> 
+<link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet">
 {% endblock style %}
 {% block title %}Nalanda Visualizer{% endblock %}
 {% block content %}
 <body class ="login">
 
-    <h1 class="site-title">Nalanda Visualizer</h1>  
+
     <div class="content">
+      <div class="site-title">Nalanda Visualizer</div>
         <h2>Login to your account</h2>
         {% if form.non_field_errors %}
             <ul class='error'>
@@ -16,7 +17,7 @@
                    <li>{{ error }}</li>
                 {% endfor %}
             </ul>
-        {% endif %}        
+        {% endif %}
         <form class="login-form" method="POST"  >{% csrf_token %}
             <div class="input">
                 <i class="glyphicon glyphicon-user"></i>
@@ -26,15 +27,21 @@
                 <i class="glyphicon glyphicon-lock"></i>
                 <input name="password" id="id_password" type="password" class="form-control" placeholder="Password" required="true">
             </div>
-            <button name="submit" type="submit" class="btn btn-success submit-button">Login <i class="glyphicon glyphicon-log-in"></i></button>
+            <div class="row">
+            <div class="alternate-option-forget_password col-sm-6">
+                <a href="{% url 'password_reset' %}">Forgot Password</a>
+            </div>
+
+            <div class="col-sm-6">
+                 <button name="submit" type="submit" class="btn btn-success submit-button">Login <i class="glyphicon glyphicon-log-in"></i></button>
+            </div>
+          </div>
+          <div class="alternate-option-click_to_register">
+              Doesn’t have an account? <a href="{% url 'register' %}">Click to register</a>
+          </div>
         </form>
-        <div class="alternate-option">
-            Doesn’t have an account? <a href="{% url 'register' %}">Click to register</a>
-        </div>
-        <div class="alternate-option">
-            <a href="{% url 'password_reset' %}">Forgot Password</a>
-        </div>
+
+
     </div>
 </body>
 {% endblock %}
-  
