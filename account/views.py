@@ -47,7 +47,11 @@ def login_view(request):
     This function implements the request receiving and response sending for login
     """
     if request.user.is_authenticated():
-        return render(request, 'report-mastery.html')
+        if request.user.is_superuser:
+            response =  redirect((reverse('admin_get')))
+            return response
+        response = redirect(reverse('get_report_mastery', kwargs= {"analytics":"mastery"}))
+        return response
     else:
         try:
             response_object ={}
