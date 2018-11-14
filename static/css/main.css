@@ -74,9 +74,6 @@ body.report.mastery {
     text-decoration: none !important;
 }
 
-.site-title-link:hover {
-    color: #aaa;
-}
 
 .log-out {
     color: #000;
@@ -200,7 +197,9 @@ body.report.mastery {
     width: 400px;
     margin: 0 auto;
     border-radius: 3px;
-    box-shadow: 0px 0px 10px rgba(0,0,0,.3);
+    -webkit-box-shadow: 20px 20px 30px rgba(0,0,0,1);
+    -moz-box-shadow: 20px 20px 30px rgba(0,0,0,1);
+    box-shadow: 20px 20px 30px rgba(0,0,0,1);
 }
 
 .login form {
@@ -275,13 +274,38 @@ body.report.mastery {
 
 .login .submit-button {
     float: right;
-    margin-top:9px;
+    margin-top:17px;
 }
 
 .login .alternate-option {
     border-top: 1px dotted #eee;
-    padding:15px 15px 10px;
+    padding:18px 15px 10px;
     font-size:12px;
+    margin-top:15px;
+
+}
+.login .alternate-option-click_here_to_login {
+    border-top: 1px dotted #eee;
+    padding:18px 15px 10px;
+    font-size:12px;
+    margin-top:15px;
+    margin-left: 18px;
+}
+
+.login .alternate-option-click_to_register {
+    border-top: 1px dotted #eee;
+    padding:18px 15px 10px;
+    font-size:12px;
+    margin-top:15px;
+    margin-left: -12px;
+}
+
+
+.login .alternate-option-forget_password {
+    border-top: 1px dotted #eee;
+    padding:20px 17px 10px;
+    font-size:12px;
+    margin-top: 12px;
 
 }
 
