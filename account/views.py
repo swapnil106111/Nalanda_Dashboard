@@ -46,28 +46,31 @@ def login_view(request):
     """
     This function implements the request receiving and response sending for login
     """
-    try:
-        response_object ={}
-        form = AuthenticationForm(None, request.POST)
-        #If POST request is received, render the mastery page
-        if request.method == 'POST':
-            if form.is_valid():
-                login(request, form.get_user())
-                logger.info("User Login sucessfullly")
-                if form.get_user().is_superuser:
-                    response =  redirect((reverse('admin_get')))
+    if request.user.is_authenticated():
+        return render(request, 'report-mastery.html')
+    else:
+        try:
+            response_object ={}
+            form = AuthenticationForm(None, request.POST)
+            #If POST request is received, render the mastery page
+            if request.method == 'POST':
+                if form.is_valid():
+                    login(request, form.get_user())
+                    logger.info("User Login sucessfullly")
+                    if form.get_user().is_superuser:
+                        response =  redirect((reverse('admin_get')))
+                        return response
+                    response = redirect(reverse('get_report_mastery', kwargs= {"analytics":"mastery"}))
                     return response
-                response = redirect(reverse('get_report_mastery', kwargs= {"analytics":"mastery"}))
-                return response
-            else:
-                response_object['form']=form
-                return render(request, 'login.html', response_object)
-        #If GET request is received, render the login page
-        form = AuthenticationForm()
-        response_object['form']=form
-        return render(request, 'login.html', response_object)
-    except Exception as e:
-        logger.error("Error while login attempt: ", e)
+                else:
+                    response_object['form']=form
+                    return render(request, 'login.html', response_object)
+            #If GET request is received, render the login page
+            form = AuthenticationForm()
+            response_object['form']=form
+            return render(request, 'login.html', response_object)
+        except Exception as e:
+            logger.error("Error while login attempt: ", e)
 
 def register_view(request):
     """ This View is used to register the new user
