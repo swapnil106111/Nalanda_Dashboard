@@ -84,17 +84,19 @@ class userSessionPageData(BaseRoleAccess):
 			data = {}	
 			sample_metrix = []
 			total_active_time = []
+			avg_active_time = []
 			# minutes = []
 			# seconds = []
 			for row in aggregationResult:
 				total_active_time.append(row[0])
+				avg_active_time.append(row[1])
 				# minutes.append(row[1])
 				# seconds.append(row[2])
 			# Removed unwanted data of aggregation
 			for row in userSessionData:
 				row.pop('aggregation', None)
 
-			aggregation = self.getAggrigation(total_active_time)  # New matrix
+			aggregation = self.getAggrigation(total_active_time, avg_active_time)  # New matrix
 			# aggregation = self.getAggrigation(percent_complete_array, percent_correct_array, number_of_attempts_array)#( percent_student_completed_array, 15) # Added for testing last paramter
 			data['rows'] = userSessionData
 			data['aggregation'] = aggregation
@@ -138,6 +140,7 @@ class userSessionPageData(BaseRoleAccess):
 			
 			aggregationResult = [res['aggregation'] for res in res] 
 			data = self.getUserSessionAggregationData(aggregationResult, res)
+			data['level'] = self.parentLevel
 			return data
 		except Exception as e:
 			logger.error(e)
@@ -156,16 +159,16 @@ class userSessionPageData(BaseRoleAccess):
 				total_usage += usersession_student.total_usage
 				
 			if len(usersession_students) == 0:
-				values = [0]
-				aggregation = [0] 
+				values = [0, 0]
+				aggregation = [0, 0] 
 				row = {'id': str(student.student_id), 'name': student.student_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage}
 			else:
 				m, s = divmod(total_usage, 60)
 				h, m = divmod(m, 60)
 				total_active_usage = "%d:%02d:%02d" % (h, m, s)
-				values = [total_active_usage]
+				values = [total_active_usage, total_active_usage]
 				
-				aggregation = [total_active_usage]
+				aggregation = [total_active_usage, total_active_usage]
 				row = {'id': str(student.student_id), 'name': student.student_name, 'values': values, 'aggregation': aggregation, 'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage}
 			return row
 		except Exception as e:
@@ -192,8 +195,8 @@ class userSessionPageData(BaseRoleAccess):
 			# Filter mastery level belongs to a certain class with certain topic id, and within certain time range
 			total_students = usersessionElement.total_students
 			if total_usage == 0:
-				values = [0]
-				aggregation = [0] 
+				values = [0, 0]
+				aggregation = [0, 0] 
 				if self.parentLevel == 0:
 					row = {'id': str(usersessionElement.school_id), 'name': usersessionElement.school_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage}
 				else:
@@ -201,12 +204,12 @@ class userSessionPageData(BaseRoleAccess):
 			else:
 				# Calculate the percentage of completed questions
 				total_usersession_usage = float(total_usage) / total_students
-				m, s = divmod(total_usersession_usage, 60)
-				h, m = divmod(m, 60)
-				total_active_usage = "%d:%02d:%02d" % (h, m, s)
+	
+				avg_total_active_usage = self.convert_time(total_usersession_usage)
+				total_usage_data = self.convert_time(total_usage)
 				
-				values = [total_active_usage]
-				aggregation = [total_active_usage]
+				values = [total_usage_data, avg_total_active_usage]
+				aggregation = [total_usage_data, avg_total_active_usage]
 				if self.parentLevel == 0:
 					row = {'id': str(usersessionElement.school_id), 'name': usersessionElement.school_name, 'values': values, 'aggregation':aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage}	
 				else:
@@ -216,7 +219,7 @@ class userSessionPageData(BaseRoleAccess):
 			logger.error(e)
 
 
-	def getAggrigation(self, hoursList): 
+	def getAggrigation(self, total_hoursList, avg_total_hours_list): 
 		""" Used to calculate the aggregation for each usersessionElement based on metrics data
 		Args:
 			hoursList(list) :  List of total_usage(hours) of kolibri server
@@ -227,28 +230,28 @@ class userSessionPageData(BaseRoleAccess):
 		try:
 			aggregation = []
 			avg_hours_usage = 0
+			total_hours_usage = 0
 			# avg_minutes_usage = 0
 			# avg_seconds_usage = 0
 		
 			# Calculate the average for these four metrics
-			length = len(hoursList)
+			length = len(total_hoursList)
 			if length != 0:
 			    for i in range(length):
-			    	if hoursList[i] == 0:
+			    	if avg_total_hours_list[i] == 0:
 			    		continue
-			    	p = hoursList[i].split(':')
+			    	p = avg_total_hours_list[i].split(':')
+			    	k = total_hoursList[i].split(':')
 			    	avg_hours_usage += int(p[0]) * 3600 + int(p[1])*60 + int(p[2])
-			    	# avg_minutes_usage += minutesList[i]
-			    	# avg_seconds_usage += secondsList[i]
-			   
+			    	total_hours_usage += int(k[0]) * 3600 + int(k[1])*60 + int(k[2])
+
 			    avg_hours_usage /= length
-			    m, s = divmod(avg_hours_usage, 60)
-			    h, m = divmod(m, 60)
-			    total_active_usage = "%d:%02d:%02d" % (h, m, s)
-			    # avg_minutes_usage /= length
-			    # avg_seconds_usage /= length 
+			    total_hours_usage /= length
+
+			    avg_total_active_usage = self.convert_time(avg_hours_usage)
+			    total_active_usage = self.convert_time(total_hours_usage)
 			  
-			    values = [total_active_usage] #, avg_percent_student_completed, 15] # Added for testing last parameter
+			    values = [total_active_usage, avg_total_active_usage] #, avg_percent_student_completed, 15] # Added for testing last parameter
 			    average = {'name': 'Average', 'values': values}
 			    aggregation.append(average)
 			return aggregation
@@ -265,24 +268,42 @@ class userSessionPageData(BaseRoleAccess):
 					l[school['name'][0]][0].append(school['total'])
 			
 			total_active_usage  = 0
+			avg_active_usage = 0
+
 			for k,v in l.items():
 				p = {}
 				total_active_usage  = 0
+				avg_active_usage = 0
+				total_active_usage_list = []
 				if k in l.keys():
 					if len(v[0]) > 0:
 						result = sum(v[0])/len(v[0])
-						m, s = divmod(result, 60)
-						h, m = divmod(m, 60)
-						total_active_usage = "%d:%02d:%02d" % (h, m, s)
+						avg_result = sum(v[1])/len(v[1])
+
+						total_active_usage = self.convert_time(result)
+						avg_active_usage = self.convert_time(avg_result)
+
 						p['name'] = l[k][1]
-						p['values'] = total_active_usage
+						total_active_usage_list.append(total_active_usage)
+						total_active_usage_list.append(avg_active_usage)
+						#p['values'] = total_active_usage
 					else:
 						p['name'] = l[k][1]
-						p['values'] = total_active_usage
-					school_aggr_city.append(p)
+						total_active_usage_list.append(total_active_usage)
+						total_active_usage_list.append(avg_active_usage)
+
+				p['values'] = total_active_usage_list
+				school_aggr_city.append(p)
 			return school_aggr_city
 		except Exception as e:
 			logger.error(e)
+
+	def convert_time(self, time):
+		m, s = divmod(time, 60)
+		h, m = divmod(m, 60)
+		result = "%d:%02d:%02d" % (h, m, s)
+		return result
+
 
 	def getPageData(self):
 		result = self.parentLevelMethods[self.parentLevel]()
