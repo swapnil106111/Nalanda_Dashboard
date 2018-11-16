@@ -1,6 +1,7 @@
 "use strict";
 
 // globals
+
 var startTimestamp = 1496948693; // default: from server
 var endTimestamp = 1596948693; // default: from server
 var parentLevel = 0; // default: parent-of-root-level
@@ -10,6 +11,7 @@ var debug = true; // whether to print debug outputs to console
 var selfServe = false;
 var userID = '' // User ID 
 var dataTable = null;
+var aggregationTable = null;
 /** Pragma Mark - Starting Points **/
 
 // Update page (incl. new breadcrumb and all table/diagrams)
@@ -259,10 +261,6 @@ var setTableData = function(examData, code) {
                 'name':'third', 
                 'title':'% Correct Questions'
             },
-            {
-                'name':'fourth', 
-                'title':'Total Questions'
-            },
             ],
         });   
     }
@@ -280,40 +278,69 @@ var setTableData = function(examData, code) {
             columns: column,
             data: data,
             });
+
             headerData(examData);
+            aggregation_table(examData)
         }
         catch(err){
             console.log(err.stack);
         }
-    } 
+
+
+    }
+    
+}
+
+var aggregation_table= function(data){
+
+if (aggregationTable != null){ 
+    aggregationTable.destroy();
+    //  $('#aggregation-table').html('');     
 }
 
 
+aggregationTable = $('#aggregation-table').DataTable({
+            paging: false,
+            bFilter: false
+     });
+    
+aggregationTable.clear();
+var idx
+for (idx in data.average) {
+        var array = data.average[idx].values;
+        array.unshift(data.average[idx].name);
+        array.push('');
+        aggregationTable.row.add(array).draw(false);
+    }
+     
+    
+}
+
 var headerData = function(data){
-    if (data['header'] != null)
-    {
         var headers = data['header']
-        var te = headers['exam_count']
-        var ae = headers['active_exam']
-        var ce = headers['complete_exam']
-        showexamcount(te,ae,ce);
-    } 
+        var te = headers['question_count']
+        showexamcount(te);
+  
 };
-var showexamcount = function(eCount, aCount, cCount){
+var showexamcount = function(eCount){
     if (eCount != null)
     {
     $('.totalquestions-breadcrumb').removeClass('hidden')
     $('.report-breadcrumb').addClass('hidden')
     $('#totalExams').text( eCount.toString());
-    $('#activeExams').text(aCount.toString());
-    $('#completeExams').text(cCount.toString());
+   // $('#topic_data').text(data.toString());
     } else {
 
          $('.totalquestions-breadcrumb').addClass('hidden')
          $('.report-breadcrumb').removeClass('hidden')
      }
 };
-
+var showtopic = function(data){
+    if(data != null)
+    {
+        
+    }
+}
 
 // Handle click event of a breadcrumb link
 // UIAction

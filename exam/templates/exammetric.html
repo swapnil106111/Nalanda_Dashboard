@@ -78,11 +78,9 @@
                 <div class="report-breadcrumb ">
                 </div>
                 <div class=" totalquestions-breadcrumb "> 
-                     <strong>Total Exams:</strong><label id="totalExams"></label> 
-                     <strong>Active Exams:</strong><label id="activeExams"></label> 
-                     <strong>Completed Exams:</strong><label id="completeExams"></label> 
-                </div> 
-                
+                     <strong>Total Questions:</strong><label id="totalExams"></label> 
+                     <!--<strong>Topics:</strong><label id="topic_data"></label>-->
+                </div>
                 
 
                 <div class="report-content">
@@ -93,6 +91,19 @@
                         </table>
                     </div>
                 </div>
+                  <h2 class="section-title">Aggregations</h2>
+                        <table id="aggregation-table" class="display" cellspacing="0" width="100%">
+                            <thead>
+                                <tr>
+                                    <th class="name-column">Name</th>
+                                    <!-- metric columns -->
+                                    <th class="trend-column">Correct Questions</th>
+                                    <th class="trend-column">%Correct Questions</th>
+
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                 <div class="loading-info-container hidden">
                     <div class="loading-info">Loading…</div>
                 </div>
