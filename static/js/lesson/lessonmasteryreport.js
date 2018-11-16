@@ -210,6 +210,7 @@ var setTableData = function(lessonData, code) {
             dataTable = $('#data-table').DataTable({     
             columns: column,
             data: data,
+            "dom": 'flr<"lessondatable"t>ip'
             });
             addHeaderrow(topic);
            

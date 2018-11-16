@@ -789,6 +789,10 @@ input[type='radio'], label{
     border-right-width: 0;
     color: #a94442;
 }
+.lessondatable{
+    width: 100%;
+    overflow-y: auto;
+}
 @media (max-width: 1000px) {
     .page-title {
         font-size: 23px;
