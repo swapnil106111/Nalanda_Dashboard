@@ -254,7 +254,7 @@ var setTableMeta = function(data) {
         
         // initialize tables
 
-
+        
         table = $('#data-table').DataTable({
             columnDefs: [
                 { orderable: false, targets: 3 }
@@ -427,18 +427,29 @@ var setTableData = function(data) {
         array.push('');
         citytable.row.add(array).draw(false);
     }
-
-    if(data.level == 2)
-    {
-        citytable.column(2).visible(false)
-        aggregationTable.column(2).visible(false)
-        table.column(2).visible(false)
-    }
-    else{
-        citytable.column(2).visible(true)
-        aggregationTable.column(2).visible(true)
-        table.column(2).visible(true)
-    }
+    // if (data.level == 2){
+    //     $('#data-compare-table .dropdown-menu li a:contains("# Avg Active Usage")').parent().addClass("hide");//.remove('<li><a href="#" onclick="setCompareMetricIndex(' + 1 + ')">' + data.metrics[idx].displayName + '</a></li>');
+    // }
+    // else{
+    //     $('#data-compare-table .dropdown-menu li a:contains("# Avg Active Usage")').parent().removeClass("hide");//.remove('<li><a href="#" onclick="setCompareMetricIndex(' + 1 + ')">' + data.metrics[idx].displayName + '</a></li>');
+    // }
+    // if (data.level == 2){
+    //     $('#data-compare-table .dropdown-menu li a:contains("# Avg Active Usage")').parent().addClass("hide");//.remove('<li><a href="#" onclick="setCompareMetricIndex(' + 1 + ')">' + data.metrics[idx].displayName + '</a></li>');
+    // }
+    // else{
+    //     $('#data-performance-table .dropdown-menu-metric li a:contains("# Avg Active Usage")').parent().removeClass("hide");//.remove('<li><a href="#" onclick="setCompareMetricIndex(' + 1 + ')">' + data.metrics[idx].displayName + '</a></li>');
+    // }
+    // if(data.level == 2)
+    // {
+    //     citytable.column(2).visible(false)
+    //     aggregationTable.column(2).visible(false)
+    //     table.column(2).visible(false)
+    // }
+    // else{
+    //     citytable.column(2).visible(true)
+    //     aggregationTable.column(2).visible(true)
+    //     table.column(2).visible(true)
+    // }
     precalculate();
     setCompareMetricIndex(compareMetricIndex);
     setPerformanceMetricIndex(performanceMetricIndex);
