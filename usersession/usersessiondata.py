@@ -59,7 +59,6 @@ class userSessionPageData(BaseRoleAccess):
 				usesSessionData = Student.objects.filter(**filterTopics)
 			return usesSessionData
 		except Exception as e:
-			print (e)
 			traceback.print_exc()
 			logger.error(e)
 
@@ -103,11 +102,9 @@ class userSessionPageData(BaseRoleAccess):
 			# aggregation = self.getAggrigation(percent_complete_array, percent_correct_array, number_of_attempts_array)#( percent_student_completed_array, 15) # Added for testing last paramter
 			data['rows'] = userSessionData
 			data['aggregation'] = aggregation
-			print ("getUserSessionAggregationData")
 			return data
 		except Exception as e:
 			traceback.print_exc()
-			print (e)
 			logger.error(e)
 
 	def getClassData(self):	
@@ -152,7 +149,6 @@ class userSessionPageData(BaseRoleAccess):
 			return data
 		except Exception as e:
 			traceback.print_exc()
-			print (e)
 			logger.error(e)
 
 	def getStudentDetails(self, student):
@@ -183,7 +179,6 @@ class userSessionPageData(BaseRoleAccess):
 			return row
 		except Exception as e:
 			traceback.print_exc()
-			print (e)
 			logger.error(e)
 
 	def getUserSessionLogDetails(self, usersessionElement):
@@ -200,10 +195,8 @@ class userSessionPageData(BaseRoleAccess):
 			total_usage = 0
 			
 			objUsersessionData = self.getLogData(usersessionElement)
-			print ("usersessionElement:", usersessionElement)
 
 			for objUsersession in objUsersessionData:
-				print ("Data:", objUsersession.total_usage)
 				total_usage += int(objUsersession.total_usage)
 			
 			# Filter mastery level belongs to a certain class with certain topic id, and within certain time range
@@ -228,12 +221,10 @@ class userSessionPageData(BaseRoleAccess):
 					row = {'id': str(usersessionElement.school_id), 'name': usersessionElement.school_name, 'values': values, 'aggregation':aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage}	
 				else:
 					row = {'id': str(usersessionElement.class_id), 'name': usersessionElement.class_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage}
-			print ("dddd")
 			return row
 		except Exception as e:
 			traceback.print_exc()
-			print (e)
-			#logger.error(e)
+			logger.error(e)
 
 
 	def getAggrigation(self, total_hoursList, avg_total_hours_list): 
@@ -271,10 +262,8 @@ class userSessionPageData(BaseRoleAccess):
 			    values = [total_active_usage, avg_total_active_usage] #, avg_percent_student_completed, 15] # Added for testing last parameter
 			    average = {'name': 'Average', 'values': values}
 			    aggregation.append(average)
-			print ("ssssss")
 			return aggregation
 		except Exception as e:
-			print (e)
 			traceback.print_exc()
 			logger.error(e)
 
@@ -286,8 +275,7 @@ class userSessionPageData(BaseRoleAccess):
 			for school in schools:
 				if school['name'][0] in l.keys():
 					l[school['name'][0]][0].append(school['total'])
-			
-			print ("L:", l)
+
 			total_active_usage  = 0
 			avg_active_usage = 0
 
@@ -298,8 +286,6 @@ class userSessionPageData(BaseRoleAccess):
 				total_active_usage_list = []
 				if k in l.keys():
 					if len(v[0]) > 0:
-						print (v[0])
-						print (v[1])
 						result = sum(v[0])/len(v[0])
 						avg_result = sum(v[0])/len(v[0])
 
@@ -320,7 +306,6 @@ class userSessionPageData(BaseRoleAccess):
 			return school_aggr_city
 		except Exception as e:
 			traceback.print_exc()
-			print (e)
 			logger.error(e)
 
 	def convert_time(self, time):
@@ -332,7 +317,6 @@ class userSessionPageData(BaseRoleAccess):
 
 	def getPageData(self):
 		result = self.parentLevelMethods[self.parentLevel]()
-		print ("Result:", result)
 		# school_aggr_city = self.getAggrigation_citywise(result['rows'])
 		# result['total'] = school_aggr_city
 		return result
