@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from account.views import construct_response
 from account.models import UserInfoSchool, UserInfoClass, UserInfoStudent
 from usersession.models import *
+import traceback
 
 import logging
 
@@ -29,6 +30,8 @@ def get_page_meta_view(request):
         response_text = json.dumps(objUserData,ensure_ascii=False)
         return HttpResponse(response_text,content_type='application/json')
     except Exception as e:
+        traceback.print_exc()
+        print (e)
         logger.error(e)
 
 @login_required(login_url='/account/login/')
@@ -54,6 +57,8 @@ def get_page_data_view(request):
         response_text = json.dumps(response_object,ensure_ascii=False)
         return HttpResponse(response_text, content_type='application/json')
     except Exception as e:
+        traceback.print_exc()
+        print (e)
         logger.error(e)
 
 @login_required(login_url='/account/login/')
