@@ -14,10 +14,12 @@
 
 <body>
 <div class={% if user.is_authenticated %}""{% else %}"body1"{% endif %}>
+{% if not user.is_authenticated %}	<div class="row" style="padding-bottom:20px;">&nbsp;</div>{%endif%}
 {% block header %} {% endblock header %}
 {% block content %} {% endblock content %}
 {% block left-menu %}{% endblock left-menu %}
 {% block footer %} {% endblock footer %}
+
 </div>
 </body>
 </html>
