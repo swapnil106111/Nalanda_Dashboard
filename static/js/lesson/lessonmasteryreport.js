@@ -173,6 +173,7 @@ var buildLessonsDropdown = function(data) {
 // Called every time the page needs update
 var metaSetOnce = false;
 var setTableData = function(lessonData, code) {
+    var sharedLengthMenu = [[30, 60, 90, 120], [30, 60, 90, 120]];
     if (code == 2001){
         if (dataTable != null){ 
             dataTable.destroy();
@@ -186,6 +187,7 @@ var setTableData = function(lessonData, code) {
                 'title': 'Student Name',
             },
             ],
+            lengthMenu: sharedLengthMenu,
         });   
     }
     else{
@@ -208,6 +210,7 @@ var setTableData = function(lessonData, code) {
                 $('#data-table').html('');
             } 
             dataTable = $('#data-table').DataTable({     
+            lengthMenu: sharedLengthMenu,
             columns: column,
             data: data,
             "dom": 'flr<"lessondatable"t>ip'
