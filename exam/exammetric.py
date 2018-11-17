@@ -65,7 +65,6 @@ class Exam_details(BaseRoleAccess):
 			class_info['name'] = classid['name']
 			class_list.append(class_info)
 		self.totalexams["schools"] = class_list
-		print ('exams',totalexams)
 		return self.totalexams
 
 
@@ -120,7 +119,6 @@ class Exammetric(object):
 
 			res = list(Exam.objects.filter(**filter_students).values_list('correct_questions'))
 			res1 = list(chain(*res))
-			print ("Result:", res1)
 			
 			if not res:
 				for i in range(2):
@@ -160,18 +158,17 @@ class Exammetric(object):
 	def getAggregationData(self, aggregateresult):
 		# avg_correct = 0
 		aggregation = []
-		student_question = aggregateresult[2]
-		student_question *= aggregateresult[3]
+	
 		student_percent = aggregateresult[2]
 		student_percent *= 100
 
 		avg_correct = aggregateresult[0]
-		avg_correct /= student_question
+		avg_correct /= aggregateresult[2]
 		print('correct avg:',avg_correct)
 		avg_percent_correct = aggregateresult[1]
 		avg_percent_correct /=student_percent
 		print('correct % avg:',avg_percent_correct)
-		values = [str( "{0:.2}".format(avg_correct)),"{0:.2%}".format(avg_percent_correct)] 
+		values = [str( "%.2f"%(avg_correct)),"{0:.2%}".format(avg_percent_correct)] 
 		average = {'name': 'Average', 'values': values}
 		aggregation.append(average)
 		return aggregation
@@ -192,8 +189,6 @@ class Exammetric(object):
 		# 	topic_data =[]
 		# 	topic_data.append(topic['question_sources'])
 		topic_data = list(chain(*topics))
-		# print ('question_sources',topics)
-		# print ('gtjuhgsjdg46464   :',topic_data)
 		return topic_data
 
 	def get_exam_metric_data(self):
