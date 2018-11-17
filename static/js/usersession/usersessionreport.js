@@ -610,7 +610,7 @@ var drawTrendChart = function(itemId, itemName) {
             axes: {
                 y: {
                     percentage: {label: 'Percentage'},
-                    number: {label: 'Minutes'}
+                    number: {label: 'Hours'}
                 }
             }
         };
