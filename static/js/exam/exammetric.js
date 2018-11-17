@@ -9,19 +9,19 @@ var parentId = '-1'; // default: none (at root level already, no parent)
 var pendingRequests = 0; // number of requests that are sent but not received yet
 var debug = true; // whether to print debug outputs to console
 var selfServe = false;
-var userID = '' // User ID 
+var userID = '' // User ID
 var dataTable = null;
 var aggregationTable = null;
 /** Pragma Mark - Starting Points **/
-
+var length_exam = [[30,60,90,120],[30,60,90,120]]
 // Update page (incl. new breadcrumb and all table/diagrams)
 // Uses global variables `startTimestamp`, `endTimestamp`, `contentId`, `channelId`, `parentLevel`, and `parentId`
 // Called every time the page needs update
 var updatePageContent = function() {
-    
-    // Making sure `setTableData` happens AFTER `setTableMeta` 
+
+    // Making sure `setTableData` happens AFTER `setTableMeta`
    $(document).ready(function() {
-        
+
         $('.totalquestions-breadcrumb').addClass('hidden');
         $('.report-breadcrumb').removeClass('hidden');
     });
@@ -92,8 +92,8 @@ var setLoadingInfo = function(message) {
     if (message === null) {
         $('.loading-info-container').addClass('hidden');
         return;
-    }  
-    
+    }
+
     $('.loading-info').html(message);
     $('.loading-info-container').removeClass('hidden');
 };
@@ -110,13 +110,13 @@ var buildSchoolDropdown = function(data) {
 
     //wrap "everything"
     content = [{
-        title: 'Everything', 
-        key: '-1,-1', 
-        folder: true, 
+        title: 'Everything',
+        key: '-1,-1',
+        folder: true,
         children: content,
         expanded: true
     }];
-    
+
     var opts = {
         autoApply: true,            // Re-apply last filter if lazy data is loaded
         autoExpand: true,           // Expand all branches that contain matches while filtered
@@ -129,7 +129,7 @@ var buildSchoolDropdown = function(data) {
         nodata: false,              // Display a 'no data' status node if result is empty
         mode: 'hide'                // Grayout unmatched nodes (pass "hide" to remove unmatched node instead)
     };
-    
+
     $('#schools-tree').html('');
     $('#schools-tree').fancytree({
         // checkbox: true,
@@ -139,7 +139,7 @@ var buildSchoolDropdown = function(data) {
         source: content,
         filter: opts
     });
-    
+
     // filter field
     $('#school-filter-field').keyup(function(e) {
         var n; // number of results
@@ -157,23 +157,23 @@ var buildSchoolDropdown = function(data) {
 
         n = filterFunc.call(tree, match, opts);
     });
-    
+
     // automatic reset
     $('#reset-search').click(function(e){
         $('#school-filter-field').val('');
         var tree = $.ui.fancytree.getTree();
         tree.clearFilter();
     });
-    
+
     // click background to dismiss
     $('html').click(function() {
         closeSchoolDropdown();
     });
-    
+
     $('#school-dropdown-container').click(function(e) {
         e.stopPropagation();
     });
-    
+
     $('.school .toggle-button').click(function(e) {
         toggleSchoolDropdown();
         e.stopPropagation();
@@ -185,7 +185,7 @@ var switchView = function(viewId) {
     $('.switch-view-button').addClass('btn-default');
     $('.switch-view-button-' + viewId).removeClass('btn-default');
     $('.switch-view-button-' + viewId).addClass('btn-primary current');
-    
+
     $('.report-view').addClass('hidden');
     $('.report-view-' + viewId).removeClass('hidden');
 };
@@ -242,39 +242,41 @@ var applyAndDismissSchoolDropdown = function() {
 var metaSetOnce = false;
 var setTableData = function(examData, code) {
     if (code == 2001){
-        if (dataTable != null){ 
+        if (dataTable != null){
             dataTable.destroy();
-            $('#data-table').html('');     
+            $('#data-table').html('');
         }
         dataTable = $('#data-table').DataTable({
-
+            // "pageLength":30;
             columns: [
             {
                 'name': 'first',
                 'title': 'Student Name',
             },
             {
-                'name':'second', 
+                'name':'second',
                 'title':'Correct Questions'
             },
             {
-                'name':'third', 
+                'name':'third',
                 'title':'% Correct Questions'
             },
             ],
-        });   
+            lengthMenu:length_exam,
+        });
     }
     else{
         try{
-            
+
             var data = examData['rows']
             var column = examData['columns']
 
             if (dataTable != null){
                 dataTable.destroy();
                 $('#data-table').html('');
-            } 
-            dataTable = $('#data-table').DataTable({     
+            }
+            dataTable = $('#data-table').DataTable({
+            lengthMenu:length_exam,
             columns: column,
             data: data,
             });
@@ -288,14 +290,14 @@ var setTableData = function(examData, code) {
 
 
     }
-    
+
 }
 
 var aggregation_table= function(data){
 
-if (aggregationTable != null){ 
+if (aggregationTable != null){
     aggregationTable.destroy();
-    //  $('#aggregation-table').html('');     
+    //  $('#aggregation-table').html('');
 }
 
 
@@ -303,7 +305,7 @@ aggregationTable = $('#aggregation-table').DataTable({
             paging: false,
             bFilter: false
      });
-    
+
 aggregationTable.clear();
 var idx
 for (idx in data.average) {
@@ -312,15 +314,15 @@ for (idx in data.average) {
         array.push('');
         aggregationTable.row.add(array).draw(false);
     }
-     
-    
+
+
 }
 
 var headerData = function(data){
         var headers = data['header']
         var te = headers['question_count']
         showexamcount(te);
-  
+
 };
 var showexamcount = function(eCount){
     if (eCount != null)
@@ -338,7 +340,7 @@ var showexamcount = function(eCount){
 var showtopic = function(data){
     if(data != null)
     {
-        
+
     }
 }
 
@@ -347,7 +349,7 @@ var showtopic = function(data){
 var clickBreadcrumbLink = function(level, id, channelid) {
     contentID = id;
     channelID = channelid;
-    parentLevel = level;    
+    parentLevel = level;
     objpreviouscontentlID.length = level + 1;
     objpreviouschannelID.length = level + 1;
     // parentLevel--;
@@ -364,7 +366,7 @@ var appendBreadcrumbItem = function(name, level, id, channelid, isLast) {
             html += ' > ';
         }
     }
-    
+
     $('.report-breadcrumb').append(html);
 };
 // Recursively build the topics structure. See `buildTopicsDropdown`.
@@ -386,7 +388,7 @@ var _setSchools = function(toArray, dataArray) {
                 title: dict.name,
                 key: dict.id,
                 folder: flag
-            };   
+            };
         }
         if (dict.children !== null) {
             newDict['children'] = [];
@@ -400,7 +402,7 @@ var sendPOSTRequest = function(url, dataObject, callback) {
     if (selfServe) {
         sendPOSTRequest_test(url, dataObject, callback);
     } else {
-        sendPOSTRequest_real(url, dataObject, callback);  
+        sendPOSTRequest_real(url, dataObject, callback);
     }
 };
 
@@ -424,12 +426,12 @@ function getCookie(name) {
 var sendPOSTRequest_real = function(url, dataObject, callback) {
     pendingRequests++;
     updateLoadingInfo();
-    
+
     if (debug) {
         console.log('POST request sent to: ' + JSON.stringify(url) + '. POST data: ' + JSON.stringify(dataObject));
     }
-    
-    var csrftoken = getCookie('csrftoken'); 
+
+    var csrftoken = getCookie('csrftoken');
     $.ajax({
         type: 'POST',
         url: url,

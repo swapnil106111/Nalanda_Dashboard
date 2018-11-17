@@ -14,7 +14,7 @@
 
 <body>
 <div class={% if user.is_authenticated %}""{% else %}"body1"{% endif %}>
-	<div class="row" style="padding-bottom:20px;">&nbsp;</div>
+{% if not user.is_authenticated %}	<div class="row" style="padding-bottom:20px;">&nbsp;</div>{%endif%}
 {% block header %} {% endblock header %}
 {% block content %} {% endblock content %}
 {% block left-menu %}{% endblock left-menu %}
