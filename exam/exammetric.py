@@ -180,16 +180,22 @@ class Exammetric(object):
 		for student in student_data:
 			questionCount = {}
 			questionCount['question_count'] = student['question_count']
-		return questionCount
+		return questionCount        	
+        
 
 	def getTopics(self):
-	
-		topics = Exam.objects.filter(exam_id = self.exam_id).values_list('question_sources')
-		# for topic in topics:
-		# 	topic_data =[]
-		# 	topic_data.append(topic['question_sources'])
+		topics =(Exam.objects.filter(exam_id = self.exam_id).values_list('question_sources')) 
+		topic_title = []
+		topic_id = []
 		topic_data = list(chain(*topics))
-		return topic_data
+		td = json.loads(topic_data [0])
+		for i in td:
+			topic_id.append(i['exercise_id'])
+		for j in topic_id:
+			topic = Content.objects.filter(topic_id = j).values('topic_name')[0]['topic_name']
+			topic_title.append(topic)
+		topic_title = [' ' + x + ' ' for x in topic_title]
+		return topic_title
 
 	def get_exam_metric_data(self):
 		data = {}
