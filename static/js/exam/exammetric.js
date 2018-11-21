@@ -23,6 +23,8 @@ var updatePageContent = function() {
    $(document).ready(function() {
         
         $('.totalquestions-breadcrumb').addClass('hidden');
+         $("#topic_data_wrap").addClass('hidden')
+          $("#topic_data_wrap_toggle").addClass('hidden')
         $('.report-breadcrumb').removeClass('hidden');
     });
     var data1 = null;
@@ -319,21 +321,38 @@ for (idx in data.average) {
 var headerData = function(data){
         var headers = data['header']
         var te = headers['question_count']
-        showexamcount(te);
-  
+       
+
+        var topic_data = data['topic']
+        showexamcount(te,topic_data);
 };
-var showexamcount = function(eCount){
+var showexamcount = function(eCount,tc){
     if (eCount != null)
     {
     $('.totalquestions-breadcrumb').removeClass('hidden')
     $('.report-breadcrumb').addClass('hidden')
     $('#totalExams').text( eCount.toString());
-   // $('#topic_data').text(data.toString());
+   
     } else {
 
          $('.totalquestions-breadcrumb').addClass('hidden')
          $('.report-breadcrumb').removeClass('hidden')
      }
+      $("#topic_data_wrap_toggle").removeClass('hidden')
+      jQuery(document).ready(function($)
+    {
+              
+  
+         $("#topic_data_wrap_toggle").click(function(){
+                 $("#topic_data_wrap").removeClass('hidden')
+                 if ($("#topic_data_wrap_toggle").text() == "Topics")
+                     {         
+                          $("#topic_data_wrap").text(tc);
+                    }
+
+                });  
+  
+    });
 };
 var showtopic = function(data){
     if(data != null)
