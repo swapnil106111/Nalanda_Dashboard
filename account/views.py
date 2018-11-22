@@ -43,34 +43,41 @@ def construct_response(code, title, message, data):
     return response_object
 
 def login_view(request):
-    """ 
+    """
     This function implements the request receiving and response sending for login
     """
-    try:
-        response_object ={}
-        form = AuthenticationForm(None, request.POST)
-        #If POST request is received, render the mastery page
-        if request.method == 'POST':
-            if form.is_valid():
-                login(request, form.get_user())
-                logger.info("User Login sucessfullly")
-                if form.get_user().is_superuser:
-                    response =  redirect((reverse('admin_get')))
+    if request.user.is_authenticated():
+        if request.user.is_superuser:
+            response =  redirect((reverse('admin_get')))
+            return response
+        response = redirect(reverse('get_report_mastery', kwargs= {"analytics":"mastery"}))
+        return response
+    else:
+        try:
+            response_object ={}
+            form = AuthenticationForm(None, request.POST)
+            #If POST request is received, render the mastery page
+            if request.method == 'POST':
+                if form.is_valid():
+                    login(request, form.get_user())
+                    logger.info("User Login sucessfullly")
+                    if form.get_user().is_superuser:
+                        response =  redirect((reverse('admin_get')))
+                        return response
+                    response = redirect(reverse('get_report_mastery', kwargs= {"analytics":"mastery"}))
                     return response
-                response = redirect(reverse('get_report_mastery', kwargs= {"analytics":"mastery"}))
-                return response
-            else:
-                response_object['form']=form
-                return render(request, 'login.html', response_object)
-        #If GET request is received, render the login page
-        form = AuthenticationForm()
-        response_object['form']=form
-        return render(request, 'login.html', response_object)
-    except Exception as e:
-        logger.error("Error while login attempt: ", e)
+                else:
+                    response_object['form']=form
+                    return render(request, 'login.html', response_object)
+            #If GET request is received, render the login page
+            form = AuthenticationForm()
+            response_object['form']=form
+            return render(request, 'login.html', response_object)
+        except Exception as e:
+            logger.error("Error while login attempt: ", e)
 
 def register_view(request):
-    """ This View is used to register the new user 
+    """ This View is used to register the new user
     """
     domain = request.get_host()
     data = get_school_and_classes()
@@ -151,7 +158,7 @@ def register_view(request):
                 userInfoClass = None
                 up = UserRoleCollectionMapping.objects.create(class_id=userInfoClass, institute_id=institutes, user_id=user)
                 up.save()
-  
+
             sendEmail(user, REGISTEREMAIl, SUBJECT[1], domain)
             response = construct_response(1006,"User Save","You are succesfully registered to Nalanda's Dashboard. Please check your email account.", data)
             form = UserProfileForm()
@@ -201,7 +208,7 @@ def get_school_and_classes():
 
     # Get all the schools, if schools exist
     for school in schools:
-        classes_in_school = list(UserInfoClass.objects.filter(parent=school.school_id).values('class_id','class_name'))   
+        classes_in_school = list(UserInfoClass.objects.filter(parent=school.school_id).values('class_id','class_name'))
         school_info[str(school.school_id)] = list(map(convert_to_string, classes_in_school))
     return school_info
 
@@ -225,7 +232,7 @@ def admin_get_view(request):
                 else:
                     user['isActive'] = 0
             objPendingUsers = getMultipleClassCombine(pendingUsers)
-           
+
             data = {'pendingUsers': objPendingUsers }
             response_object = construct_response(0, "", "", data)
             print("Response Object:", response_object)
@@ -237,11 +244,11 @@ def admin_get_view(request):
 
 def getMultipleClassCombine(userList):
     """
-        This function is used to combine the multiple classes of user combined as comma seprated string 
+        This function is used to combine the multiple classes of user combined as comma seprated string
     Args:
         userList(List): It contains the user list
     Returns:
-        result(List): updared user teacher classes combined as comma separated string 
+        result(List): updared user teacher classes combined as comma separated string
     """
     try:
         result = []
@@ -280,7 +287,7 @@ def getPendingUserDetails(user):
 
         role = user.groups.values()[0]['name']
         roleID = user.groups.values()[0]['id']
-        
+
         if roleID != 1:
         #if roleID!:
             objUserMapping = UserRoleCollectionMapping.objects.filter(user_id = user)
@@ -304,7 +311,7 @@ def getPendingUserDetails(user):
         return pending_users
     except Exception as e:
         logger.error(e)
- 
+
 @login_required(login_url='/account/login/')
 def logout_view(request):
     """
@@ -391,7 +398,7 @@ def admin_approve_pending_users_post(users, domain):
 
 def admin_disapprove_pending_users_post(users):
     """
-       This function implements the logic for admin inactive users 
+       This function implements the logic for admin inactive users
     """
     code = 0
     title = ''
@@ -449,7 +456,7 @@ def admin_disapprove_pending_users_view(request):
 @login_required(login_url='/account/login/')
 @user_passes_test(lambda u: u.is_superuser)
 def deleteUser(request):
-    """ 
+    """
         This function is used to delete the the user
     """
     if request.method == 'POST':
@@ -475,7 +482,7 @@ def deleteUser(request):
 def get_page_meta_view(request):
     """
     This function implements the request receiving and response sending for get page meta details
-    """   
+    """
     user = request.user
     body_unicode = request.body.decode('utf-8')
     data = json.loads(body_unicode)
@@ -515,7 +522,7 @@ def get_page_data_view(request):
 @login_required(login_url='/account/login/')
 def get_topics(request):
     """
-        This function is used to get the channel details 
+        This function is used to get the channel details
     """
     if request.method == 'POST':
         topics = Content.objects.filter(topic_id='').first()
@@ -545,7 +552,7 @@ def get_trend(request):
         channel_id = params.get('channelId')
         level =params.get('level')
         item_id = params.get('itemId')
-        
+
         total_questions = 0
         sub_topics_total = 0
         data = None

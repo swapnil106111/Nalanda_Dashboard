@@ -86,8 +86,9 @@ class LessonMastery(object):
 		self.lesson_content = Lesson.objects.filter(lesson_id=self.lesson_id).values('lesson_content')
 		self.res = json.loads(self.lesson_content[0]['lesson_content'])
 		self.content_list = list((map(lambda x: x['contentnode_id'], self.res)))
+		self.content_list = sorted(self.content_list, reverse=False)
 		self.class_id = Lesson.objects.filter(lesson_id=self.lesson_id).values('class_id')[0]['class_id']
-		self.metrics_list = ['Completed Questions', 'Correct Questions', 'Mastered']
+		self.metrics_list = ['Attempted Questions', 'Correct Questions', 'Mastered']
 		self.startTimestamp = datetime.date.fromtimestamp(int(start_time)).strftime('%Y-%m-%d')
 		self.endTimestamp = datetime.date.fromtimestamp(int(end_time)).strftime('%Y-%m-%d')
 	
@@ -110,7 +111,6 @@ class LessonMastery(object):
 				metrics_dict['title'] = metrics
 				columns.append(metrics_dict)
 				metrics_dict = {}
-
 		return columns
 
 	def get_lesson_mastery_results(self):

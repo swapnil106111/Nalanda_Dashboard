@@ -8,8 +8,8 @@
     {% endblock script %}
 {% block content %}
 <body class="login">
-<h1 class="site-title">Nalanda Visualizer</h1>
 <div class="content">
+  <h1 class="site-title">Nalanda Visualizer</h1>
     <h2>Register a new account</h2>
     <input type="hidden" id="schooldata" name="schools" value="eval({{data|safe}})">
     <div id="Message">
@@ -17,9 +17,9 @@
             <div class="error">{{ info.message }}</div>
         {% elif code == 1006%}
             <div class="info">{{ info.message }}</div>
-        {% endif %} 
+        {% endif %}
     </div>
-    
+
     <form id="register" method="POST">
         {% csrf_token %}
         <div class ="row">
@@ -28,7 +28,7 @@
                 <div class ="input">
                     {{ form.first_name }}
                 </div>
-            </div>   
+            </div>
             <div class="col-sm-6">
                 {{ form.last_name.label_tag }}
                 <div class ="input">
@@ -42,7 +42,7 @@
                 <div class ="input">
                     {{ form.username }}
                 </div>
-            </div>   
+            </div>
             <div class="col-sm-6">
                 {{ form.password.label_tag }}
                 <div class ="input">
@@ -99,7 +99,7 @@
         </div>
         <div class ="row">
             <div class="col-sm-6">
-                <div id = "ClassesSelectDiv">
+                <div id = "ClassesSelectDiv" style="overflow:auto; max-height:100px;">
                     <div id="checkBoxesOuterdiv">
                         {{ form.classes.label_tag }}
                         <div class="input">
@@ -109,15 +109,18 @@
                 </div>
             </div>
         </div>
-        </br>
-        <div>
+
+        <div class="row">
+          <div class="alternate-option col-sm-9">
+              Already has an account? <a href="{% url 'login' %}">Click to login</a>
+          </div>
+          <div class="col-sm-3">
            <button name="submit" type="submit" class="btn btn-success submit-button">Register </button>
+         </div>
         </div>
     </form>
-   
-    <div class="alternate-option">
-        Already has an account? <a href="{% url 'login' %}">Click to login</a>
-    </div>
+
+
 </div>
 </body>
 {% endblock content %}

@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from account.views import construct_response
 from account.models import UserInfoSchool, UserInfoClass, UserInfoStudent
 from usersession.models import *
+import traceback
 
 import logging
 
@@ -29,6 +30,8 @@ def get_page_meta_view(request):
         response_text = json.dumps(objUserData,ensure_ascii=False)
         return HttpResponse(response_text,content_type='application/json')
     except Exception as e:
+        traceback.print_exc()
+        print (e)
         logger.error(e)
 
 @login_required(login_url='/account/login/')
@@ -54,6 +57,8 @@ def get_page_data_view(request):
         response_text = json.dumps(response_object,ensure_ascii=False)
         return HttpResponse(response_text, content_type='application/json')
     except Exception as e:
+        traceback.print_exc()
+        print (e)
         logger.error(e)
 
 @login_required(login_url='/account/login/')
@@ -104,6 +109,7 @@ def get_trend_data_view(request):
             res = {}
             series = []
             series.append({'name':'# Total Active Usage','isPercentage':False})
+            series.append({'name':'# Avg Active Usage','isPercentage':True})
             points = []
             total_usersession_usage = 0
             # print ("data:", data)
@@ -115,10 +121,16 @@ def get_trend_data_view(request):
                 temp.append(time.mktime(ele.date.timetuple()))
                 # temp.append(mastered_topics)
                 # print("total_usersession_usage:", total_usersession_usage)
+                p = total_usersession_usage
                 k = total_usersession_usage/(total_students)
                 # print ("k:", k)
+
+                a, b = divmod(p, 60)
+                h, m = divmod(a, 60)
+                temp.append(h)
                 m, s = divmod(k, 60)
-                temp.append(m)
+                h, m = divmod(m, 60)
+                temp.append(h)                
                 points.append(temp)
             # print ("temp:", temp)
             res['series'] = series

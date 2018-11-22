@@ -247,17 +247,17 @@ var setTableMeta = function(data) {
             // $('#data-table .trend-column').before('<th> ' + data.metrics[idx].displayName+'<span class="tooltip">'+ data.metrics[idx].toolTip +'</span>' +'</th>');
             
             $('#aggregation-table .trend-column').before('<th>' + data.metrics[idx].displayName + '</th>');
-            $('#data-table-aggregation .trend-column').before('<th>' + data.metrics[idx].displayName + '</th>');
+            //$('#data-table-aggregation .trend-column').before('<th>' + data.metrics[idx].displayName + '</th>');
             $('#data-compare-table .dropdown-menu').append('<li><a href="#" onclick="setCompareMetricIndex(' + idx + ')">' + data.metrics[idx].displayName + '</a></li>');
             $('#data-performance-table .dropdown-menu-metric').append('<li><a href="#" onclick="setPerformanceMetricIndex(' + idx + ')">' + data.metrics[idx].displayName + '</a></li>');
         }
         
         // initialize tables
 
-
+        
         table = $('#data-table').DataTable({
             columnDefs: [
-                { orderable: false, targets: 2 }
+                { orderable: false, targets: 3 }
             ],
             order: [[0, 'asc']],
             dom: 'Bfrtip',
@@ -314,36 +314,36 @@ var setTableMeta = function(data) {
             lengthMenu: sharedLengthMenu
         });
 
-        citytable = $('#data-table-aggregation').DataTable({
-            columnDefs: [
-                { orderable: false, targets: 1}
-            ],
-            // order: [[0, 'asc']],
-            dom: 'Bfrtip',
-            buttons: ['pageLength',
-                {
-                    extend: 'csv',           
-                    exportOptions: {
-                        columns: [0,1] // indexes of the columns that should be printed,
-                    }                      // Exclude indexes that you don't want to print.
-                },
-                {
-                    extend: 'excel',
-                    exportOptions: {
-                        columns: [0,1] 
-                    }
+        // citytable = $('#data-table-aggregation').DataTable({
+        //     columnDefs: [
+        //         { orderable: false, targets: 3}
+        //     ],
+        //     // order: [[0, 'asc']],
+        //     dom: 'Bfrtip',
+        //     buttons: ['pageLength',
+        //         {
+        //             extend: 'csv',           
+        //             exportOptions: {
+        //                 columns: [0,1] // indexes of the columns that should be printed,
+        //             }                      // Exclude indexes that you don't want to print.
+        //         },
+        //         {
+        //             extend: 'excel',
+        //             exportOptions: {
+        //                 columns: [0,1] 
+        //             }
 
-                },
-                {
-                    extend: 'pdf',
-                    exportOptions: {
-                        columns: [0,1] 
-                    }
-                }
-            ],  
-            //buttons: ['pageLength'/*, 'copy'*/, 'csv', 'excel', 'pdf'/*, 'print'*/],
-            lengthMenu: sharedLengthMenu
-        });
+        //         },
+        //         {
+        //             extend: 'pdf',
+        //             exportOptions: {
+        //                 columns: [0,1] 
+        //             }
+        //         }
+        //     ],  
+        //     //buttons: ['pageLength'/*, 'copy'*/, 'csv', 'excel', 'pdf'/*, 'print'*/],
+        //     lengthMenu: sharedLengthMenu
+        // });
     
         // manually toggle dropdown; stop event propagation to avoid unintentional table reorders
         $('thead .dropdown button').on('click', function(e){
@@ -355,7 +355,7 @@ var setTableMeta = function(data) {
     // remove current rows
     
     table.clear();
-    citytable.clear();
+    //citytable.clear();
     compareTable.clear();
     performanceTable.clear();
     aggregationTable.clear();
@@ -421,12 +421,35 @@ var setTableData = function(data) {
     }
 
     
-    for (idx in data.total){
-        var array = [] ;
-        array.push(data.total[idx].name, data.total[idx].values)
-        array.push('');
-        citytable.row.add(array).draw(false);
-    }
+    // for (idx in data.total){
+    //     var array = data.total[idx].values;
+    //     array.unshift(data.total[idx].name);
+    //     array.push('');
+    //     citytable.row.add(array).draw(false);
+    // }
+    // if (data.level == 2){
+    //     $('#data-compare-table .dropdown-menu li a:contains("# Avg Active Usage")').parent().addClass("hide");//.remove('<li><a href="#" onclick="setCompareMetricIndex(' + 1 + ')">' + data.metrics[idx].displayName + '</a></li>');
+    // }
+    // else{
+    //     $('#data-compare-table .dropdown-menu li a:contains("# Avg Active Usage")').parent().removeClass("hide");//.remove('<li><a href="#" onclick="setCompareMetricIndex(' + 1 + ')">' + data.metrics[idx].displayName + '</a></li>');
+    // }
+    // if (data.level == 2){
+    //     $('#data-compare-table .dropdown-menu li a:contains("# Avg Active Usage")').parent().addClass("hide");//.remove('<li><a href="#" onclick="setCompareMetricIndex(' + 1 + ')">' + data.metrics[idx].displayName + '</a></li>');
+    // }
+    // else{
+    //     $('#data-performance-table .dropdown-menu-metric li a:contains("# Avg Active Usage")').parent().removeClass("hide");//.remove('<li><a href="#" onclick="setCompareMetricIndex(' + 1 + ')">' + data.metrics[idx].displayName + '</a></li>');
+    // }
+    // if(data.level == 2)
+    // {
+    //     citytable.column(2).visible(false)
+    //     aggregationTable.column(2).visible(false)
+    //     table.column(2).visible(false)
+    // }
+    // else{
+    //     citytable.column(2).visible(true)
+    //     aggregationTable.column(2).visible(true)
+    //     table.column(2).visible(true)
+    // }
     precalculate();
     setCompareMetricIndex(compareMetricIndex);
     setPerformanceMetricIndex(performanceMetricIndex);
@@ -587,7 +610,7 @@ var drawTrendChart = function(itemId, itemName) {
             axes: {
                 y: {
                     percentage: {label: 'Percentage'},
-                    number: {label: 'Minutes'}
+                    number: {label: 'Hours'}
                 }
             }
         };
@@ -949,260 +972,6 @@ var getRandomInt = function(min, max) {
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
 }
-
-var trendData = function() {
-    var i = 0, j = 0, k = 0;
-    var data = {
-        series: [
-            {
-                name: '% exercise completed',
-                isPercentage: true
-            },{
-                name: '% exercise correct',
-                isPercentage: true
-            },{
-                name: '# attempts',
-                isPercentage: false
-            }
-        ],
-        points: [
-            [1496941452, i=getRandomInt(0,20), j=getRandomInt(0,20), k=getRandomInt(0,50)],
-            [1497042452, i=getRandomInt(i,40), j=getRandomInt(j,40), k=k+getRandomInt(0,50)],
-            [1497143452, i=getRandomInt(i,40), j=getRandomInt(j,40), k=k+getRandomInt(0,50)],
-            [1497344452, i=getRandomInt(i,60), j=getRandomInt(j,60), k=k+getRandomInt(0,50)],
-            [1497945452, i=getRandomInt(i,60), j=getRandomInt(j,60), k=k+getRandomInt(0,50)],
-            [1499246452, i=getRandomInt(i,80), j=getRandomInt(j,80), k=k+getRandomInt(0,50)],
-            [1499347452, i=getRandomInt(i,80), j=getRandomInt(j,80), k=k+getRandomInt(0,50)],
-            [1499448452, i=getRandomInt(i,100), j=getRandomInt(j,100), k=k+getRandomInt(0,50)],
-            [1499949452, i=getRandomInt(i,100), j=getRandomInt(j,100), k=k+getRandomInt(0,50)]
-        ]
-    };            
-    
-    return data;
-};
-
-var tableMetaData = function() {
-    return {
-        breadcrumb: [{
-            parentName: "All Regions",
-            parentLevel: 0,
-            parentId: '0'
-        }, {
-            parentName: "East Sector",
-            parentLevel: 1,
-            parentId: '10'
-        }],
-        // metrics: [{
-        //        displayName: "% exercise completed",
-        //        toolTip: "help text goes here"
-        // }, 
-        // {
-        //     displayName: "% exercise correct",
-        //     toolTip: "help text goes here"
-        // }, {
-        //     displayName: "# attempts",
-        //     toolTip: "help text goes here"
-        // }],
-
-        metrics: [{
-               displayName: "% Active usage time",
-               toolTip: "help text goes here"
-        }, 
-        // {
-        //     displayName: "% exercise correct",
-        //     toolTip: "help text goes here"
-        // }, {
-        //     displayName: "# attempts",
-        //     toolTip: "help text goes here"
-        // }, {
-        //     displayName: "% students completed the topic",
-        //     toolTip: "help text goes here"
-        ],
-
-        rows: [{
-            id: "1",
-            name: "Allegheny K-5"
-        }, {
-            id: "2",
-            name: "Arsenal Elementary School"
-        }, {
-            id: "3",
-            name: "Banksville Elementary School"
-        }, {
-            id: "4",
-            name: "Beechwood Elementary School"
-        }, {
-            id: "5",
-            name: "Concord Elementary School"
-        }, {
-            id: "6",
-            name: "Dilworth Traditional Academy"
-        }, {
-            id: "7",
-            name: "Grandview Elementary School"
-        }, {
-            id: "8",
-            name: "Brookline School"
-        }, {
-            id: "9",
-            name: "Manchester School"
-        }, {
-            id: "10",
-            name: "Westwood School"
-        }]
-    };
-};
-
-var tableDataData = function() {
-    return {
-        rows: [{
-            id: "1",
-            name: "Allegheny K-5",
-            values: [
-                "30%"
-            ]
-        }, {
-            id: "2",
-            name: "Arsenal Elementary School",
-            values: [
-                "20%"
-            ]
-        }, {
-            id: "3",
-            name: "Banksville Elementary School",
-            values: [
-                "80%"
-            ]
-        }, {
-            id: "4",
-            name: "Beechwood Elementary School",
-            values: [
-                "15%"
-            ]
-        }, {
-            id: "5",
-            name: "Concord Elementary School",
-            values: [
-                "34%"
-            ]
-        }, {
-            id: "6",
-            name: "Dilworth Traditional Academy",
-            values: [
-                "21%"
-            ]
-        }, {
-            id: "7",
-            name: "Grandview Elementary School",
-            values: [
-                "58%"
-            ]
-        }, {
-            id: "8",
-            name: "Brookline School",
-            values: [
-                "98%"
-            ]
-        }, {
-            id: "9",
-            name: "Manchester School",
-            values: [
-                "14%"
-            ]
-        }, {
-            id: "10",
-            name: "Westwood School",
-            values: [
-                "45%"
-            ]
-        }],
-        aggregation: [{
-            name: "Average",
-            values: [
-                "30.75%"
-            ]
-        }]
-    };
-};
-
-// var topicsData = function() {
-//     return {
-//         "topics": [{
-//             "id": "bb",
-//             "channelId": "aa",
-//             "name": "Channel 1",
-//             "children": [{
-//                 "id": "bb",
-// 				"channelId": "aa",
-//                 "name": "Physics",
-//                 "children": null
-//             }]
-//         },{
-//             "id": "bdb",
-//             "channelId": "adsa",
-//             "name": "Channel 2",
-//             "children": [{
-//                 "id": "bb",
-// 				"channelId": "aa",
-//                 "name": "Algorithms",
-//                 "children": null
-//             }]
-//         }]
-//     };
-// };
-
-var sendPOSTRequest_test = function(url, dataObject, callback) {
-    pendingRequests++;
-    updateLoadingInfo();
-    
-    if (debug) {
-        console.log('POST request sent to: ' + JSON.stringify(url) + '. POST data: ' + JSON.stringify(dataObject));
-    }
-    
-    setTimeout(function() {
-        var response;
-        
-        if (url === './api/usersession/get-page-meta') {
-            response = ({
-                code: 0,
-                data: tableMetaData()
-            });
-        }
-        
-        if (url === './api/usersession/get-page-data') {
-            response = ({
-                code: 0,
-                data: tableDataData()
-            });
-        }
-        
-        // if (url === './api/mastery/topics') {
-        //     response = ({
-        //         code: 0,
-        //         data: topicsData()
-        //     });
-        // }
-        
-        if (url === './api/usersession/trend') {
-            response = ({
-                code: 0,
-                data: trendData()
-            });
-        }
-        
-        if (response.code) {
-            toastr.error(response.info.message, response.info.title);
-        } else if (!response.data) {
-            toastr.error('There is an error communicating with the server. Please try again later.');
-            console.error('Invalid response: A valid `data` field is not found.');
-        } else {
-            callback(response);
-        }
-        
-        pendingRequests--;
-        updateLoadingInfo();
-    }, getRandomInt(100, 2000));
-};
 
 var removeHtmlClasses = function(){
     $(".totalquestions-breadcrumb").remove();
