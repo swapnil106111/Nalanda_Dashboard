@@ -333,7 +333,6 @@ class UserMasteryData(BaseRoleAccess):
 		"""
 		try:
 			if not (self.channelContetID):
-				print ("IF:", self.parentLevel)
 				filterTopics = {'content_id__in':self.topicID}
 				filterTopics['date__range'] = (self.startTimestamp, self.endTimestamp)
 
@@ -464,7 +463,6 @@ class UserMasteryData(BaseRoleAccess):
 			if not students:
 				return None
 			res = list(map(self.getStudentDetails, students))
-			print ("Data:", res)
 			#res = [i for i in res if i is not None]
 			aggregationResult = [res['aggregation'] for res in res] 
 			data = self.getMasteryAggregationData(aggregationResult, res)
@@ -492,7 +490,6 @@ class UserMasteryData(BaseRoleAccess):
 			total_subtopics = self.getSubTopicsData()
 			mastery_students = self.getLogData(student)
 			for mastery_student in mastery_students:
-				print("mastery_student:", mastery_student.completed_questions)
 				mastered_topics += mastery_student.mastered
 				completed_questions += mastery_student.completed_questions
 				correct_questions += mastery_student.correct_questions
