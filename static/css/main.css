@@ -792,6 +792,10 @@ input[type='radio'], label{
     width: 100%;
     overflow-y: auto;
 }
+.section-title_citywise{
+    font-size: 22px;
+    margin: 20px 0;
+}
 @media (max-width: 1000px) {
     .page-title {
         font-size: 23px;
