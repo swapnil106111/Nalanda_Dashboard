@@ -247,7 +247,7 @@ var setTableMeta = function(data) {
             // $('#data-table .trend-column').before('<th> ' + data.metrics[idx].displayName+'<span class="tooltip">'+ data.metrics[idx].toolTip +'</span>' +'</th>');
             
             $('#aggregation-table .trend-column').before('<th>' + data.metrics[idx].displayName + '</th>');
-            //$('#data-table-aggregation .trend-column').before('<th>' + data.metrics[idx].displayName + '</th>');
+            $('#data-table-aggregation .trend-column').before('<th>' + data.metrics[idx].displayName + '</th>');
             $('#data-compare-table .dropdown-menu').append('<li><a href="#" onclick="setCompareMetricIndex(' + idx + ')">' + data.metrics[idx].displayName + '</a></li>');
             $('#data-performance-table .dropdown-menu-metric').append('<li><a href="#" onclick="setPerformanceMetricIndex(' + idx + ')">' + data.metrics[idx].displayName + '</a></li>');
         }
@@ -314,36 +314,36 @@ var setTableMeta = function(data) {
             lengthMenu: sharedLengthMenu
         });
 
-        // citytable = $('#data-table-aggregation').DataTable({
-        //     columnDefs: [
-        //         { orderable: false, targets: 3}
-        //     ],
-        //     // order: [[0, 'asc']],
-        //     dom: 'Bfrtip',
-        //     buttons: ['pageLength',
-        //         {
-        //             extend: 'csv',           
-        //             exportOptions: {
-        //                 columns: [0,1] // indexes of the columns that should be printed,
-        //             }                      // Exclude indexes that you don't want to print.
-        //         },
-        //         {
-        //             extend: 'excel',
-        //             exportOptions: {
-        //                 columns: [0,1] 
-        //             }
+        citytable = $('#data-table-aggregation').DataTable({
+            columnDefs: [
+                { orderable: false, targets: 3}
+            ],
+            // order: [[0, 'asc']],
+            dom: 'Bfrtip',
+            buttons: ['pageLength',
+                {
+                    extend: 'csv',           
+                    exportOptions: {
+                        columns: [0,1] // indexes of the columns that should be printed,
+                    }                      // Exclude indexes that you don't want to print.
+                },
+                {
+                    extend: 'excel',
+                    exportOptions: {
+                        columns: [0,1] 
+                    }
 
-        //         },
-        //         {
-        //             extend: 'pdf',
-        //             exportOptions: {
-        //                 columns: [0,1] 
-        //             }
-        //         }
-        //     ],  
-        //     //buttons: ['pageLength'/*, 'copy'*/, 'csv', 'excel', 'pdf'/*, 'print'*/],
-        //     lengthMenu: sharedLengthMenu
-        // });
+                },
+                {
+                    extend: 'pdf',
+                    exportOptions: {
+                        columns: [0,1] 
+                    }
+                }
+            ],  
+            //buttons: ['pageLength'/*, 'copy'*/, 'csv', 'excel', 'pdf'/*, 'print'*/],
+            lengthMenu: sharedLengthMenu
+        });
     
         // manually toggle dropdown; stop event propagation to avoid unintentional table reorders
         $('thead .dropdown button').on('click', function(e){
@@ -355,7 +355,7 @@ var setTableMeta = function(data) {
     // remove current rows
     
     table.clear();
-    //citytable.clear();
+    citytable.clear();
     compareTable.clear();
     performanceTable.clear();
     aggregationTable.clear();
@@ -421,12 +421,24 @@ var setTableData = function(data) {
     }
 
     
-    // for (idx in data.total){
-    //     var array = data.total[idx].values;
-    //     array.unshift(data.total[idx].name);
-    //     array.push('');
-    //     citytable.row.add(array).draw(false);
-    // }
+    if (data.level == 0){
+        for (idx in data.total){
+            var array = data.total[idx].values;
+            array.unshift(data.total[idx].name);
+            array.push('');
+            citytable.row.add(array).draw(false);
+        }
+        $(".section-title_citywise").show();
+        $("#data-table-aggregation").show();
+        $("#data-table-aggregation_wrapper").show()
+        citytable.column(2).visible(false);
+    }
+    else{
+       $("#data-table-aggregation").hide();
+       $(".section-title_citywise").hide();
+       $("#data-table-aggregation_wrapper").hide();
+    } 
+    
     // if (data.level == 2){
     //     $('#data-compare-table .dropdown-menu li a:contains("# Avg Active Usage")').parent().addClass("hide");//.remove('<li><a href="#" onclick="setCompareMetricIndex(' + 1 + ')">' + data.metrics[idx].displayName + '</a></li>');
     // }
@@ -438,12 +450,6 @@ var setTableData = function(data) {
     // }
     // else{
     //     $('#data-performance-table .dropdown-menu-metric li a:contains("# Avg Active Usage")').parent().removeClass("hide");//.remove('<li><a href="#" onclick="setCompareMetricIndex(' + 1 + ')">' + data.metrics[idx].displayName + '</a></li>');
-    // }
-    // if(data.level == 2)
-    // {
-    //     citytable.column(2).visible(false)
-    //     aggregationTable.column(2).visible(false)
-    //     table.column(2).visible(false)
     // }
     // else{
     //     citytable.column(2).visible(true)
