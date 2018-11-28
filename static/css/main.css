@@ -28,7 +28,6 @@ a,
 a:hover {
     color: #039be5;
 }
-
 a.dt-button,
 a.dt-button:hover {
     color: black;
@@ -394,40 +393,6 @@ input.daterangepickerenddate {
 
 .report-view.hidden {
     display: none;
-}
-
-.topic-dropdown-container {
-    position: absolute;
-    z-index: 9999;
-    margin-left: 41px;
-    margin-top: 2px;
-    min-width: 250px;
-    display: none;
-    padding: 0;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-shadow: 0 3px 8px #ddd;
-}
-
-.topic-dropdown-container .search {
-    padding: 6px;
-}
-
-.topic-dropdown-container .controls {
-    background: #f6f6f6;
-    margin: 0;
-    padding: 10px;
-    border-radius: 0 0 4px 4px; /* avoid background cutting the container's rounded border */
-    border-top: 1px solid #ddd;
-}
-
-.topic-dropdown-container .expand-button {
-    float: right;
-}
-
-.topic-dropdown-container.shown {
-    display: block;
 }
 
 #topics-tree {
