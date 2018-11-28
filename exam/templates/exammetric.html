@@ -2,6 +2,7 @@
 {% extends "base_site.html" %}
     {% block style %}
         <link rel="stylesheet" type="text/css" href="/static/css/datatables.min.css"/>
+        <link rel="stylesheet" type="text/css" href="/static/node_modules/bootstrap/js/modal.js">
         <link rel="stylesheet" type="text/css" href="/static/node_modules/bootstrap-daterangepicker/daterangepicker.css">
         <link rel="stylesheet" href="/static/node_modules/toastr/build/toastr.min.css" media="all">
         <link rel="stylesheet" href="/static/node_modules/font-awesome/css/font-awesome.min.css">
@@ -49,7 +50,7 @@
                 </div>
                 <div class="report-settings row">
                     <div class="school">
-                        Students:
+                        Exams: 
                         <button class="btn btn-default toggle-button" type="button">
                             <span class="school-dropdown-text">Everything</span>
                             <span class="caret"></span>
@@ -77,19 +78,34 @@
 
                 <div class="report-breadcrumb ">
                 </div>
-
-                <div class=" totalquestions-breadcrumb ">
-                     <strong>Total Questions:</strong><label id="totalExams"></label>
+                <div class=" totalquestions-breadcrumb "> 
+                     <strong>Total Questions:</strong><label id="totalExams"></label> 
                 </div>
-
-
-                <div class="report-content">
-                    <div class="table-view report-view report-view-1 ">
-                        <h2 class="section-title">Table View</h2>
-                        <table id="data-table" class="display" cellspacing="2" width="100%">
-
-                        </table>
+            <!-- Trigger the modal with a button -->
+            <button type="button" class="btn btn-info" data-toggle="modal" data-target="#topics" id = "t_button">Topics</button>
+            <!-- Modal -->
+            <div class="modal fade" id="topics" role="dialog">
+                <div class="modal-dialog">
+                    <!-- Modal content-->
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h4 class="modal-title">Topic list</h4>
+                        </div>
+                    <div class="modal-body" id ="topic">
                     </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            <div class="report-content">
+                <div class="table-view report-view report-view-1 ">
+                    <h2 class="section-title">Table View</h2>
+                    <table id="data-table" class="display" cellspacing="2" width="100%">
+                    </table>
+                </div>
                 </div>
                   <h2 class="section-title">Aggregations</h2>
                         <table id="aggregation-table" class="display" cellspacing="0" width="100%">

@@ -180,16 +180,50 @@ class Exammetric(object):
 		for student in student_data:
 			questionCount = {}
 			questionCount['question_count'] = student['question_count']
-		return questionCount
+		return questionCount        	
+        
 
 	def getTopics(self):
-	
-		topics = Exam.objects.filter(exam_id = self.exam_id).values_list('question_sources')
-		# for topic in topics:
-		# 	topic_data =[]
-		# 	topic_data.append(topic['question_sources'])
+		topics =(Exam.objects.filter(exam_id = self.exam_id).values_list('question_sources')) 
+		content_title =[]
+		topic_id = []
+		topic_details = []
+		channel_path =[]
 		topic_data = list(chain(*topics))
-		return topic_data
+		td = json.loads(topic_data [0])
+		topic_id = [item['exercise_id'] for item in td]
+	
+		for data in topic_id:
+			topic_title=[]
+			topic_list=self.get_topic_path(data,topic_title)
+			topic_details.append(topic_list)
+		for i in topic_details:
+			i.reverse()
+			print('i',i)
+			i = ''.join(map(str, i))
+			print('i :',i)
+			channel_path.append(i)
+			channel_path= [' ' + x + ' ' for x in channel_path]
+		for data in topic_id:
+			topic = Content.objects.filter(topic_id = data).values('topic_name')[0]['topic_name']
+			content_title.append(topic)
+		content_title= [' ' + x + ' ' for x in content_title]
+		return channel_path,content_title
+
+
+	def get_topic_path(self,data,topic_title):
+		topic_id =[]
+		content = Content.objects.filter(topic_id = data).values('parent_id')[0]['parent_id']
+		if content:
+			topic = Content.objects.filter(topic_id = data).values('topic_name')[0]['topic_name']
+			topic_id.append(data)
+			topic_title.append(topic)
+			topic_title.append("--->")
+			self.get_topic_path(content,topic_title)
+		else:
+			topic = Content.objects.filter(topic_id = data).values('topic_name')[0]['topic_name']
+			topic_title.append(topic)
+		return topic_title
 
 	def get_exam_metric_data(self):
 		data = {}
@@ -199,8 +233,9 @@ class Exammetric(object):
 		data['columns'] = columns
 		data['rows'] = rows
 		data['header'] = self.getStudentData()
-		data['topic'] = self.getTopics()
+		data['details'],data['topic'] = self.getTopics()
 		data['average']= average
+		print('data[topic]',data['topic'])
 		#print('data:',data)
 		return data
 	

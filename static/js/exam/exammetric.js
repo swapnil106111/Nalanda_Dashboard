@@ -23,6 +23,7 @@ var updatePageContent = function() {
    $(document).ready(function() {
 
         $('.totalquestions-breadcrumb').addClass('hidden');
+        $('#t_button').addClass('hidden')
         $('.report-breadcrumb').removeClass('hidden');
     });
     var data1 = null;
@@ -280,32 +281,24 @@ var setTableData = function(examData, code) {
             columns: column,
             data: data,
             });
-
             headerData(examData);
             aggregation_table(examData)
         }
         catch(err){
             console.log(err.stack);
         }
-
-
     }
-
 }
 
 var aggregation_table= function(data){
-
 if (aggregationTable != null){
     aggregationTable.destroy();
-    //  $('#aggregation-table').html('');
+    
 }
-
-
 aggregationTable = $('#aggregation-table').DataTable({
             paging: false,
             bFilter: false
-     });
-
+    });
 aggregationTable.clear();
 var idx
 for (idx in data.average) {
@@ -314,34 +307,43 @@ for (idx in data.average) {
         array.push('');
         aggregationTable.row.add(array).draw(false);
     }
-
-
 }
 
 var headerData = function(data){
         var headers = data['header']
         var te = headers['question_count']
+        var topic_data = data['topic']
+        var topic_detail = data['details']
+        $('#t_button').removeClass('hidden');
         showexamcount(te);
+        showtopic(topic_data,topic_detail)
 
 };
-var showexamcount = function(eCount){
+var showexamcount = function(eCount,tc){
     if (eCount != null)
     {
     $('.totalquestions-breadcrumb').removeClass('hidden')
     $('.report-breadcrumb').addClass('hidden')
     $('#totalExams').text( eCount.toString());
-   // $('#topic_data').text(data.toString());
+   
     } else {
 
          $('.totalquestions-breadcrumb').addClass('hidden')
          $('.report-breadcrumb').removeClass('hidden')
      }
 };
-var showtopic = function(data){
-    if(data != null)
+var showtopic = function(data,detail){
+    for (var i=0; i < data.length; i++)
     {
-
-    }
+        var tooltip = $("<span data-toggle='tooltip'  title='"+detail[i]+"'>"+data[i]+"</span><br>")
+        $('#topic').append(tooltip);
+        $(document).on('mousemove', function(e) {
+            $('.tooltip').css({
+             left: e.pageX + 30,
+             top: e.pageY - 10,
+            });
+        });
+    }   
 }
 
 // Handle click event of a breadcrumb link
