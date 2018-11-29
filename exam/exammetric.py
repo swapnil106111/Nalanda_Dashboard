@@ -112,34 +112,26 @@ class Exammetric(object):
 		student_list = UserInfoStudent.objects.filter(parent = self.class_id).values('student_id', 'student_name')		
 		for student in student_list:
 			i_exam =[]
-			
 			i_exam.append(student['student_name'])
-			
 			filter_students['student_id']=student['student_id']
-
 			res = list(Exam.objects.filter(**filter_students).values_list('correct_questions'))
 			res1 = list(chain(*res))
-			
 			if not res:
 				for i in range(2):
 					i_exam.append(0)
 			if res:
-				
 				correct = Exam.objects.filter(**filter_students).values('correct_questions')[0]['correct_questions']
 				i_exam.extend(res1)
 				percent_correct_float = float(correct) / total_question 
 				percent_correct = "{0:.2%}".format(percent_correct_float)		
 				i_exam.append(percent_correct)
-				
 			exam_metriclist.append(i_exam)
-				
 		return exam_metriclist
 
 	def aggregateresult(self, get_exam_metric, tc):
 		correct_sum = 0
 		count = 0
 		correct_percent = 0.0
-
 		aggregation = []
 		for record in get_exam_metric:
 			count+=1
@@ -147,27 +139,18 @@ class Exammetric(object):
 			if(record[2] !=0):
 				percent = float(record[2].strip('%'))
 				correct_percent += (percent)
-
-
 		aggregation = [correct_sum,correct_percent,count,tc]
-		print("aggregateresult",aggregation)
 		result = self.getAggregationData(aggregation)
-		print('agg=====',result)
 		return result
 
 	def getAggregationData(self, aggregateresult):
-		# avg_correct = 0
 		aggregation = []
-	
 		student_percent = aggregateresult[2]
 		student_percent *= 100
-
 		avg_correct = aggregateresult[0]
 		avg_correct /= aggregateresult[2]
-		print('correct avg:',avg_correct)
 		avg_percent_correct = aggregateresult[1]
 		avg_percent_correct /=student_percent
-		print('correct % avg:',avg_percent_correct)
 		values = [str( "%.2f"%(avg_correct)),"{0:.2%}".format(avg_percent_correct)] 
 		average = {'name': 'Average', 'values': values}
 		aggregation.append(average)
@@ -180,16 +163,48 @@ class Exammetric(object):
 		for student in student_data:
 			questionCount = {}
 			questionCount['question_count'] = student['question_count']
-		return questionCount
+		return questionCount        	
+        
 
 	def getTopics(self):
-	
-		topics = Exam.objects.filter(exam_id = self.exam_id).values_list('question_sources')
-		# for topic in topics:
-		# 	topic_data =[]
-		# 	topic_data.append(topic['question_sources'])
+		topics =(Exam.objects.filter(exam_id = self.exam_id).values_list('question_sources')) 
+		content_title =[]
+		topic_id = []
+		topic_details = []
+		channel_path =[]
 		topic_data = list(chain(*topics))
-		return topic_data
+		td = json.loads(topic_data [0])
+		topic_id = [item['exercise_id'] for item in td]
+	
+		for data in topic_id:
+			topic_title=[]
+			topic_list=self.get_topic_path(data,topic_title)
+			topic_details.append(topic_list)
+		for i in topic_details:
+			i.reverse()
+			i = ''.join(map(str, i))
+			channel_path.append(i)
+			channel_path= [' ' + x + ' ' for x in channel_path]
+		for data in topic_id:
+			topic = Content.objects.filter(topic_id = data).values('topic_name')[0]['topic_name']
+			content_title.append(topic)
+		content_title= [' ' + x + ' ' for x in content_title]
+		return channel_path,content_title
+
+
+	def get_topic_path(self,data,topic_title):
+		topic_id =[]
+		content = Content.objects.filter(topic_id = data).values('parent_id')[0]['parent_id']
+		if content:
+			topic = Content.objects.filter(topic_id = data).values('topic_name')[0]['topic_name']
+			topic_id.append(data)
+			topic_title.append(topic)
+			topic_title.append("--->")
+			self.get_topic_path(content,topic_title)
+		else:
+			topic = Content.objects.filter(topic_id = data).values('topic_name')[0]['topic_name']
+			topic_title.append(topic)
+		return topic_title
 
 	def get_exam_metric_data(self):
 		data = {}
@@ -199,7 +214,7 @@ class Exammetric(object):
 		data['columns'] = columns
 		data['rows'] = rows
 		data['header'] = self.getStudentData()
-		data['topic'] = self.getTopics()
+		data['details'],data['topic'] = self.getTopics()
 		data['average']= average
 		#print('data:',data)
 		return data

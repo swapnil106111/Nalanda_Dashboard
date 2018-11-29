@@ -75,7 +75,6 @@ class userSessionPageData(BaseRoleAccess):
 		print("getInstitutesData",res)
 		aggregationResult = [res['aggregation'] for res in res]
 		data = self.getUserSessionAggregationData(aggregationResult, res)
-		print("getInstitutesData::",data)
 		return data
 
 	def getUserSessionAggregationData(self, aggregationResult, userSessionData):
@@ -273,41 +272,43 @@ class userSessionPageData(BaseRoleAccess):
 
 	def getAggrigation_citywise(self, schools):
 		try:
-			school_aggr_city = []
-			l = {'R':([], 'Rajsthan'), 'P':([],'Pune'), 'D':([],'Delhi'), 'M':([],'Mumbai')}
+			if self.parentLevel == 0:
+				school_aggr_city = []
+				school_list = {'R':([], 'Rajsthan'), 'P':([],'Pune'), 'D':([],'Delhi'), 'M':([],'Mumbai')}
 
-			for school in schools:
-				if school['name'][0] in l.keys():
-					l[school['name'][0]][0].append(school['total'])
+				for school in schools:
+					if school['name'][0] in school_list.keys():
+						school_list[school['name'][0]][0].append(school['total'])
 
-			total_active_usage  = 0
-			avg_active_usage = 0
-
-			for k,v in l.items():
-				p = {}
 				total_active_usage  = 0
 				avg_active_usage = 0
-				total_active_usage_list = []
-				if k in l.keys():
-					if len(v[0]) > 0:
-						result = sum(v[0])/len(v[0])
-						avg_result = sum(v[0])/len(v[0])
+				for school_data,school_data_values in school_list.items():
+					data = {}
+					total_active_usage  = 0
+					avg_active_usage = 0
+					total_active_usage_list = []
+					if school_data in school_list.keys():
+						if len(school_data_values[0]) > 0:
+							result = sum(school_data_values[0])/len(school_data_values[0])
+							avg_result = sum(school_data_values[0])/len(school_data_values[0])
 
-						total_active_usage = self.convert_time(result)
-						avg_active_usage = self.convert_time(avg_result)
+							total_active_usage = self.convert_time(result)
+							avg_active_usage = self.convert_time(avg_result)
 
-						p['name'] = l[k][1]
-						total_active_usage_list.append(total_active_usage)
-						total_active_usage_list.append(avg_active_usage)
-						#p['values'] = total_active_usage
-					else:
-						p['name'] = l[k][1]
-						total_active_usage_list.append(total_active_usage)
-						total_active_usage_list.append(avg_active_usage)
+							data['name'] = school_list[school_data][1]
+							total_active_usage_list.append(total_active_usage)
+							total_active_usage_list.append(avg_active_usage)
+							#p['values'] = total_active_usage
+						else:
+							data['name'] = school_list[school_data][1]
+							total_active_usage_list.append(total_active_usage)
+							total_active_usage_list.append(avg_active_usage)
 
-				p['values'] = total_active_usage_list
-				school_aggr_city.append(p)
-			return school_aggr_city
+					data['values'] = total_active_usage_list
+					school_aggr_city.append(data)
+				return school_aggr_city
+			else:
+				pass
 		except Exception as e:
 			traceback.print_exc()
 			logger.error(e)
@@ -321,6 +322,7 @@ class userSessionPageData(BaseRoleAccess):
 
 	def getPageData(self):
 		result = self.parentLevelMethods[self.parentLevel]()
-		# school_aggr_city = self.getAggrigation_citywise(result['rows'])
-		# result['total'] = school_aggr_city
+		result['level'] = self.parentLevel
+		school_aggr_city = self.getAggrigation_citywise(result['rows'])
+		result['total'] = school_aggr_city
 		return result

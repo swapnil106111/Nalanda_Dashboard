@@ -39,6 +39,7 @@ class Content(models.Model):
     total_questions = models.IntegerField()
     sub_topics = models.TextField()
     sub_topics_total = models.IntegerField(default=0)
+    parent_id = models.CharField(max_length=32, default=None)
 
 class MasteryLevelStudent(models.Model):
     id = models.CharField(max_length=40,primary_key=True)
