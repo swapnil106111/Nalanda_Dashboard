@@ -10,7 +10,7 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=EDGE">
     {% endblock style %}
-    
+
     {% block script %}
         <!-- jquery -->
         <script type="text/javascript" src="/static/node_modules/jquery/dist/jquery.min.js"></script>
@@ -48,7 +48,7 @@
         </script>
         {% endif %} -->
     {% endblock script %}
-   
+
     {% block title %}Student Mastery Report{% endblock title %}
 
 {% block content %}
@@ -78,7 +78,7 @@
                 </div>
                 <div class="report-settings row">
                     <div class="topic">
-                        Topic: 
+                        Topic:
                         <button class="btn btn-default toggle-button" type="button">
                             <span class="topic-dropdown-text">Everything</span>
                             <span class="caret"></span>
@@ -103,12 +103,25 @@
                         <input class="daterangepickerenddate" name="daterange">
                     </div>
                 </div>
+                {% if usersessioncode == 2%}
                 <div class="report-breadcrumb col-md-7">
                 </div>
                 <div class=" totalquestions-breadcrumb col-md-5 pull-right">
                     <strong>Total Exercises:</strong><label id="totalExercise"></label>
                     <strong>Total Questions:</strong><label id="totalQ"></label>
                 </div>
+                {%endif%}
+
+                {% if usersessioncode == 1%}
+                <div class="report-breadcrumb col-md-7">
+
+                </div>
+                <div class=" totalstudents-breadcrumb col-md-5 pull-right">
+                    <strong>Total Students:</strong><label id="totalstudent"></label>
+                </div>
+
+                {%endif%}
+
                 <div class="report-content">
                     <div class="table-view report-view report-view-1">
 	                    <h2 class="section-title">Table View</h2>
@@ -122,8 +135,8 @@
                             </thead>
                             <tbody><!-- data rows --></tbody>
                         </table>
-                        
-                        <!--{% if usersessioncode == 1%}    
+
+                        <!--{% if usersessioncode == 1%}
                              <div class="report-content"> -->
                                 <!-- <div class="table-view report-view report-view-1"> -->
                                     <!-- <h2 class="section-title">Citywise Aggregation Table View</h2>
@@ -131,14 +144,14 @@
                                                 <thead>
                                                     <tr>
                                                         <th class="name-column">City</th>
-                                                         metric columns 
+                                                         metric columns
                                                         <th class="trend-column"></th>
                                                     </tr>
                                                 </thead>
                                                 <tbody><data rows</tbody>
                                     </table> -->
                                  <!-- <div> -->
-                            <!-- </div> 
+                            <!-- </div>
                         {%endif%} -->
                         <h2 class="section-title">Aggregations</h2>
                         <table id="aggregation-table" class="display" cellspacing="0" width="100%">
@@ -190,7 +203,7 @@
                                 <tr>
                                     <th class="name-column">Name</th>
                                     <th>
-                                        Metric: 
+                                        Metric:
                                         <div class="dropdown">
                                             <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                                                 <span class="current-metric">Metric to Compare</span>
@@ -217,7 +230,7 @@
                                 </tr>
                             </thead>
                             <tbody><!-- data rows --></tbody>
-                        </table>                        
+                        </table>
                     </div>
                 </div>
                 <div class="loading-info-container hidden">
