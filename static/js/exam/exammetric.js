@@ -333,17 +333,28 @@ var showexamcount = function(eCount,tc){
      }
 };
 var showtopic = function(data,detail){
-    for (var i=0; i < data.length; i++)
+   
+   $('#t_button').click( function fun() { 
+    $(".modal-body").html("");
+    var len = data.length
+    for (var i=0; i < len; i++)
     {
-        var tooltip = $("<span data-toggle='tooltip'  title='"+detail[i]+"'>"+data[i]+"</span><br>")
+        var tooltip = $("<div data-toggle='tooltip'  title='"+detail[i]+"'>"+(i+1)+")"+data[i]+"</div>")
         $('#topic').append(tooltip);
         $(document).on('mousemove', function(e) {
             $('.tooltip').css({
              left: e.pageX + 30,
              top: e.pageY - 10,
             });
-        });
-    }   
+            });
+        }
+    });
+    $('#close').click( function fun() {
+        for(var i =0; i<data.length; i++){
+        $('#topic').children("div").remove();
+        }
+    });
+
 }
 
 // Handle click event of a breadcrumb link
