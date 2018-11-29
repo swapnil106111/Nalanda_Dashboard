@@ -112,34 +112,26 @@ class Exammetric(object):
 		student_list = UserInfoStudent.objects.filter(parent = self.class_id).values('student_id', 'student_name')		
 		for student in student_list:
 			i_exam =[]
-			
 			i_exam.append(student['student_name'])
-			
 			filter_students['student_id']=student['student_id']
-
 			res = list(Exam.objects.filter(**filter_students).values_list('correct_questions'))
 			res1 = list(chain(*res))
-			
 			if not res:
 				for i in range(2):
 					i_exam.append(0)
 			if res:
-				
 				correct = Exam.objects.filter(**filter_students).values('correct_questions')[0]['correct_questions']
 				i_exam.extend(res1)
 				percent_correct_float = float(correct) / total_question 
 				percent_correct = "{0:.2%}".format(percent_correct_float)		
 				i_exam.append(percent_correct)
-				
 			exam_metriclist.append(i_exam)
-				
 		return exam_metriclist
 
 	def aggregateresult(self, get_exam_metric, tc):
 		correct_sum = 0
 		count = 0
 		correct_percent = 0.0
-
 		aggregation = []
 		for record in get_exam_metric:
 			count+=1
@@ -147,27 +139,18 @@ class Exammetric(object):
 			if(record[2] !=0):
 				percent = float(record[2].strip('%'))
 				correct_percent += (percent)
-
-
 		aggregation = [correct_sum,correct_percent,count,tc]
-		print("aggregateresult",aggregation)
 		result = self.getAggregationData(aggregation)
-		print('agg=====',result)
 		return result
 
 	def getAggregationData(self, aggregateresult):
-		# avg_correct = 0
 		aggregation = []
-	
 		student_percent = aggregateresult[2]
 		student_percent *= 100
-
 		avg_correct = aggregateresult[0]
 		avg_correct /= aggregateresult[2]
-		print('correct avg:',avg_correct)
 		avg_percent_correct = aggregateresult[1]
 		avg_percent_correct /=student_percent
-		print('correct % avg:',avg_percent_correct)
 		values = [str( "%.2f"%(avg_correct)),"{0:.2%}".format(avg_percent_correct)] 
 		average = {'name': 'Average', 'values': values}
 		aggregation.append(average)
@@ -199,9 +182,7 @@ class Exammetric(object):
 			topic_details.append(topic_list)
 		for i in topic_details:
 			i.reverse()
-			print('i',i)
 			i = ''.join(map(str, i))
-			print('i :',i)
 			channel_path.append(i)
 			channel_path= [' ' + x + ' ' for x in channel_path]
 		for data in topic_id:
@@ -235,7 +216,6 @@ class Exammetric(object):
 		data['header'] = self.getStudentData()
 		data['details'],data['topic'] = self.getTopics()
 		data['average']= average
-		print('data[topic]',data['topic'])
 		#print('data:',data)
 		return data
 	
