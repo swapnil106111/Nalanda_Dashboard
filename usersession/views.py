@@ -49,6 +49,8 @@ def get_page_data_view(request):
         # topicID = data.get('contentId', '').strip()
         parentLevel = data.get('parentLevel', -1)
         parentID = int(data.get('parentId', '').strip())
+
+
         flag = data.get('flag', -1)
         # channelID = data.get('channelId', '').strip()
         objUserSession = userSessionPageData(user, parentID, parentLevel, startTimestamp, endTimestamp,flag)
@@ -130,7 +132,7 @@ def get_trend_data_view(request):
                 temp.append(h)
                 m, s = divmod(k, 60)
                 h, m = divmod(m, 60)
-                temp.append(h)                
+                temp.append(h)
                 points.append(temp)
             # print ("temp:", temp)
             res['series'] = series
