@@ -21,7 +21,8 @@ var updatePageContent = function() {
 
     // Making sure `setTableData` happens AFTER `setTableMeta`
    $(document).ready(function() {
-
+        $('#aggregation-table').addClass('hidden')
+        $('#aggregation-title').addClass('hidden')
         $('.totalquestions-breadcrumb').addClass('hidden');
         $('#t_button').addClass('hidden')
         $('.report-breadcrumb').removeClass('hidden');
@@ -291,6 +292,8 @@ var setTableData = function(examData, code) {
 }
 
 var aggregation_table= function(data){
+    $('#aggregation-table').removeClass('hidden')
+    $('#aggregation-title').removeClass('hidden')
 if (aggregationTable != null){
     aggregationTable.destroy();
     
