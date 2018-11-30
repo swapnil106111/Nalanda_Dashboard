@@ -37,6 +37,7 @@ var total_count = 0;
 // Called every time the page needs update
 var updatePageContent = function() {
     // Making sure `setTableData` happens AFTER `setTableMeta`
+    removeHtmlClasses();
     var data1 = null;
     var data2 = null;
 
@@ -321,7 +322,7 @@ var setTableMeta = function(data) {
             dom: 'Bfrtip',
             buttons: ['pageLength',
                 {
-                    extend: 'csv',           
+                    extend: 'csv',
                     exportOptions: {
                         columns: [0,1] // indexes of the columns that should be printed,
                     }                      // Exclude indexes that you don't want to print.
@@ -329,21 +330,21 @@ var setTableMeta = function(data) {
                 {
                     extend: 'excel',
                     exportOptions: {
-                        columns: [0,1] 
+                        columns: [0,1]
                     }
 
                 },
                 {
                     extend: 'pdf',
                     exportOptions: {
-                        columns: [0,1] 
+                        columns: [0,1]
                     }
                 }
-            ],  
+            ],
             //buttons: ['pageLength'/*, 'copy'*/, 'csv', 'excel', 'pdf'/*, 'print'*/],
             lengthMenu: sharedLengthMenu
         });
-    
+
         // manually toggle dropdown; stop event propagation to avoid unintentional table reorders
         $('thead .dropdown button').on('click', function(e){
             e.stopPropagation();
@@ -418,7 +419,7 @@ var setTableData = function(data) {
         array.push('');
         aggregationTable.row.add(array).draw(false);
     }
-    
+
     if (data.level == 0){
         for (idx in data.total){
             var array = data.total[idx].values;
@@ -435,8 +436,8 @@ var setTableData = function(data) {
        $("#data-table-aggregation").hide();
        $(".section-title_citywise").hide();
        $("#data-table-aggregation_wrapper").hide();
-    } 
-    
+    }
+
 
     // if (data.level == 2){
     //     $('#data-compare-table .dropdown-menu li a:contains("# Avg Active Usage")').parent().addClass("hide");//.remove('<li><a href="#" onclick="setCompareMetricIndex(' + 1 + ')">' + data.metrics[idx].displayName + '</a></li>');
@@ -990,7 +991,11 @@ var getRandomInt = function(min, max) {
     return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
 }
 
+var removeHtmlClasses = function(){
+    $(".topic").remove();
+    var active = document.querySelector(".report-breadcrumb");
 
+}
 var convertTimetoMin = function(totaltime){
     if (totaltime){
     var res = totaltime.split(":");
