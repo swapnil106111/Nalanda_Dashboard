@@ -1,4 +1,4 @@
-from account.models import * 
+from account.models import *
 from django.contrib.auth.models import User, Group
 from .constants import *
 import datetime
@@ -11,17 +11,17 @@ logger = logging.getLogger(__name__)
 
 class BaseRoleAccess(object):
 	def __init__(self, user, parentID, parentLevel):
-		""" Used to set meta data of mastery 
+		""" Used to set meta data of mastery
 		attributes:
 			user(object) = login user
 			parentID(int) = Used to maintain hierarchy of claas, school and student data
-							i) it could be school_id or class_id if user wants to see the class and student data 
-							ii) default it should be "-1" 
+							i) it could be school_id or class_id if user wants to see the class and student data
+							ii) default it should be "-1"
 			parentLevel(int) = Used to maintain hierarchy of claas, school and student data
 							   i) exculding user as teacher parentLevel is set to 0 to view the visualizer
 							   ii) Selction on class, school parent level changed for each user(1=schools, 2=class etc)
 		"""
-		parentLevelMethods = {1:self.boardMember, 2:self.schoolLeader, 3:self.teacher}	
+		parentLevelMethods = {1:self.boardMember, 2:self.schoolLeader, 3:self.teacher}
 		self.user = user
 		self.role = 0
 
@@ -45,7 +45,7 @@ class BaseRoleAccess(object):
 				else:
 					self.institutes = UserInfoSchool.objects.filter(school_id = schools[0])
 					self.classes = UserInfoClass.objects.filter(class_id__in = classes)
-			#1.Added here to BM who has access the certain set of school data if he/she selected schools while registration so we add funcationality for the BM. 
+			#1.Added here to BM who has access the certain set of school data if he/she selected schools while registration so we add funcationality for the BM.
 			#2.Default BM has access all the schools data."""
 			elif self.role == 1 and classes is None:
 				if (len(schools) > 0):
@@ -70,7 +70,7 @@ class BaseRoleAccess(object):
 
 	def teacher(self):
 		"""
-		This function is used to fetch the mapping of classes and schools based on the user role 
+		This function is used to fetch the mapping of classes and schools based on the user role
 		"""
 		try:
 			userMapping = UserRoleCollectionMapping.objects.filter(user_id = self.user)
@@ -82,7 +82,7 @@ class BaseRoleAccess(object):
 
 	def schoolLeader(self):
 		"""
-		This function is used to fetch the mapping of classes and schools based on the user role 
+		This function is used to fetch the mapping of classes and schools based on the user role
 		"""
 		try:
 			userMapping = UserRoleCollectionMapping.objects.filter(user_id= self.user)
@@ -126,7 +126,7 @@ class UserMasteryMeta(BaseRoleAccess):
 		super(self.__class__, self).__init__(user, parentID, parentLevel)
 		self.parentLevelMethods = [self.getInstituteMeta, self.getClassMeta, self.getStudentMeta]
 		self.parentLevels = { 'institutes':0, 'school':1, 'class':2, 'students': 3 }
-    
+
     # Construct the breadcrumb format
 	def construct_breadcrumb(self, parentName, parentLevel, parentId):
 		res = {
@@ -151,8 +151,8 @@ class UserMasteryMeta(BaseRoleAccess):
 			rows(list) = []
 			role(int) = Role of the user i.e 1 = board member, 2 = school leader and 3 = teacher
 		Returns:
-			rows(list) = It returns classes meta information i.e class_id and class_name 
-			objBreadcrumb(list) = It fetch the hierarchy level of class 
+			rows(list) = It returns classes meta information i.e class_id and class_name
+			objBreadcrumb(list) = It fetch the hierarchy level of class
 
 		"""
 		try:
@@ -183,7 +183,7 @@ class UserMasteryMeta(BaseRoleAccess):
 			logger.error("getting error while accessing class meta:", e)
 
 	def getStudentMeta(self, objBreadcrumb, rows):
-		""" Used to fetch the stident meta inforamtion	
+		""" Used to fetch the stident meta inforamtion
 		Args:
 			role_id(int) = role of a user_id
 			parentId(int) =  used to retrive student information based on class_id(parentId)
@@ -234,7 +234,7 @@ class UserMasteryMeta(BaseRoleAccess):
 			rows(list) = it returns institutes information
 		"""
 		try:
-			objBreadcrumb.append(self.construct_breadcrumb("Institutes", 0, "-1"))	
+			objBreadcrumb.append(self.construct_breadcrumb("Institutes", 0, "-1"))
 			for institute in self.institutes:
 				school_info = {
 				    "id": str(institute.school_id),
@@ -250,7 +250,7 @@ class UserMasteryMeta(BaseRoleAccess):
 		Args:
 			None
 		Returns:
-			response_object(dict) = it returns the code , title , message and meta data 
+			response_object(dict) = it returns the code , title , message and meta data
 		"""
 		try:
 			code = 0
@@ -261,10 +261,10 @@ class UserMasteryMeta(BaseRoleAccess):
 			# objMetrics = self.construct_metrics()
 			# objMetrics = metricsList
 			rows, objBreadcrumb = self.parentLevelMethods[self.parentLevel](objBreadcrumb, rows)
-			
+
 			data = { 'breadcrumb': objBreadcrumb, 'metrics': objMetrics, 'rows': rows }
 			response_object = self.construct_response(code, title, message, data)
-			return response_object 
+			return response_object
 		except Exception as e:
 			logger.error(e)
 
@@ -398,7 +398,7 @@ class UserMasteryData(BaseRoleAccess):
 			data(dict) = it contains aggregation result and mastery data of class, school
 		"""
 		try:
-			data = {}	
+			data = {}
 			percent_complete_array = []
 			percent_correct_array = []
 			number_of_attempts_array = []
@@ -430,7 +430,7 @@ class UserMasteryData(BaseRoleAccess):
 		except Exception as e:
 			logger.error(e)
 
-	def getClassData(self):	
+	def getClassData(self):
 		""" Used to fetch mastery class data
 		Args:
 			None
@@ -463,8 +463,9 @@ class UserMasteryData(BaseRoleAccess):
 			if not students:
 				return None
 			res = list(map(self.getStudentDetails, students))
+
 			#res = [i for i in res if i is not None]
-			aggregationResult = [res['aggregation'] for res in res] 
+			aggregationResult = [res['aggregation'] for res in res]
 			data = self.getMasteryAggregationData(aggregationResult, res)
 			return data
 		except Exception as e:
@@ -486,7 +487,7 @@ class UserMasteryData(BaseRoleAccess):
 			mastered_topics = 0
 			percent_mastered_topics = 0
 			number_of_exercise_attempts = 0
-			total_questions = self.getTopicsData() 
+			total_questions = self.getTopicsData()
 			total_subtopics = self.getSubTopicsData()
 			mastery_students = self.getLogData(student)
 			for mastery_student in mastery_students:
@@ -499,7 +500,7 @@ class UserMasteryData(BaseRoleAccess):
 			if len(mastery_students) == 0 or number_of_exercise_attempts == 0 or number_of_attempts == 0:
 				completed = "0.00%"
 				values = [0,0,"0.00%", 0, 0, "0.00%"]
-				aggregation = [0,0,0.00, 0, 0, 0.00] 
+				aggregation = [0,0,0.00, 0, 0, 0.00]
 
 				row = {'id': str(student.student_id), 'name': student.student_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation': aggregation}
 			else:
@@ -510,7 +511,7 @@ class UserMasteryData(BaseRoleAccess):
 				percent_correct_float = float(correct_questions) / number_of_attempts # changed the formula to calculate the % correct based on total_attempts instead of total_questions of respective content. As discussed with Harish
 				percent_correct = "{0:.2%}".format(percent_correct_float)
 
-				percent_mastered_topics_float = float(mastered_topics) / number_of_exercise_attempts 
+				percent_mastered_topics_float = float(mastered_topics) / number_of_exercise_attempts
 				percent_mastered_topics = "{0:.2%}".format(percent_mastered_topics_float)
 
 				values = [mastered_topics, number_of_exercise_attempts, percent_mastered_topics, correct_questions, number_of_attempts, percent_correct]
@@ -541,7 +542,7 @@ class UserMasteryData(BaseRoleAccess):
 			mastered_topics = 0
 			number_of_exercise_attempts = 0
 			percent_mastered_topics = 0
-			total_questions = self.getTopicsData() 
+			total_questions = self.getTopicsData()
 			total_subtopics = self.getSubTopicsData()
 			objMasteryData = self.getLogData(masteryElement)
 
@@ -554,15 +555,15 @@ class UserMasteryData(BaseRoleAccess):
 
 			# Filter mastery level belongs to a certain class with certain topic id, and within certain time range
 			total_students = masteryElement.total_students
-			if total_questions == 0 or total_students == 0 or completed_questions ==0 or correct_questions == 0 or number_of_exercise_attempts == 0: 
+			if total_questions == 0 or total_students == 0 or completed_questions ==0 or correct_questions == 0 or number_of_exercise_attempts == 0:
 				values = [0,0,"0.00%",0,0,"0.00%"]
-				aggregation = [0,0,0.00, 0, 0,0.00] 
+				aggregation = [0,0,0.00, 0, 0,0.00]
 				if self.parentLevel == 0:
 					row = {'id': str(masteryElement.school_id), 'name': masteryElement.school_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation': aggregation}
 				else:
 					row = {'id': str(masteryElement.class_id), 'name': masteryElement.class_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation': aggregation}
 			else:
-				# Calculate the percentage of completed questions 
+				# Calculate the percentage of completed questions
 				# percent_complete_float = float(completed_questions) / (total_questions * total_students)
 				# percent_complete = "{0:.2%}".format(percent_complete_float)
 
@@ -577,7 +578,7 @@ class UserMasteryData(BaseRoleAccess):
 				values = [mastered_topics, number_of_exercise_attempts,percent_mastered_topics, correct_questions,number_of_attempts,percent_correct]
 				aggregation = [mastered_topics, number_of_exercise_attempts,percent_mastered_topics_float, correct_questions, number_of_attempts,percent_correct_float]
 				if self.parentLevel == 0:
-					row = {'id': str(masteryElement.school_id), 'name': masteryElement.school_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation':aggregation}	
+					row = {'id': str(masteryElement.school_id), 'name': masteryElement.school_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation':aggregation}
 				else:
 					row = {'id': str(masteryElement.class_id), 'name': masteryElement.class_name, 'total_questions': total_questions, 'total_subtopics': total_subtopics, 'values': values, 'aggregation': aggregation}
 			return row
@@ -591,7 +592,7 @@ class UserMasteryData(BaseRoleAccess):
 			percentCompleteList(list) :  List of completed questions(percentage)
 			percentCorrectList(list) : List of correct questions(percentage)
 			percentStudentCompletedList(list) : List of students completed the topic(percentage)
-			numberOfAttemptsList(int) : List of number of attempts 
+			numberOfAttemptsList(int) : List of number of attempts
 
 		Returns:
 			aggregation[list] = returns average of metrics data in list
@@ -619,7 +620,7 @@ class UserMasteryData(BaseRoleAccess):
 			    	avg_percent_correct += percentCorrectList[i]
 			    	# avg_complete += completedQuestionsList[i]
 			    	# avg_percent_complete +=  percentCompleteList[i]
-			   
+
 			    avg_mastered_topics /= length
 			    avg_number_of_exercise_attempts /= length
 			    avg_percent_mastered_topics /= length
@@ -628,8 +629,8 @@ class UserMasteryData(BaseRoleAccess):
 			    avg_percent_correct /= length
 			    # avg_complete /= length
 			    # avg_percent_complete /= length
-			    
-			   
+
+
 			    # if self.parentLevel == 2: # Added for Testing
 			    #     avg_percent_student_completed = "" # Added for Testing
 			    # else: # Added for Testing
@@ -642,11 +643,7 @@ class UserMasteryData(BaseRoleAccess):
 			return aggregation
 		except Exception as e:
 			logger.error(e)
-	
+
 	def getPageData(self):
 		result = self.parentLevelMethods[self.parentLevel]()
 		return result
-
-
-
-
