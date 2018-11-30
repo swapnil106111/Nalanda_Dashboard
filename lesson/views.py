@@ -3,13 +3,14 @@ from .lessonmastery import LessonDetails, LessonMastery
 import json
 # Create your views here.
 from account.views import construct_response
-
+from django.contrib.auth.decorators import login_required
 import logging
 
 logger = logging.getLogger(__name__)
 
+@login_required(login_url='/account/login/')
 def get_lessons(request):
-	try:	
+	try:
 		if request.method == 'POST':
 			user = request.user
 			body_unicode = request.body.decode('utf-8')
@@ -27,6 +28,8 @@ def get_lessons(request):
 	except Exception as e:
 		logger.error(e)
 
+
+@login_required(login_url='/account/login/')
 def get_lesson_page_data(request):
 	try:
 		if request.method == 'POST':
@@ -52,6 +55,7 @@ def get_lesson_page_data(request):
 	except Exception as e:
 		logger.error(e)
 
+@login_required(login_url='/account/login/')
 def get_lesson_mastery(request):
 	if request.method == 'GET':
 		return render(request,'lessonmasteryreport.html',{})
