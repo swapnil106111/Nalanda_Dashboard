@@ -1,5 +1,6 @@
 from django.shortcuts import render, HttpResponse
 from .exammetric import Exam_details, Exammetric
+from django.contrib.auth.decorators import login_required
 import json
 from account.views import construct_response
 import logging
@@ -7,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Create your views here.
-
+@login_required(login_url='/account/login/')
 def get_exams(request):
 	try:
 		if request.method == 'POST':
@@ -26,7 +27,7 @@ def get_exams(request):
 			return HttpResponse(response_text,content_type='application/json')
 	except Exception as e:
 		logger.error(e)
-
+@login_required(login_url='/account/login/')
 def get_exam_page_data(request):
 	try:
 		if request.method == 'POST':
@@ -51,7 +52,7 @@ def get_exam_page_data(request):
 			return HttpResponse(response_text,content_type='application/json')
 	except Exception as e:
 		logger.error(e)
-
+@login_required(login_url='/account/login/')
 def get_exam_metrics(request):
 	if request.method == 'GET':
 		return render(request,'exammetric.html',{})
