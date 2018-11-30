@@ -550,6 +550,18 @@ ul.fancytree-container {
     border-radius: 6px;
     text-align: right;
 }
+
+.totalstudents-breadcrumb{
+    margin: 15px 0 35px 0px;
+    background: #c0e9d5;
+    /* background: #f5f5f5;*/
+    border-radius: 6px;
+    text-align: right;
+}
+
+
+
+
 .trend-chart {
     width: 950px;
     margin: 60px auto 20px;

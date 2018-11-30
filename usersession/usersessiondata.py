@@ -1,5 +1,5 @@
 from account.usermastery import BaseRoleAccess
-from usersession.models import * 
+from usersession.models import *
 from django.contrib.auth.models import User, Group
 import datetime
 from dateutil import parser
@@ -7,7 +7,7 @@ from dateutil import parser
 import traceback
 import logging
 logger = logging.getLogger(__name__)
-
+temp = []
 class userSessionPageData(BaseRoleAccess):
 	"""
 	This function is used to fetch the user session data of the user
@@ -16,7 +16,7 @@ class userSessionPageData(BaseRoleAccess):
 		super(self.__class__, self).__init__(user, parentID, parentLevel)
 		# self.topicID = topicID if topicID != '-1' else ''
 		# self.channelID = channelID
-		# 
+		#
 		self.flag = flag
 		if self.flag == 0:
 			start_date = Student.objects.all().order_by('-date').first()
@@ -24,7 +24,7 @@ class userSessionPageData(BaseRoleAccess):
 			self.end = endTimestamp
 			end_date = start_date.date + datetime.timedelta(-7)
 			startTimestamp = int(end_date.timestamp())
-			self.start = startTimestamp 
+			self.start = startTimestamp
 			self.startTimestamp = datetime.date.fromtimestamp(int(startTimestamp)).strftime('%Y-%m-%d')
 			self.endTimestamp = datetime.date.fromtimestamp(int(endTimestamp)).strftime('%Y-%m-%d')
 		else:
@@ -35,6 +35,8 @@ class userSessionPageData(BaseRoleAccess):
 			self.endTimestamp = datetime.date.fromtimestamp(int(endTimestamp)).strftime('%Y-%m-%d')
 		self.parentLevelMethods = [self.getInstitutesData, self.getClassData, self.getStudentData]
 		self.parentLevels = { 'institutes':0, 'school':1, 'class':2, 'students': 3 }
+
+
 
 	def getLogData(self, userSessionElement):
 		""" Used to fetch the log data of each user sessionElement(class, school, student)
@@ -70,21 +72,21 @@ class userSessionPageData(BaseRoleAccess):
 			data(dict): It contains rows of session usage data and it's aggregation
 		"""
 		res = list(map(self.getUserSessionLogDetails, self.institutes))
+		print("getInstitutesData",res)
 		aggregationResult = [res['aggregation'] for res in res]
 		data = self.getUserSessionAggregationData(aggregationResult, res)
-		#data['level'] = self.parentLevel
 		return data
 
 	def getUserSessionAggregationData(self, aggregationResult, userSessionData):
 		""" Used to Calculate the aggregation of each user sessionElements
 		Args:
-			aggregationResult(list) : list of hours of total session usage 
+			aggregationResult(list) : list of hours of total session usage
 			userSessionData(dict) = session data of user sessionElements
 		Returns:
 			data(dict) = it contains aggregation result and usersession data of class, school
 		"""
 		try:
-			data = {}	
+			data = {}
 			sample_metrix = []
 			total_active_time = []
 			avg_active_time = []
@@ -108,7 +110,7 @@ class userSessionPageData(BaseRoleAccess):
 			traceback.print_exc()
 			logger.error(e)
 
-	def getClassData(self):	
+	def getClassData(self):
 		""" Used to fetch usersession class data
 		Args:
 			None
@@ -125,6 +127,7 @@ class userSessionPageData(BaseRoleAccess):
 			res = list(map(self.getUserSessionLogDetails, objClasses))
 			aggregationResult = [res['aggregation'] for res in res]
 			data = self.getUserSessionAggregationData(aggregationResult, res)
+			print("getClassData", data)
 			return data
 		except Exception as e:
 			traceback.print_exc()
@@ -143,8 +146,7 @@ class userSessionPageData(BaseRoleAccess):
 			if not students:
 				return None
 			res = list(map(self.getStudentDetails, students))
-			
-			aggregationResult = [res['aggregation'] for res in res] 
+			aggregationResult = [res['aggregation'] for res in res]
 			data = self.getUserSessionAggregationData(aggregationResult, res)
 			data['level'] = self.parentLevel
 			return data
@@ -164,19 +166,19 @@ class userSessionPageData(BaseRoleAccess):
 			usersession_students = self.getLogData(student)
 			for usersession_student in usersession_students:
 				total_usage += usersession_student.total_usage
-				
+
 			if len(usersession_students) == 0:
 				values = [0, 0]
-				aggregation = [0, 0] 
-				row = {'id': str(student.student_id), 'name': student.student_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage}
+				aggregation = [0, 0]
+				row = {'id': str(student.student_id), 'name': student.student_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage,'total_student':1}
 			else:
 				m, s = divmod(total_usage, 60)
 				h, m = divmod(m, 60)
 				total_active_usage = "%d:%02d:%02d" % (h, m, s)
 				values = [total_active_usage, total_active_usage]
-				
+
 				aggregation = [total_active_usage, total_active_usage]
-				row = {'id': str(student.student_id), 'name': student.student_name, 'values': values, 'aggregation': aggregation, 'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage}
+				row = {'id': str(student.student_id), 'name': student.student_name, 'values': values, 'aggregation': aggregation, 'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage,'total_student':1}
 			return row
 		except Exception as e:
 			traceback.print_exc()
@@ -185,7 +187,7 @@ class userSessionPageData(BaseRoleAccess):
 	def getUserSessionLogDetails(self, usersessionElement):
 		""" Used to fetch user session details of any usersessionElement(i.e class, school and student)
 		Args:
-			usersessionElement(obj): fetched the school and class session details 
+			usersessionElement(obj): fetched the school and class session details
 		Returns:
 			row(dict) : It contains the usersession data of school or class
 		"""
@@ -194,41 +196,41 @@ class userSessionPageData(BaseRoleAccess):
 			rows = []
 			values = []
 			total_usage = 0
-			
+
 			objUsersessionData = self.getLogData(usersessionElement)
 
 			for objUsersession in objUsersessionData:
 				total_usage += int(objUsersession.total_usage)
-			
+
 			# Filter mastery level belongs to a certain class with certain topic id, and within certain time range
 			total_students = usersessionElement.total_students
 			if total_usage == 0:
 				values = [0, 0]
-				aggregation = [0, 0] 
+				aggregation = [0, 0]
 				if self.parentLevel == 0:
-					row = {'id': str(usersessionElement.school_id), 'name': usersessionElement.school_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage}
+					row = {'id': str(usersessionElement.school_id), 'name': usersessionElement.school_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage,'total_student':total_students}
 				else:
-					row = {'id': str(usersessionElement.class_id), 'name': usersessionElement.class_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage}
+					row = {'id': str(usersessionElement.class_id), 'name': usersessionElement.class_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage,'total_student':total_students}
 			else:
 				# Calculate the percentage of completed questions
 				total_usersession_usage = float(total_usage) / total_students
-	
+
 				avg_total_active_usage = self.convert_time(total_usersession_usage)
 				total_usage_data = self.convert_time(total_usage)
-				
+
 				values = [total_usage_data, avg_total_active_usage]
 				aggregation = [total_usage_data, avg_total_active_usage]
 				if self.parentLevel == 0:
-					row = {'id': str(usersessionElement.school_id), 'name': usersessionElement.school_name, 'values': values, 'aggregation':aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage}	
+					row = {'id': str(usersessionElement.school_id), 'name': usersessionElement.school_name, 'values': values, 'aggregation':aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage,'total_student':total_students}
 				else:
-					row = {'id': str(usersessionElement.class_id), 'name': usersessionElement.class_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage}
+					row = {'id': str(usersessionElement.class_id), 'name': usersessionElement.class_name, 'values': values, 'aggregation': aggregation,'startTimestamp':self.start,'endTimestamp':self.end,'flag':self.flag,'total':total_usage,'total_student':total_students}
 			return row
 		except Exception as e:
 			traceback.print_exc()
 			logger.error(e)
 
 
-	def getAggrigation(self, total_hoursList, avg_total_hours_list): 
+	def getAggrigation(self, total_hoursList, avg_total_hours_list):
 		""" Used to calculate the aggregation for each usersessionElement based on metrics data
 		Args:
 			hoursList(list) :  List of total_usage(hours) of kolibri server
@@ -242,7 +244,7 @@ class userSessionPageData(BaseRoleAccess):
 			total_hours_usage = 0
 			# avg_minutes_usage = 0
 			# avg_seconds_usage = 0
-		
+
 			# Calculate the average for these four metrics
 			length = len(total_hoursList)
 			if length != 0:
@@ -259,7 +261,7 @@ class userSessionPageData(BaseRoleAccess):
 
 			    avg_total_active_usage = self.convert_time(avg_hours_usage)
 			    total_active_usage = self.convert_time(total_hours_usage)
-			  
+
 			    values = [total_active_usage, avg_total_active_usage] #, avg_percent_student_completed, 15] # Added for testing last parameter
 			    average = {'name': 'Average', 'values': values}
 			    aggregation.append(average)
@@ -324,8 +326,3 @@ class userSessionPageData(BaseRoleAccess):
 		school_aggr_city = self.getAggrigation_citywise(result['rows'])
 		result['total'] = school_aggr_city
 		return result
-
-
-
-
-

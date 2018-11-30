@@ -29,18 +29,18 @@ var selfServe = false;
 var count = 0;
 var setParenrtLevel = false
 var flag = 0;
-
+var total_count = 0;
 /** Pragma Mark - Starting Points **/
 
 // Update page (incl. new breadcrumb and all table/diagrams)
 // Uses global variables `startTimestamp`, `endTimestamp`, `contentId`, `channelId`, `parentLevel`, and `parentId`
 // Called every time the page needs update
 var updatePageContent = function() {
-    // Making sure `setTableData` happens AFTER `setTableMeta` 
+    // Making sure `setTableData` happens AFTER `setTableMeta`
     removeHtmlClasses();
     var data1 = null;
     var data2 = null;
-    
+
     sendPOSTRequest('/usersession/api/usersession/get-page-meta', {
         startTimestamp: startTimestamp,
         endTimestamp: endTimestamp,
@@ -104,9 +104,9 @@ var checkTableDataConsistancy = function(data1, data2) {
 	}
 };
 
-// Get trend data with specific item id from server (via POST) and sanitize it 
+// Get trend data with specific item id from server (via POST) and sanitize it
 // Used by `drawTrendChart`
-var getTrendData = function(itemId, callback) {    
+var getTrendData = function(itemId, callback) {
     sendPOSTRequest('/usersession/api/usersession/trend', {
         startTimestamp: startTimestamp,
         endTimestamp: endTimestamp,
@@ -117,7 +117,7 @@ var getTrendData = function(itemId, callback) {
     }, function(response) {
 	    verifyTrendResponse(response);
         callback(processTrendData(response.data));
-    });            
+    });
 };
 
 var verifyTrendResponse = function(response) {
@@ -129,7 +129,7 @@ var verifyTrendResponse = function(response) {
 		return;
 	}
 	var data = response.data;
-	
+
 	if (!data.series) {
 		console.error('Data Error: `get-trend` did not return valid series data.');
 		return;
@@ -153,14 +153,14 @@ var verifyTrendResponse = function(response) {
 		console.error('Data Error: `get-trend` did not return valid isPercentage data for series.');
 		return;
 	}
-	
+
 	var nSeries = data.series.length;
 	var pointSize = data.points[0].length;
-	
+
 	if (pointSize != nSeries + 1) {
 		console.error('Data Inconsistency Error: There are ' + nSeries + ' series but ' + pointSize + 'values per point.');
 		return;
-	}	
+	}
 };
 
 // Instantiate date range picker
@@ -203,8 +203,8 @@ var setLoadingInfo = function(message) {
     if (message === null) {
         $('.loading-info-container').addClass('hidden');
         return;
-    }  
-    
+    }
+
     $('.loading-info').html(message);
     $('.loading-info-container').removeClass('hidden');
 };
@@ -216,7 +216,7 @@ var setBreadcrumb = function(data) {
     $('.report-breadcrumb').html('');
     var len = data.breadcrumb.length;
     if (len == 1){
-        parentLevel = data.breadcrumb[0].parentLevel 
+        parentLevel = data.breadcrumb[0].parentLevel
     }
 
     // alert(parentLevel)
@@ -233,11 +233,11 @@ var setBreadcrumb = function(data) {
 var metaSetOnce = false;
 var setTableMeta = function(data) {
     tableMeta = data;
-    
+
     // initialization run only once
     if (!metaSetOnce) {
         metaSetOnce = true;
-        
+
         var sharedLengthMenu = [[10, 25, 50, 100], [10, 25, 50, 100]];
 
         // insert columns
@@ -245,16 +245,16 @@ var setTableMeta = function(data) {
         for (idx in data.metrics) {
             $('#data-table .trend-column').before('<th>' + data.metrics[idx].displayName + '</th>');
             // $('#data-table .trend-column').before('<th> ' + data.metrics[idx].displayName+'<span class="tooltip">'+ data.metrics[idx].toolTip +'</span>' +'</th>');
-            
+
             $('#aggregation-table .trend-column').before('<th>' + data.metrics[idx].displayName + '</th>');
             $('#data-table-aggregation .trend-column').before('<th>' + data.metrics[idx].displayName + '</th>');
             $('#data-compare-table .dropdown-menu').append('<li><a href="#" onclick="setCompareMetricIndex(' + idx + ')">' + data.metrics[idx].displayName + '</a></li>');
             $('#data-performance-table .dropdown-menu-metric').append('<li><a href="#" onclick="setPerformanceMetricIndex(' + idx + ')">' + data.metrics[idx].displayName + '</a></li>');
         }
-        
+
         // initialize tables
 
-        
+
         table = $('#data-table').DataTable({
             columnDefs: [
                 { orderable: false, targets: 3 }
@@ -263,7 +263,7 @@ var setTableMeta = function(data) {
             dom: 'Bfrtip',
             buttons: ['pageLength',
                 {
-                    extend: 'csv',           
+                    extend: 'csv',
                     exportOptions: {
                         columns: [0,1] // indexes of the columns that should be printed,
                     }                      // Exclude indexes that you don't want to print.
@@ -271,29 +271,29 @@ var setTableMeta = function(data) {
                 {
                     extend: 'excel',
                     exportOptions: {
-                        columns: [0,1] 
+                        columns: [0,1]
                     }
 
                 },
                 {
                     extend: 'pdf',
                     exportOptions: {
-                        columns: [0,1] 
+                        columns: [0,1]
                     }
                 }
-            ],  
+            ],
             //buttons: ['pageLength'/*, 'copy'*/, 'csv', 'excel', 'pdf'/*, 'print'*/],
             lengthMenu: sharedLengthMenu
         });
-        
-        
+
+
         aggregationTable = $('#aggregation-table').DataTable({
             paging: false,
             ordering: false,
             info: false,
             bFilter: false
         });
-        
+
         compareTable = $('#data-compare-table').DataTable({
             columnDefs: [
                 { orderable: false, targets: 2 }
@@ -303,7 +303,7 @@ var setTableMeta = function(data) {
             buttons: ['pageLength'],
             lengthMenu: sharedLengthMenu
         });
-        
+
         performanceTable = $('#data-performance-table').DataTable({
             columnDefs: [
                 { orderable: false, targets: 2 }
@@ -322,7 +322,7 @@ var setTableMeta = function(data) {
             dom: 'Bfrtip',
             buttons: ['pageLength',
                 {
-                    extend: 'csv',           
+                    extend: 'csv',
                     exportOptions: {
                         columns: [0,1] // indexes of the columns that should be printed,
                     }                      // Exclude indexes that you don't want to print.
@@ -330,36 +330,36 @@ var setTableMeta = function(data) {
                 {
                     extend: 'excel',
                     exportOptions: {
-                        columns: [0,1] 
+                        columns: [0,1]
                     }
 
                 },
                 {
                     extend: 'pdf',
                     exportOptions: {
-                        columns: [0,1] 
+                        columns: [0,1]
                     }
                 }
-            ],  
+            ],
             //buttons: ['pageLength'/*, 'copy'*/, 'csv', 'excel', 'pdf'/*, 'print'*/],
             lengthMenu: sharedLengthMenu
         });
-    
+
         // manually toggle dropdown; stop event propagation to avoid unintentional table reorders
         $('thead .dropdown button').on('click', function(e){
-            e.stopPropagation();  
+            e.stopPropagation();
             $('.dropdown-' + $(this).attr('id')).dropdown('toggle');
         });
     }
-    
+
     // remove current rows
-    
+
     table.clear();
     citytable.clear();
     compareTable.clear();
     performanceTable.clear();
     aggregationTable.clear();
-    
+
     // insert placeholder rows for data table
     var idx;
     for (idx in data.rows) {
@@ -373,7 +373,7 @@ var setTableMeta = function(data) {
         var rowNode = table.row.add(array).draw(false).node();
         var rowId = 'row-' + data.rows[idx].id;
         $(rowNode).attr('id', rowId);
-        
+
         // compare table
         var compareArray = [drilldownColumnHTML(data.rows[idx].name, data.rows[idx].id)];
         compareArray.push('');
@@ -381,7 +381,7 @@ var setTableMeta = function(data) {
         var compareRowNode = compareTable.row.add(compareArray).draw(false).node();
         var compareRowId = 'row-' + data.rows[idx].id;
         $(compareRowNode).attr('id', rowId);
-        
+
         // performance table
         var performanceArray = [drilldownColumnHTML(data.rows[idx].name, data.rows[idx].id)];
         performanceArray.push('');
@@ -406,12 +406,12 @@ var setTableData = function(data) {
         array.unshift(drilldownColumnHTML(data.rows[idx].name, data.rows[idx].id));
         array.push(drawTrendButtonHTML(data.rows[idx].id, data.rows[idx].name));
         table.row('#row-' + data.rows[idx].id).data(array).draw(false);
-        
+
         // compare table
         var compareArray = [drilldownColumnHTML(data.rows[idx].name, data.rows[idx].id), '', ''];
         compareTable.row('#row-' + data.rows[idx].id).data(compareArray).draw(false);
     }
-    
+
     // add aggregation rows
     for (idx in data.aggregation) {
         var array = data.aggregation[idx].values;
@@ -420,7 +420,6 @@ var setTableData = function(data) {
         aggregationTable.row.add(array).draw(false);
     }
 
-    
     if (data.level == 0){
         for (idx in data.total){
             var array = data.total[idx].values;
@@ -437,8 +436,9 @@ var setTableData = function(data) {
        $("#data-table-aggregation").hide();
        $(".section-title_citywise").hide();
        $("#data-table-aggregation_wrapper").hide();
-    } 
-    
+    }
+
+
     // if (data.level == 2){
     //     $('#data-compare-table .dropdown-menu li a:contains("# Avg Active Usage")').parent().addClass("hide");//.remove('<li><a href="#" onclick="setCompareMetricIndex(' + 1 + ')">' + data.metrics[idx].displayName + '</a></li>');
     // }
@@ -456,16 +456,28 @@ var setTableData = function(data) {
     //     aggregationTable.column(2).visible(true)
     //     table.column(2).visible(true)
     // }
+    total_count = 0;
+    for (idx in data.rows) {
+        total_count+= data.rows[idx]['total_student'];
+      }
+    showTotalStudents(total_count);
     precalculate();
     setCompareMetricIndex(compareMetricIndex);
     setPerformanceMetricIndex(performanceMetricIndex);
 };
 
+var showTotalStudents = function(total_count){
+  var strtotal;
+  strtotal = total_count.toString();
+  $('#totalstudent').text(strtotal)
+}
+
+
 // Calculate statistical values
 var precalculate = function() {
 	compareMaxValues = [];
 	performanceCompareToValues = [];
-	
+
 	var metricIndex;
 	for (metricIndex in tableMeta.metrics) {
 		// find max value
@@ -483,7 +495,7 @@ var precalculate = function() {
 	    }
 	    compareMaxValues[metricIndex] = maxVal;
 	}
-	
+
 	for (metricIndex in tableMeta.metrics) {
 		// update compared-to values
 		var isMinute = (tableData.rows.length > 0) && (typeof tableData.rows[0].values[metricIndex] === 'string');
@@ -499,26 +511,26 @@ var precalculate = function() {
             values.push(0);
            }
 	    }
-	    
-	    values.sort(function(a, b) { 
+
+	    values.sort(function(a, b) {
 	        return a - b;
 	    });
-	    
+
 	    // var min = values[0];
         var min = parseFloat(values[0].toFixed(2));
 	    // var max = values[values.length - 1];
         var max = parseFloat(values[values.length - 1].toFixed(2));
 	    var sum = values.reduce(function(a, b) {
-	        return a + b; 
+	        return a + b;
 	    }, 0);
 	    var average = sum / values.length;
 	    var half = Math.floor(values.length / 2);
 	    var median = (values.length % 2) ? values[half] : ((values[half-1] + values[half]) / 2.0);
         var median = median.toFixed(1);
 	    var suffix = isMinute ? ' (Min)' : '';
-	    
+
 	    // set globals
-	    
+
 	    performanceCompareToValues[metricIndex] = {
 	        min: min,
 	        max: max,
@@ -537,7 +549,7 @@ var setCompareMetricIndex = function(metricIndex) {
     compareMetricIndex = metricIndex;
     var metricName = tableMeta.metrics[metricIndex].displayName;
     $('#data-compare-table .current-metric').html(metricName);
-    
+
     // find max value
     var maxValue = compareMaxValues[metricIndex];
     var idx;
@@ -548,12 +560,12 @@ var setCompareMetricIndex = function(metricIndex) {
         // var rowValue = parseFloat(tableData.rows[idx].values[metricIndex]);
         var percentage = Math.round(maxValue == 0 ? 0 : (rowValue / maxValue * 100));
         var barHTML =   '<div class="progress">'+
-                        '<div class="progress-bar" role="progressbar" aria-valuenow="' + percentage + 
+                        '<div class="progress-bar" role="progressbar" aria-valuenow="' + percentage +
                         '" aria-valuemin="0" aria-valuemax="100" style="width: ' + percentage + '%;">'+
                         '</div></div>';
         var compareArray = [
-            drilldownColumnHTML(tableData.rows[idx].name, tableData.rows[idx].id), 
-            tableData.rows[idx].values[metricIndex], 
+            drilldownColumnHTML(tableData.rows[idx].name, tableData.rows[idx].id),
+            tableData.rows[idx].values[metricIndex],
             barHTML
         ];
         compareTable.row('#row-' + tableData.rows[idx].id).data(compareArray).draw(false);
@@ -569,14 +581,14 @@ var setPerformanceMetricIndex = function(metricIndex) {
     $('#data-performance-table .current-metric').text(metricName);
 
 	var vals = performanceCompareToValues[metricIndex];
-    
+
     // update dropdown
-    
+
     $('.compare-max a').text('Max: ' + vals.max + vals.suffix);
     $('.compare-min a').text('Min: ' + vals.min + vals.suffix);
     $('.compare-average a').text('Average: ' + (Math.round(vals.average * 10) / 10) + vals.suffix);
     $('.compare-median a').text('Median: ' + vals.median + vals.suffix);
-    
+
     // update dropdown title and bars
     // updating compare metric will also affect the value of chosen compared values (different base values)
     updatePerformanceView();
@@ -595,12 +607,12 @@ var drawTrendChart = function(itemId, itemName) {
     dismissTrendChart();
     getTrendData(itemId, function(trendData) {
         var chartData = new google.visualization.DataTable();
-        
+
         if (trendData.points.length == 0) {
             toastr.info('No trend data is available for the selected period.');
             return;
         }
-        
+
         var earlyDate = trendData.points[0][0];
         var lateDate = trendData.points[trendData.points.length - 1][0];
         var options = {
@@ -620,28 +632,28 @@ var drawTrendChart = function(itemId, itemName) {
                 }
             }
         };
-        
+
         chartData.addColumn('date', 'Date');
-        
+
         var seriesIndex = 0;
         var idx;
-            
+
         for (idx in trendData.series) {
             var dict = trendData.series[idx];
             var type = dict.isPercentage ? 'percentage' : 'number';
             chartData.addColumn('number', dict.name);
             options.series[seriesIndex++] = {axis: type};
         }
-        
+
         chartData.addRows(trendData.points);
 
         var chartContainer = document.getElementById('chart-wrapper');
         var chart = new google.charts.Line(chartContainer);
-        
+
 
         chart.draw(chartData, options);
         setTrendChartVisible(true);
-        
+
 
         // scroll to chart w/ animation
         $('html, body').animate({
@@ -658,7 +670,7 @@ var switchView = function(viewId) {
     $('.switch-view-button').addClass('btn-default');
     $('.switch-view-button-' + viewId).removeClass('btn-default');
     $('.switch-view-button-' + viewId).addClass('btn-primary current');
-    
+
     $('.report-view').addClass('hidden');
     $('.report-view-' + viewId).removeClass('hidden');
 };
@@ -748,7 +760,7 @@ var appendBreadcrumbItem = function(name, level, id, isLast) {
             html += ' > ';
         }
     }
-    
+
     $('.report-breadcrumb').append(html);
 };
 
@@ -772,10 +784,10 @@ var _setTopics = function(toArray, dataArray) {
 
 // Returns the HTML code for draw trend button
 var drawTrendButtonHTML = function(itemId, itemName) {
-    return '<button class="btn btn-default draw-trend-button" onclick="drawTrendChart(\'' 
+    return '<button class="btn btn-default draw-trend-button" onclick="drawTrendChart(\''
            + itemId + '\', \'' + itemName + '\')"><i class="fa fa-line-chart" aria-hidden="true"></i> Show Trend</button>';
 };
-        
+
 // HTML code of drilldown column in data table
 var drilldownColumnHTML = function(name, id) {
     if (parentLevel + 1 === maxItemLevel) {
@@ -787,7 +799,7 @@ var drilldownColumnHTML = function(name, id) {
 
 // Trend data preprocessing. Converts timestamp to date object.
 var processTrendData = function(data) {
-    // API issue: data.points and data.data are both used historically. 
+    // API issue: data.points and data.data are both used historically.
     // We use data.points as the official one but accept data.data also as a compatibility patch.
     if (data.data !== null && data.points === null) {
         data.points = data.data;
@@ -799,7 +811,7 @@ var processTrendData = function(data) {
         var dateObject = new Date(timestamp * 1000);
         data.points[idx][0] = dateObject;
     }
-    
+
     return data;
 };
 
@@ -815,11 +827,11 @@ var setTrendChartVisible = function(visible) {
 // Update the title of compared value and all actual table rows in performance view
 var updatePerformanceView = function() {
     var vals = performanceCompareToValues[performanceMetricIndex];
-    
+
     // dropdown title and pivot value
-    
+
     var pivot;
-    
+
     if (performanceCompareToValueName === 'max') {
         $('.current-compared-value').text('Max: ' + (vals.max) + vals.suffix);
         pivot = vals.max;
@@ -836,9 +848,9 @@ var updatePerformanceView = function() {
         $('.current-compared-value').text('Median: ' + (vals.median) + vals.suffix);
         pivot = vals.median;
     }
-    
+
     // table rows
-    
+
     // some notes:
     // `raw value` is the original value of the data item; it can be any positive number
     // `pivot` is the value against which all `raw value`s are compared; it can be a max value, min value, average value or median value of all `raw value`s
@@ -846,11 +858,11 @@ var updatePerformanceView = function() {
     // `max` is the maximum `compare value`, but no less then 100
     // `min` is the minimum `compare value`, but no more then -100
     // `positive value` and `negative value` are `compare value`s scaled to a -100~100 range, when taking all `compare value`s into consideration. Only one will contain a non-zero number, dependending on the value's negativity.
-    
+
     var max = 100;
     var min = -100;
     var idx;
-    
+
     for (idx in tableData.rows) {
 
         var totaltimeMinutes = convertTimetoMin(tableData.rows[idx].values[performanceMetricIndex]);
@@ -864,7 +876,7 @@ var updatePerformanceView = function() {
             min = compareValue;
         }
     }
-    
+
     for (idx in tableData.rows) {
         var totaltimeMinutes = convertTimetoMin(tableData.rows[idx].values[performanceMetricIndex]);
         // var rawValue = parseFloat(tableData.rows[idx].values[performanceMetricIndex]);
@@ -872,10 +884,10 @@ var updatePerformanceView = function() {
         var compareValue = (rawValue - pivot) / pivot * 100;
         var positiveValue = 0;
         var negativeValue = 0;
-        
+
         var negativeLabel = '';
         var positiveLabel = '';
-                
+
         if (compareValue > 0) {
             positiveValue = compareValue / max * 100;
             positiveLabel = '+' + (Math.round(compareValue * 10) / 10) + '%';
@@ -883,18 +895,18 @@ var updatePerformanceView = function() {
             negativeValue = compareValue / min * 100; // the variable holds a positive number, but `represents` a negative value
             negativeLabel = (Math.round(compareValue * 10) / 10) + '%';
         }
-        
+
         var barHTML =   '<div class="progress progress-negative">' +
-                        '<div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="' + negativeValue + 
+                        '<div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="' + negativeValue +
                         '" aria-valuemin="0" aria-valuemax="100" style="width: ' + negativeValue + '%;">' + negativeLabel +
                         '</div></div>' +
                         '<div class="progress progress-positive">' +
-                        '<div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="' + positiveValue + 
+                        '<div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="' + positiveValue +
                         '" aria-valuemin="0" aria-valuemax="100" style="width: ' + positiveValue + '%;">' + positiveLabel +
                         '</div></div>';
-                        
+
         var array = [drilldownColumnHTML(tableData.rows[idx].name, tableData.rows[idx].id), tableData.rows[idx].values[performanceMetricIndex], barHTML];
-        
+
         performanceTable.row('#row-' + tableData.rows[idx].id).data(array).draw(false);
     }
 };
@@ -903,7 +915,7 @@ var sendPOSTRequest = function(url, dataObject, callback) {
     if (selfServe) {
         sendPOSTRequest_test(url, dataObject, callback);
     } else {
-        sendPOSTRequest_real(url, dataObject, callback);  
+        sendPOSTRequest_real(url, dataObject, callback);
     }
 };
 
@@ -927,12 +939,12 @@ function getCookie(name) {
 var sendPOSTRequest_real = function(url, dataObject, callback) {
     pendingRequests++;
     updateLoadingInfo();
-    
+
     if (debug) {
         console.log('POST request sent to: ' + JSON.stringify(url) + '. POST data: ' + JSON.stringify(dataObject));
     }
-    
-    var csrftoken = getCookie('csrftoken'); 
+
+    var csrftoken = getCookie('csrftoken');
     $.ajax({
         type: 'POST',
         url: url,
@@ -980,16 +992,13 @@ var getRandomInt = function(min, max) {
 }
 
 var removeHtmlClasses = function(){
-    $(".totalquestions-breadcrumb").remove();
     $(".topic").remove();
     var active = document.querySelector(".report-breadcrumb");
-    active.classList.remove("col-md-7");
 
 }
-
 var convertTimetoMin = function(totaltime){
     if (totaltime){
-    var res = totaltime.split(":"); 
+    var res = totaltime.split(":");
     var totaltimeMin = parseFloat(res[0])*3600 + parseFloat(res[1])*60 + parseFloat(res[2]);
     return totaltimeMin;
     }
