@@ -84,3 +84,8 @@ class LatestFetchDate(models.Model):
     date_id = models.IntegerField(primary_key=True)
     latest_date = models.DateTimeField()
 
+class City(models.Model):
+    city_id = models.BigIntegerField(primary_key=True)
+    city_name = models.CharField(max_length=60)
+    city_initial = models.CharField(max_length=20)
+
