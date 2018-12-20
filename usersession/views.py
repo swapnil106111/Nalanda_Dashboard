@@ -9,7 +9,7 @@ from account.views import construct_response
 from account.models import UserInfoSchool, UserInfoClass, UserInfoStudent
 from usersession.models import *
 import traceback
-
+from django.conf import settings
 import logging
 
 logger = logging.getLogger(__name__)
@@ -63,6 +63,17 @@ def get_page_data_view(request):
         print (e)
         logger.error(e)
 
+@login_required(login_url='/account/login/')        
+def get_superset_data(request):
+    try:
+        if request.method == 'GET':
+            graph_URL = settings.URL + 'Usersession Dashboard' 
+            return render(request, 'userseesion_superset.html', {'graph_URL':graph_URL})
+    except Exception as e:
+        traceback.print_exc()
+        print (e)
+        logger.error(e)
+
 @login_required(login_url='/account/login/')
 def get_trend_data_view(request):
     """
@@ -80,12 +91,7 @@ def get_trend_data_view(request):
             item_id = params.get('itemId')
             data = None
             content = None
-            # if topic_id == "-1":
-            #     content = Content.objects.filter(topic_id='').first()
-            # else:
-            #     content = Content.objects.filter(topic_id=topic_id,channel_id=channel_id).first()
-            # total_questions = content.total_questions
-            # sub_topics_total = content.sub_topics_total
+
             total_students = 1.0
             if level == -1 or level == 0:
                 pass
