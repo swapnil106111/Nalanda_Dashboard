@@ -1,0 +1,14 @@
+<!DOCTYPE HTML>
+{% extends "base_site.html" %}
+
+{% block content %}
+<div class="report mastery">
+    <div id="main" class="site-main">
+        <div class="content-area">
+            <div id="primary" class="site-content">
+               <iframe width="100%" height="500"  src="{{graph_URL}}" frameborder="0" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
