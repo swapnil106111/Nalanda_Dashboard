@@ -1,16 +1,17 @@
 from django.shortcuts import render, HttpResponse
 from account.views import construct_response
 from account.models import UserInfoClass, UserInfoSchool, UserInfoStudent
-import json 
+import json
 from .contentusagereport import ContentUsageMeta, ContentUsageData, SchoolDetails, TrendDetails
 from contentusage.constants import *
+from django.contrib.auth.decorators import login_required
 
 # import the logging library
 import logging
 
 logger = logging.getLogger(__name__)
 # Create your views here.
-
+@login_required(login_url='/account/login/')
 def get_schools(request):
 	"""
 	This function gets all schools and classes in the database
@@ -36,7 +37,7 @@ def get_schools(request):
 			return HttpResponse(response_text,content_type='application/json')
 	except Exception as e:
 		logger.error(e)
-
+@login_required(login_url='/account/login/')
 def get_contentusage_page_meta(request):
 	try:
 		if request.method == 'POST':
@@ -58,7 +59,7 @@ def get_contentusage_page_meta(request):
 			return HttpResponse(response_text,content_type='application/json')
 	except Exception as e:
 		logger.error(e)
-
+@login_required(login_url='/account/login/')
 def get_contentusage_page_data(request):
 	try:
 		if request.method == 'POST':
@@ -89,7 +90,7 @@ def get_contentusage_page_data(request):
 			return HttpResponse(response_text,content_type='application/json')
 	except Exception as e:
 		logger.error(e)
-
+@login_required(login_url='/account/login/')
 def get_trend_data(request):
 	try:
 		if request.method == 'POST':
@@ -118,7 +119,7 @@ def get_trend_data(request):
 		return HttpResponse(response_text,content_type='application/json')
 	except Exception as e:
 		logger.error(e)
-
+@login_required(login_url='/account/login/')
 def get_contentusage(request):
     if request.method == 'GET':
         return render(request,'contentusagereport.html', {})
