@@ -67,7 +67,8 @@ def get_page_data_view(request):
 def get_superset_data(request):
     try:
         if request.method == 'GET':
-            graph_URL = settings.URL + 'Usersession Dashboard' 
+            graph_URL = settings.URL % (settings.USERNAME, settings.DASHBOARD)
+            print ("graph_URL:", graph_URL)
             return render(request, 'userseesion_superset.html', {'graph_URL':graph_URL})
     except Exception as e:
         traceback.print_exc()
