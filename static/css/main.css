@@ -388,6 +388,10 @@ input.daterangepickerenddate {
     padding: 5px 15px;
 }
 
+.superset-usersession-button {
+    display: inline-block;
+    padding: 5px 50px;
+}
 .report-view {
     display: block;
 }
