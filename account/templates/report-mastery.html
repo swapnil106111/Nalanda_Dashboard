@@ -61,8 +61,16 @@
                         <h1 class="page-title">Report: Student Mastery</h1>
                     {%endif%}
                     {% if usersessioncode == 1%}
-                        <h1 class="page-title">Report: User Session</h1>
+                        <div><h1 class="page-title">Report: User Session</h1></div>
+                        
+                        <div class ="superset-usersession-button">
+                            <a href="/usersession/api/usersession/superset_data" id="superset_usersession" class="btn btn-primary btn-sm">
+                            <i class="glyphicon glyphicon-signal" aria-hidden="true"></i><span class="text">  Graphs</span>
+                            </a>
+                        </div>
+
                     {%endif%}
+                    
                     <div class="btn-group report-types" role="group">
                         <button type="button" class="btn btn-primary switch-view-button switch-view-button-1 current" onclick="switchView(1);">
                         	<i class="fa fa-table" aria-hidden="true"></i><span class="text"> Table</span>
@@ -102,6 +110,7 @@
                         <div class="datepicker-title">End Date:</div>
                         <input class="daterangepickerenddate" name="daterange">
                     </div>
+
                 </div>
                 {% if usersessioncode == 2%}
                 <div class="report-breadcrumb col-md-7">
