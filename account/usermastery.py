@@ -423,7 +423,7 @@ class UserMasteryData(BaseRoleAccess):
 			for row in masteryData:
 				row.pop('aggregation', None)
 
-			aggregation = self.getAggrigation(mastered_topics, number_of_exercise_attempts_list,percent_mastered_topics, number_of_attempts_array,correct_questionsList,percent_correct_array)
+			aggregation = self.getAggrigation(mastered_topics, number_of_exercise_attempts_list,percent_mastered_topics, correct_questionsList, number_of_attempts_array,percent_correct_array)
 			data['rows'] = masteryData
 			data['aggregation'] = aggregation
 			return data
@@ -636,7 +636,7 @@ class UserMasteryData(BaseRoleAccess):
 			    # else: # Added for Testing
 			    #      avg_percent_student_completed /= length # Added for Testing
 			    #      avg_percent_student_completed = "{0:.2%}".format(avg_percent_student_completed) # Added for Testing
-			    values = [str(int(avg_mastered_topics)), int(avg_number_of_exercise_attempts) ,"{0:.2%}".format(avg_percent_mastered_topics), str(int(avg_correct)), str(int(avg_number_of_attempts)),"{0:.2%}".format(avg_percent_correct)] #, avg_percent_student_completed, 15] # Added for testing last parameter
+			    values = [str(int(avg_mastered_topics)), int(avg_number_of_exercise_attempts) ,"{0:.2%}".format(avg_percent_mastered_topics),str(int(avg_correct)), str(int(avg_number_of_attempts)), "{0:.2%}".format(avg_percent_correct)] #, avg_percent_student_completed, 15] # Added for testing last parameter
 
 			    average = {'name': 'Average', 'values': values}
 			    aggregation.append(average)
