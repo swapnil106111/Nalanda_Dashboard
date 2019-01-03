@@ -4,10 +4,17 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 # Create your models here.
 
+class City(models.Model):
+    city_id = models.BigIntegerField(primary_key=True)
+    city_name = models.CharField(max_length=60)
+    city_initial = models.CharField(max_length=20)
+
 class UserInfoSchool(models.Model):
     school_id = models.BigIntegerField(primary_key=True)
     school_name = models.CharField(max_length=60)
     total_students = models.IntegerField()
+    parent = models.IntegerField(default = 0)
+    datetime = models.DateTimeField(null=True)
 
     def __str__(self):
     	return self.school_name
@@ -83,9 +90,3 @@ class MasteryLevelSchool(models.Model):
 class LatestFetchDate(models.Model):
     date_id = models.IntegerField(primary_key=True)
     latest_date = models.DateTimeField()
-
-class City(models.Model):
-    city_id = models.BigIntegerField(primary_key=True)
-    city_name = models.CharField(max_length=60)
-    city_initial = models.CharField(max_length=20)
-
