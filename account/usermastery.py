@@ -555,7 +555,7 @@ class UserMasteryData(BaseRoleAccess):
 
 			# Filter mastery level belongs to a certain class with certain topic id, and within certain time range
 			total_students = masteryElement.total_students
-			if total_questions == 0 or total_students == 0 or completed_questions ==0 or correct_questions == 0 or number_of_exercise_attempts == 0:
+			if total_questions == 0 or total_students == 0 or correct_questions == 0 or number_of_exercise_attempts == 0:
 				values = [0,0,"0.00%",0,0,"0.00%"]
 				aggregation = [0,0,0.00, 0, 0,0.00]
 				if self.parentLevel == 0:
