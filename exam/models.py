@@ -8,7 +8,7 @@ class Exam(models.Model):
     date = models.DateTimeField()
     channel_id = models.CharField(max_length=32)
     question_count = models.IntegerField()
-    class_id = models.CharField(max_length=60)
+    class_id = models.CharField(max_length=60,default = 0)
     student_id = models.CharField(max_length=60)
     correct_questions = models.IntegerField()
     question_sources = models.TextField(null=True)
