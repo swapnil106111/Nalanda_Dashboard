@@ -110,8 +110,8 @@
                         <div class="datepicker-title">End Date:</div>
                         <input class="daterangepickerenddate" name="daterange">
                     </div>
-
                 </div>
+
                 {% if usersessioncode == 2%}
                 <div class="report-breadcrumb col-md-7">
                 </div>
@@ -123,7 +123,6 @@
 
                 {% if usersessioncode == 1%}
                 <div class="report-breadcrumb col-md-7">
-
                 </div>
                 <div class=" totalquestions-breadcrumb col-md-5 pull-right">
                     <strong>Total Students:</strong><label id="totalstudent"></label>
@@ -147,21 +146,17 @@
 
 
                         {% if usersessioncode == 1%}
-                             <div class="report-content">
-                                <div class="table-view report-view report-view-1">
-                                    <h2 class="section-title_citywise">Citywise Aggregation Table View</h2>
-                                    <table id="data-table-aggregation" class="display" cellspacing="0" width="100%">
-                                            <thead>
-                                                <tr>
-                                                    <th class="name-column">City</th>
+                            <h2 class="section-title_citywise">Citywise Aggregation Table View</h2>
+                            <table id="data-table-aggregation" class="display" cellspacing="0" width="100%">
+                                    <thead>
+                                        <tr>
+                                            <th class="name-column">City</th>
 
-                                                    <th class="trend-column"></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody><!--data rows--></tbody>
-                                    </table>
-                                <div>
-                            </div>
+                                            <th class="trend-column"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody><!--data rows--></tbody>
+                            </table>
                         {%endif%}
 
                         <h2 class="section-title">Aggregations</h2>
