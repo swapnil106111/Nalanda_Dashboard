@@ -438,7 +438,6 @@ var setTableData = function(data) {
        $("#data-table-aggregation_wrapper").hide();
     }
 
-
     // if (data.level == 2){
     //     $('#data-compare-table .dropdown-menu li a:contains("# Avg Active Usage")').parent().addClass("hide");//.remove('<li><a href="#" onclick="setCompareMetricIndex(' + 1 + ')">' + data.metrics[idx].displayName + '</a></li>');
     // }
@@ -992,9 +991,10 @@ var getRandomInt = function(min, max) {
 }
 
 var removeHtmlClasses = function(){
+    //$(".totalquestions-breadcrumb").remove();
     $(".topic").remove();
     var active = document.querySelector(".report-breadcrumb");
-
+    //active.classList.remove("col-md-7");
 }
 var convertTimetoMin = function(totaltime){
     if (totaltime){
