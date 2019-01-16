@@ -131,15 +131,20 @@ class LessonMastery(object):
 				res1 = []
 				filter_lessons['student_id']=student['student_id']
 				filter_lessons['content_id'] = content_id
-				res = (MasteryLevelStudent.objects.filter(**filter_lessons).values_list('completed_questions','correct_questions','mastered')) 
-				
-				if not res:
-					for i in range(len (self.metrics_list)):
-						i_student.append(0)
+				res = MasteryLevelStudent.objects.filter(**filter_lessons).values_list('attempt_questions','correct_questions','mastered')
+					
 				if res:
-					res1 = list(chain(*res))
-					#print ('RES :',res1)
+					list_of_lists = [list(elem) for elem in res]
+					for el in list_of_lists:
+						if el[2] == 1:
+							el[2] = 'Y'
+						else:
+							el[2] = 'N'
+					res1 = list(chain(*list_of_lists))
 					i_student.extend(res1)	
+				else:
+					for i in range(len (self.metrics_list)):
+						i_student.append('-')
 			student_res_list.append(i_student)
 			i_student = []
 		return student_res_list
