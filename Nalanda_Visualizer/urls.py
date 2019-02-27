@@ -28,5 +28,6 @@ urlpatterns = [
     url(r'^contentusage/', include('contentusage.urls')),
     url(r'^lesson/', include('lesson.urls')),
     url(r'^exam/', include('exam.urls')),
+    url(r'^sync_report/',include('sync_report.urls')),
     url(r'^admin/', admin.site.urls)
 ]
