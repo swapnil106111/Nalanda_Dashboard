@@ -13,8 +13,8 @@ class UserInfoSchool(models.Model):
     school_id = models.BigIntegerField(primary_key=True)
     school_name = models.CharField(max_length=60)
     total_students = models.IntegerField()
-    parent = models.IntegerField(default = 0)
-    datetime = models.DateTimeField(null=True)
+    # parent = models.IntegerField(default = 0)
+    # datetime = models.DateTimeField(null=True)
 
     def __str__(self):
     	return self.school_name
