@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'contentusage',
     'lesson',
     'exam',
+    'sync_report',
 ]
 
 MIDDLEWARE = [
