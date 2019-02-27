@@ -73,6 +73,10 @@ body.report.mastery {
     text-decoration: none !important;
 }
 
+.modal-fade {
+    left: 80px; 
+    top: 100px;
+}
 
 .log-out {
     color: #000;
