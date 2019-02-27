@@ -1,0 +1,4 @@
+
+p = last_sync_date.objects.values('school_id').distinct()
+temp = [i.school_id for i in p ]
+last_sync_date.objects.filter(school_id__in = temp).values('school_id','school_name','class_name').annotate(Max('sync_date'))

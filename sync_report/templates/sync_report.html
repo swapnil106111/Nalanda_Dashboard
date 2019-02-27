@@ -1,0 +1,131 @@
+<!DOCTYPE HTML>
+{% extends "base_site.html" %}
+    {% block style %}
+        <link rel="stylesheet" type="text/css" href="/static/css/datatables.min.css"/>
+        <link rel="stylesheet" type="text/css" href="/static/node_modules/bootstrap/js/modal.js">
+        <link rel="stylesheet" type="text/css" href="/static/node_modules/bootstrap-daterangepicker/daterangepicker.css">
+        <link rel="stylesheet" href="/static/node_modules/toastr/build/toastr.min.css" media="all">
+        <link rel="stylesheet" href="/static/node_modules/font-awesome/css/font-awesome.min.css">
+        <link rel="stylesheet" href="/static/node_modules/jquery.fancytree/dist/skin-lion/ui.fancytree.min.css" media="all">
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet">
+
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=EDGE">
+    {% endblock style %}
+
+    {% block script %}
+        <!-- jquery -->
+        <script type="text/javascript" src="/static/node_modules/jquery/dist/jquery.min.js"></script>
+        <!-- bootstrap -->
+        <script type="text/javascript" src="/static/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+        <!-- jquery fancytree -->
+        <script type="text/javascript" src="/static/node_modules/jquery.fancytree/dist/jquery.fancytree-all-deps.min.js"></script>
+        <!-- datatables -->
+        <script type="text/javascript" src="/static/js/datatables.min.js"></script>
+        <!-- bootstrap daterangepicker -->
+        <script type="text/javascript" src="/static/node_modules/moment/min/moment.min.js"></script>
+        <script type="text/javascript" src="/static/node_modules/bootstrap-daterangepicker/daterangepicker.js"></script>
+        <!-- font awesome -->
+        <!-- google charts -->
+        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+        <!-- toastr -->
+        <script type="text/javascript" src="/static/node_modules/toastr/build/toastr.min.js"></script>
+        <!-- google fonts -->
+        <!-- PAGE SPECIFICS -->
+        <script type="text/javascript" src="/static/js/sync_report/sync_report.js"></script>
+
+        <script type="text/javascript" src="/static/js/account/common.js"></script>
+    {% endblock script %}
+
+    {% block title %}Sync Report{% endblock title %}
+
+{% block content %}
+<div class="report mastery">
+    <div id="main" class="site-main">
+        <div class="content-area">
+            <div id="primary" class="site-content">
+                <div class="report-header">
+                    <h1 class="page-title">Report: Sync Metrics</h1>
+                    <input type="hidden" id="userid" name="role" value={{ user.groups.values.0.id }}>
+
+
+                    <div class="clearfix"></div>
+                </div>
+                <div class="report-settings row">
+
+                    <div class="school">
+                        City: 
+                        <button class="btn btn-default toggle-button" type="button">
+                            <span class="school-dropdown-text">All</span>
+                            <span class="caret"></span>
+                        </button>
+                    
+                        <div id="school-dropdown-container" class="school-dropdown-container">
+    
+                            <div id="schools-tree"></div>
+                            <div class="controls">
+                                <button class="btn btn-success btn-xs apply-button" onclick="applyAndDismissSchoolDropdown();">Apply</button>
+                                <button class="btn btn-default btn-xs cancel-button" onclick="closeSchoolDropdown();">Cancel</button>
+                            </div>
+                            
+
+                         <!--    <div id="modal" class="modal-content" >
+                                <div class="modal-header">
+                                  <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                  <h4 class="modal-title">Modal Header</h4>
+                                </div>
+                                <div class="modal-body">
+                                  <p>This is a small modal.</p>
+                                </div>
+                                <div class="modal-footer">
+                                  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                </div>
+                            </div> -->
+                        </div>
+                    </div>
+               
+                </div>
+
+                <br>
+                <div class="report-breadcrumb ">
+                </div>
+
+            <!-- Trigger the modal with a button -->
+           <!--  <button type="button" class="btn btn-info" data-toggle="modal" data-target="#topics" id = "t_button">Topics</button> -->
+            <!-- Modal -->
+            <!-- Modal -->
+            <div class="modal fade modal-fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                             <h4 class="modal-title" id="myModalLabel">Server Sync History</h4>
+
+                        </div>
+                        <div class="modal-body">
+                            <table id="dates"></table>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+  
+            <div class="report-content" >
+                <div class="table-view report-view report-view-1 ">
+                    <h2 class="section-title">Table View</h2>
+                    <table id="data-table" class="display" cellspacing="2" width="100%">
+                    </table>
+                    <div id="container123"></div>
+                </div>
+                </div>
+                <div class="loading-info-container hidden">
+                    <div class="loading-info">Loading…</div>
+                </div>
+                <div class="prevents-interaction hidden"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
